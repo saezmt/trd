@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La Mansión Calabaza</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Griffy&family=Baloo+2:wght@400;600;800&display=swap">
+<style>
+/* Layout: una sola "escena" central tipo carta de juego, con barra de marcador arriba y el recorrido abajo. Tema nocturno fijo. */
+:root {
+  --night: #170f2b;
+  --night-2: #241843;
+  --ink: #f6eeff;
+  --muted: #b9a8d9;
+  --pumpkin: #ff8a1f;
+  --pumpkin-deep: #d9620a;
+  --slime: #9be564;
+  --candle: #ffd36b;
+  --blood: #ff5c7a;
+  --card: #2b1d4f;
+  --card-edge: #4a3680;
+  --display: "Griffy", "Papyrus", fantasy;
+  --body: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--body);
+  font-size: 18px;
+  line-height: 1.45;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 85% 8%, rgba(255, 211, 107, .22) 0 60px, transparent 61px),
+    radial-gradient(ellipse at 50% 120%, #3b1f5e 0%, transparent 60%),
+    var(--night);
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+.wrap { max-width: 760px; margin: 0 auto; padding-inline: 16px; padding-block: 12px 40px; position: relative; z-index: 1; }
+
+/* Murciélagos de fondo */
+.bats { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.bat { position: absolute; font-size: 28px; opacity: .55; animation: fly 18s linear infinite; }
+.bat:nth-child(2) { top: 30%; animation-duration: 24s; animation-delay: -8s; font-size: 20px; }
+.bat:nth-child(3) { top: 62%; animation-duration: 21s; animation-delay: -14s; font-size: 24px; }
+.bat:nth-child(1) { top: 12%; }
+@keyframes fly {
+  0% { transform: translate(-10vw, 0); }
+  25% { transform: translate(25vw, -30px); }
+  50% { transform: translate(55vw, 20px); }
+  75% { transform: translate(85vw, -20px); }
+  100% { transform: translate(115vw, 0); }
+}
+
+header.bar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px;
+  padding-block: 6px 12px;
+}
+.logo { font-family: var(--display); font-size: clamp(26px, 6vw, 38px); color: var(--pumpkin); margin: 0; letter-spacing: .5px; text-shadow: 0 3px 0 #000, 0 0 18px rgba(255, 138, 31, .45); }
+.stats { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.stat { background: var(--night-2); border: 2px solid var(--card-edge); border-radius: 999px; padding: 2px 12px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stat .lbl { font-weight: 600; color: var(--muted); font-size: 14px; margin-right: 4px; }
+.icon-btn { background: var(--night-2); color: var(--ink); border: 2px solid var(--card-edge); border-radius: 999px; padding: 2px 12px; font: inherit; font-weight: 700; cursor: pointer; }
+.icon-btn:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--candle); outline-offset: 2px; }
+
+.card {
+  background: linear-gradient(180deg, var(--card), #22173f);
+  border: 3px solid var(--card-edge);
+  border-radius: 22px;
+  padding: clamp(18px, 4vw, 30px);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .06);
+  animation: rise .45s ease-out;
+}
+@keyframes rise { from { transform: translateY(14px); opacity: .3; } to { transform: none; opacity: 1; } }
+
+.room-tag { font-size: 14px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slime); font-weight: 800; }
+h2 { font-family: var(--display); font-weight: 400; font-size: clamp(28px, 6vw, 40px); margin: 2px 0 6px; color: var(--candle); text-wrap: balance; line-height: 1.1; }
+.art { font-size: clamp(46px, 12vw, 72px); text-align: center; letter-spacing: 6px; margin: 4px 0 6px; filter: drop-shadow(0 6px 10px rgba(0,0,0,.5)); }
+.art.wobble { animation: wobble 3s ease-in-out infinite; }
+@keyframes wobble { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg) translateY(-4px); } }
+.story { color: var(--ink); margin: 0 0 14px; }
+.story em { color: var(--candle); font-style: normal; font-weight: 700; }
+
+.challenge { background: rgba(0, 0, 0, .25); border: 2px dashed var(--card-edge); border-radius: 16px; padding: 16px; margin-top: 10px; }
+.cat { display: inline-block; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 2px 10px; border-radius: 999px; margin-bottom: 8px; color: #1b1030; }
+.cat.mates { background: var(--pumpkin); }
+.cat.geo { background: var(--slime); }
+.cat.geom { background: var(--candle); }
+.q { font-size: 20px; font-weight: 600; margin: 0 0 12px; }
+.figure { display: flex; justify-content: center; margin: 6px 0 12px; }
+.figure svg { max-width: 100%; height: auto; }
+
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.btn {
+  font: inherit; font-weight: 800; font-size: 19px; cursor: pointer;
+  background: var(--night-2); color: var(--ink);
+  border: 3px solid var(--card-edge); border-radius: 14px; padding: 10px 14px;
+  transition: transform .12s, background .12s, border-color .12s;
+}
+.btn:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--pumpkin); background: #33245e; }
+.btn:disabled { opacity: .35; cursor: not-allowed; text-decoration: line-through; }
+.btn.primary { background: var(--pumpkin); color: #2a1300; border-color: var(--pumpkin-deep); box-shadow: 0 5px 0 var(--pumpkin-deep); }
+.btn.primary:hover { background: #ff9c3f; border-color: var(--pumpkin-deep); }
+.btn.gold { background: linear-gradient(180deg, #ffe08a, #e0a91a); color: #3a2600; border-color: #b8860b; box-shadow: 0 5px 0 #8a6408; }
+.answer-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.answer-row input {
+  font: inherit; font-size: 24px; font-weight: 800; width: 140px; text-align: center;
+  background: #120b22; color: var(--ink); border: 3px solid var(--card-edge); border-radius: 14px; padding: 6px 10px;
+}
+.feedback { min-height: 28px; margin-top: 12px; font-weight: 700; }
+.feedback.bad { color: var(--blood); }
+.feedback.good { color: var(--slime); }
+.hint { margin-top: 8px; background: rgba(255, 211, 107, .12); border-left: 4px solid var(--candle); padding: 8px 12px; border-radius: 8px; color: var(--candle); }
+.shake { animation: shake .4s; }
+@keyframes shake { 20%,60% { transform: translateX(-8px); } 40%,80% { transform: translateX(8px); } }
+
+.doors { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-top: 12px; }
+.door {
+  font: inherit; color: var(--ink); text-align: center; cursor: pointer;
+  background: linear-gradient(180deg, #5a3a1e, #3c2511);
+  border: 4px solid #2a1808; border-radius: 90px 90px 14px 14px;
+  padding: 26px 14px 16px; min-height: 190px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  box-shadow: inset 0 0 0 3px rgba(255, 211, 107, .15), 0 8px 18px rgba(0,0,0,.4);
+  transition: transform .15s;
+}
+.door:hover { transform: scale(1.03) rotate(-1deg); }
+.door .d-art { font-size: 42px; }
+.door .d-name { font-family: var(--display); font-size: 22px; color: var(--candle); line-height: 1.1; }
+.door .d-desc { font-size: 15px; color: #e8d7c6; }
+
+.lock-steps { display: flex; gap: 8px; justify-content: center; margin: 4px 0 4px; }
+.lock-step { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 22px; background: #120b22; border: 3px solid var(--card-edge); }
+.lock-step.done { background: var(--slime); border-color: #5fa832; }
+.lock-step.now { border-color: var(--pumpkin); box-shadow: 0 0 12px var(--pumpkin); }
+
+.path { margin-top: 18px; color: var(--muted); font-size: 15px; }
+.path b { color: var(--ink); }
+
+.intro-input { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0 6px; }
+.intro-input input { font: inherit; font-size: 20px; padding: 8px 12px; border-radius: 12px; border: 3px solid var(--card-edge); background: #120b22; color: var(--ink); flex: 1 1 200px; min-width: 0; }
+.rules { margin: 10px 0 0; padding-left: 20px; }
+.rules li { margin: 2px 0; }
+
+.endings { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 10px; }
+.end-slot { text-align: center; border: 2px solid var(--card-edge); border-radius: 14px; padding: 10px 6px; background: rgba(0,0,0,.25); font-size: 14px; }
+.end-slot .e-art { font-size: 32px; }
+.end-slot.locked { opacity: .45; }
+.end-slot.found { border-color: var(--slime); }
+.end-big { font-size: clamp(70px, 18vw, 110px); text-align: center; animation: wobble 2.5s ease-in-out infinite; }
+.score { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 10px 0; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+.candy { position: fixed; top: -40px; font-size: 28px; pointer-events: none; z-index: 5; animation: drop linear forwards; }
+@keyframes drop { to { transform: translateY(110vh) rotate(540deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .bats { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="bats" aria-hidden="true"><span class="bat">🦇</span><span class="bat">🦇</span><span class="bat">🦇</span></div>
+<div class="wrap">
+  <header class="bar">
+    <h1 class="logo">La Mansión Calabaza</h1>
+    <div class="stats" id="stats"></div>
+  </header>
+  <main id="stage" aria-live="polite"></main>
+  <div class="path" id="path"></div>
+</div>
+
+<script>
+(function () {
+  // ---------- Utilidades ----------
+  const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  const shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const $ = id => document.getElementById(id);
+
+  // ---------- Sonido (se activa con un botón) ----------
+  let audio = null, soundOn = false;
+  function tone(freq, dur, type, when, vol) {
+    if (!soundOn) return;
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const t = audio.currentTime + (when || 0);
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.type = type || "sine"; o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(vol || .18, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+      o.connect(g); g.connect(audio.destination); o.start(t); o.stop(t + dur);
+      return o;
+    } catch (e) { return null; }
+  }
+  const sfx = {
+    good() { [523, 659, 784, 1046].forEach((f, i) => tone(f, .25, "triangle", i * .09)); },
+    bad() { const o = tone(330, .6, "sawtooth", 0, .12); if (o) o.frequency.exponentialRampToValueAtTime(110, audio.currentTime + .6); },
+    door() { const o = tone(90, .7, "square", 0, .08); if (o) o.frequency.linearRampToValueAtTime(160, audio.currentTime + .7); },
+    win() { [392, 523, 659, 784, 659, 784, 1046].forEach((f, i) => tone(f, .3, "triangle", i * .13)); },
+    boo() { const o = tone(200, 1.2, "sine", 0, .2); if (o) { o.frequency.linearRampToValueAtTime(120, audio.currentTime + 1.2); } }
+  };
+
+  // ---------- Dibujos de geometría (SVG) ----------
+  const STROKE = "#ffd36b";
+  function polySVG(n, label) {
+    const cx = 110, cy = 105, r = 80, pts = [];
+    for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + i * 2 * Math.PI / n; pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); }
+    const web = pts.map(p => `<line x1="${cx}" y1="${cy}" x2="${p[0].toFixed(1)}" y2="${p[1].toFixed(1)}" stroke="#b9a8d9" stroke-width="1" opacity=".5"/>`).join("");
+    return `<svg viewBox="0 0 220 215" width="220" role="img" aria-label="${label || "Figura"}">${web}<polygon points="${pts.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}" fill="rgba(255,138,31,.18)" stroke="${STROKE}" stroke-width="5" stroke-linejoin="round"/><text x="${cx}" y="${cy + 12}" text-anchor="middle" font-size="34">🕷️</text></svg>`;
+  }
+  function rectSVG(w, h, a, b, unit) {
+    const x = (260 - w) / 2, y = 30;
+    return `<svg viewBox="0 0 260 ${h + 80}" width="260" role="img" aria-label="Rectángulo de ${a} por ${b}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="rgba(155,229,100,.15)" stroke="${STROKE}" stroke-width="5"/><text x="130" y="${y - 8}" text-anchor="middle" fill="#f6eeff" font-size="20" font-weight="800">${a} ${unit}</text><text x="${x + w + 8}" y="${y + h / 2 + 7}" fill="#f6eeff" font-size="20" font-weight="800">${b} ${unit}</text></svg>`;
+  }
+  function triSVG(s) {
+    return `<svg viewBox="0 0 240 210" width="240" role="img" aria-label="Triángulo de lados iguales"><polygon points="120,25 30,180 210,180" fill="rgba(255,138,31,.18)" stroke="${STROKE}" stroke-width="5" stroke-linejoin="round"/><text x="120" y="205" text-anchor="middle" fill="#f6eeff" font-size="20" font-weight="800">${s} cm</text><text x="52" y="100" text-anchor="middle" fill="#f6eeff" font-size="20" font-weight="800">${s} cm</text><text x="188" y="100" text-anchor="middle" fill="#f6eeff" font-size="20" font-weight="800">${s} cm</text><text x="120" y="140" text-anchor="middle" font-size="34">🧙</text></svg>`;
+  }
+  function angleSVG(deg) {
+    const ox = 60, oy = 170, L = 150, a = deg * Math.PI / 180;
+    const x2 = ox + L * Math.cos(a), y2 = oy - L * Math.sin(a);
+    const r = 36, ax = ox + r * Math.cos(a), ay = oy - r * Math.sin(a);
+    const arc = deg === 90
+      ? `<polyline points="${ox + 26},${oy} ${ox + 26},${oy - 26} ${ox},${oy - 26}" fill="none" stroke="#ff8a1f" stroke-width="4"/>`
+      : `<path d="M ${ox + r} ${oy} A ${r} ${r} 0 0 0 ${ax.toFixed(1)} ${ay.toFixed(1)}" fill="none" stroke="#ff8a1f" stroke-width="4"/>`;
+    return `<svg viewBox="0 0 260 190" width="260" role="img" aria-label="Un ángulo"><line x1="${ox}" y1="${oy}" x2="${ox + L + 40}" y2="${oy}" stroke="${STROKE}" stroke-width="6" stroke-linecap="round"/><line x1="${ox}" y1="${oy}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${STROKE}" stroke-width="6" stroke-linecap="round"/>${arc}<text x="${(x2 + 6).toFixed(1)}" y="${(y2 - 4).toFixed(1)}" font-size="26">🧹</text></svg>`;
+  }
+  function cubeSVG() {
+    return `<svg viewBox="0 0 200 180" width="200" role="img" aria-label="Un cubo"><polygon points="40,60 120,60 120,150 40,150" fill="rgba(255,138,31,.25)" stroke="${STROKE}" stroke-width="4"/><polygon points="40,60 80,25 160,25 120,60" fill="rgba(255,211,107,.25)" stroke="${STROKE}" stroke-width="4"/><polygon points="120,60 160,25 160,115 120,150" fill="rgba(155,229,100,.2)" stroke="${STROKE}" stroke-width="4"/><text x="80" y="115" text-anchor="middle" font-size="34">🎁</text></svg>`;
+  }
+  function moonSVG() {
+    return `<svg viewBox="0 0 220 200" width="220" role="img" aria-label="Círculo con una línea por el centro"><circle cx="110" cy="100" r="80" fill="rgba(255,211,107,.22)" stroke="${STROKE}" stroke-width="5"/><line x1="30" y1="100" x2="190" y2="100" stroke="#ff8a1f" stroke-width="6" stroke-linecap="round"/><circle cx="110" cy="100" r="6" fill="#ff8a1f"/><text x="150" y="70" font-size="26">🦉</text></svg>`;
+  }
+  function squareSymSVG() {
+    return `<svg viewBox="0 0 200 200" width="200" role="img" aria-label="Un cuadrado"><rect x="30" y="30" width="140" height="140" fill="rgba(155,229,100,.15)" stroke="${STROKE}" stroke-width="5"/><text x="100" y="118" text-anchor="middle" font-size="44">👻</text></svg>`;
+  }
+  function chocoSVG(rows, cols) {
+    const s = Math.min(34, Math.floor(220 / cols)), w = cols * s, h = rows * s, x0 = (240 - w) / 2;
+    let cells = "";
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) cells += `<rect x="${x0 + c * s + 2}" y="${10 + r * s + 2}" width="${s - 4}" height="${s - 4}" rx="4" fill="#6b3a1d" stroke="#3c1f0d" stroke-width="2"/>`;
+    return `<svg viewBox="0 0 240 ${h + 20}" width="240" role="img" aria-label="Tableta de chocolate de ${rows} por ${cols}">${cells}</svg>`;
+  }
+
+  // ---------- Bancos de retos ----------
+  const MATES = [
+    () => { const n = rand(3, 9); return { q: `En el techo hay ${n} arañas colgando. Cada araña tiene 8 patas. ¿Cuántas patas hay en total?`, type: "num", answer: n * 8, hint: `Multiplica ${n} × 8. Si te ayuda: 8 + 8 + … (${n} veces).` }; },
+    () => { const k = rand(3, 8), each = rand(4, 9); return { q: `Tienes ${k * each} caramelos y quieres repartirlos a partes iguales entre ${k} amigos disfrazados. ¿Cuántos caramelos le tocan a cada uno?`, type: "num", answer: each, hint: `Busca qué número multiplicado por ${k} da ${k * each}.` }; },
+    () => { const t = rand(60, 120), o = rand(15, 45); return { q: `En el caldero de la bruja había ${t} ranas. Saltaron fuera ${o}. ¿Cuántas ranas quedan en el caldero?`, type: "num", answer: t - o, hint: `Es una resta: ${t} − ${o}.` }; },
+    () => { const m = pick([15, 20, 25, 30, 35, 40, 45, 50]); return { q: `El reloj del abuelo fantasma marca las 11:${m}. ¿Cuántos minutos faltan para la medianoche (las 12:00)?`, type: "num", answer: 60 - m, hint: "Una hora tiene 60 minutos. ¿Cuánto le falta a " + m + " para llegar a 60?" }; },
+    () => { const a = rand(1, 3); return { q: `Los murciélagos salen de la cueva así: ${a}, ${a * 2}, ${a * 4}, ${a * 8}… ¿Cuántos saldrán después?`, type: "num", answer: a * 16, hint: "Cada vez sale el doble que la anterior." }; },
+    () => { const s = rand(5, 9); return { q: `Las calabazas del pasillo siguen esta serie: ${s}, ${s * 2}, ${s * 3}, ___, ${s * 5}. ¿Qué número falta?`, type: "num", answer: s * 4, hint: `Es la tabla del ${s}.` }; },
+    () => { const per = rand(3, 6), n = rand(4, 9); return { q: `Cada poción mágica necesita ${per} ojos de sapo. La bruja tiene ${per * n} ojos de sapo. ¿Cuántas pociones puede preparar?`, type: "num", answer: n, hint: `Divide ${per * n} entre ${per}.` }; },
+    () => { const g = rand(2, 4), m = rand(12, 25); return { q: `En la cueva hay ${g} grupos de murciélagos y cada grupo tiene ${m} murciélagos. ¿Cuántos murciélagos hay?`, type: "num", answer: g * m, hint: `Multiplica ${m} × ${g}.` }; },
+    () => { const a = rand(12, 25), b = rand(4, 9); return { q: `Un disfraz de vampiro cuesta ${a} € y la capa ${b} €. Pagas con un billete de 50 €. ¿Cuántos euros te devuelven?`, type: "num", answer: 50 - a - b, hint: `Primero suma ${a} + ${b}, después réstalo de 50.` }; },
+    () => { const n = 4 * rand(5, 15); return { q: `En el huerto hay ${n} calabazas. La cuarta parte son blancas. ¿Cuántas calabazas blancas hay?`, type: "num", answer: n / 4, hint: `La cuarta parte es dividir entre 4. También puedes hacer la mitad de la mitad.` }; },
+    () => { const f = pick([["1/2", "1/4"], ["1/3", "1/6"], ["3/4", "1/4"]]); return { q: `Dos fantasmas comparten una pizza. Uno se come ${f[0]} y el otro ${f[1]}. ¿Quién comió más?`, type: "mc", options: [`El de ${f[0]}`, `El de ${f[1]}`, "Comieron lo mismo"], answer: `El de ${f[0]}`, hint: "Dibuja la pizza: si la partes en menos trozos, cada trozo es más grande." }; }
+  ];
+
+  const GEO = [
+    { q: "El conde Drácula vive en Transilvania. ¿En qué país está Transilvania?", options: ["Rumanía", "Noruega", "Portugal", "Egipto"], answer: "Rumanía", hint: "Está en el este de Europa y su capital es Bucarest." },
+    { q: "Halloween nació de una antigua fiesta celta llamada Samhain. ¿En qué país empezó?", options: ["Irlanda", "Japón", "Brasil", "Australia"], answer: "Irlanda", hint: "Es una isla muy verde al oeste de Gran Bretaña." },
+    { q: "Un fantasma navega en barca por el río que pasa por Zaragoza. ¿Qué río es?", options: ["Ebro", "Guadalquivir", "Tajo", "Miño"], answer: "Ebro", hint: "De su nombre viene la palabra «Iberia»." },
+    { q: "La Torre del Oro de Sevilla está junto a un río. ¿Cuál?", options: ["Guadalquivir", "Ebro", "Duero", "Júcar"], answer: "Guadalquivir", hint: "Su nombre viene del árabe y significa «río grande»." },
+    { q: "¿Cuál es la montaña más alta de España?", options: ["Teide", "Mulhacén", "Aneto", "Everest"], answer: "Teide", hint: "Es un volcán en la isla de Tenerife." },
+    { q: "Si caminas hacia donde sale el sol por la mañana, ¿hacia dónde vas?", options: ["Este", "Oeste", "Norte", "Sur"], answer: "Este", hint: "El sol sale por el Este y se pone por el Oeste." },
+    { q: "Miras hacia el Norte y giras a tu derecha. ¿Hacia dónde miras ahora?", options: ["Este", "Oeste", "Sur", "Norte"], answer: "Este", hint: "En una brújula: Norte arriba, Sur abajo, Este a la derecha, Oeste a la izquierda." },
+    { q: "¿Cuál es el continente más grande del mundo?", options: ["Asia", "África", "Europa", "Oceanía"], answer: "Asia", hint: "Allí están China, India y Japón." },
+    { q: "Las momias más famosas son de Egipto. ¿En qué continente está Egipto?", options: ["África", "Asia", "Europa", "América"], answer: "África", hint: "Allí están las pirámides y el río Nilo." },
+    { q: "El fantasma Pierre vive en lo alto de la Torre Eiffel. ¿En qué ciudad está?", options: ["París", "Londres", "Roma", "Berlín"], answer: "París", hint: "Es la capital de Francia." },
+    { q: "¿Qué océano cruzó Cristóbal Colón para llegar a América?", options: ["Atlántico", "Pacífico", "Índico", "Ártico"], answer: "Atlántico", hint: "Es el océano que baña Galicia y las Islas Canarias." },
+    { q: "¿Qué mar baña las playas de Castellón, Valencia y Barcelona?", options: ["Mediterráneo", "Cantábrico", "Mar Rojo", "Mar del Norte"], answer: "Mediterráneo", hint: "Su nombre significa «en medio de las tierras»." },
+    { q: "Un fantasma muy friolero vive en el continente helado del Polo Sur. ¿Cómo se llama?", options: ["Antártida", "Groenlandia", "Siberia", "Islandia"], answer: "Antártida", hint: "Empieza por «Antár…» y allí viven los pingüinos." },
+    { q: "Un vampiro de vacaciones visita el Coliseo. ¿En qué ciudad está?", options: ["Roma", "Atenas", "Madrid", "Lisboa"], answer: "Roma", hint: "Es la capital de Italia, el país con forma de bota." },
+    { q: "¿Cuál es la capital de Portugal?", options: ["Lisboa", "Oporto", "Madrid", "Sevilla"], answer: "Lisboa", hint: "Está junto a la desembocadura del río Tajo." }
+  ].map(g => () => Object.assign({ type: "mc" }, g));
+
+  const POLY = { 5: "Pentágono", 6: "Hexágono", 8: "Octógono" };
+  const GEOM = [
+    () => { const n = pick([5, 6, 8]); return { q: "Esta ventana embrujada tiene forma de telaraña. ¿Cuántos lados tiene?", svg: polySVG(n), type: "num", answer: n, hint: "Pon el dedo en un lado y ve contando hasta dar la vuelta." }; },
+    () => { const n = pick([5, 6, 8]); return { q: "¿Cómo se llama esta figura del espejo encantado?", svg: polySVG(n), type: "mc", options: ["Pentágono", "Hexágono", "Octógono", "Cuadrado"], answer: POLY[n], hint: "Penta = 5, Hexa = 6, Octo = 8. ¡Cuenta los lados!" }; },
+    () => { const s = rand(4, 9); return { q: `Hay que poner cinta de «PELIGRO» alrededor de esta trampilla cuadrada de ${s} metros de lado. ¿Cuántos metros de cinta hacen falta?`, svg: rectSVG(130, 130, s, s, "m"), type: "num", answer: 4 * s, hint: "El perímetro es la suma de todos los lados. Un cuadrado tiene 4 lados iguales." }; },
+    () => { const a = rand(6, 12), b = rand(2, 5); return { q: `La alfombra del salón mide ${a} m de largo y ${b} m de ancho. ¿Cuál es su perímetro?`, svg: rectSVG(180, 90, a, b, "m"), type: "num", answer: 2 * a + 2 * b, hint: `Suma los cuatro lados: ${a} + ${b} + ${a} + ${b}.` }; },
+    () => { const s = rand(3, 9); return { q: "El sombrero de la bruja visto de frente es un triángulo con los tres lados iguales. ¿Cuál es su perímetro en cm?", svg: triSVG(s), type: "num", answer: 3 * s, hint: `Tres lados de ${s} cm: ${s} + ${s} + ${s}.` }; },
+    () => { const opts = [[90, "Recto"], [40, "Agudo"], [135, "Obtuso"]], o = pick(opts); return { q: "La escoba está apoyada en el suelo formando este ángulo. ¿Qué tipo de ángulo es?", svg: angleSVG(o[0]), type: "mc", options: ["Agudo", "Recto", "Obtuso"], answer: o[1], hint: "Recto es como la esquina de un libro. Agudo, más cerrado. Obtuso, más abierto." }; },
+    () => ({ q: "La caja sorpresa de Halloween es un cubo. ¿Cuántas caras tiene?", svg: cubeSVG(), type: "num", answer: 6, hint: "Arriba, abajo, delante, detrás, izquierda y derecha." }),
+    () => ({ q: "La línea naranja cruza la luna llena pasando por el centro. ¿Cómo se llama?", svg: moonSVG(), type: "mc", options: ["Diámetro", "Radio", "Perímetro", "Vértice"], answer: "Diámetro", hint: "El radio va del centro al borde. Esta línea mide el doble que el radio." }),
+    () => ({ q: "¿Cuántos ejes de simetría tiene este cuadrado fantasma? (líneas por donde puedes doblarlo y las dos mitades coinciden)", svg: squareSymSVG(), type: "mc", options: ["1", "2", "4", "8"], answer: "4", hint: "Puedes doblarlo en vertical, en horizontal… ¡y también por las dos diagonales!" }),
+    () => { const r = rand(3, 5), c = rand(4, 6); return { q: "El vampiro ha dejado esta tableta de chocolate. ¿Cuántos cuadraditos tiene?", svg: chocoSVG(r, c), type: "num", answer: r * c, hint: `Hay ${r} filas de ${c} cuadraditos: multiplica ${r} × ${c}.` }; }
+  ];
+
+  const GOLDEN = [
+    { q: "Soy un número misterioso. Si me multiplicas por 3 y luego sumas 4, obtienes 25. ¿Qué número soy?", answer: 7 },
+    { q: "En la sala hay 3 gatos negros y 5 murciélagos. Cada gato tiene 4 patas y cada murciélago 2. ¿Cuántas patas hay en total?", answer: 22 },
+    { q: "¿Cuántos vértices (esquinas) tiene un cubo?", answer: 8 },
+    { q: "Un esqueleto sube 3 escalones cada minuto. La torre tiene 45 escalones. ¿Cuántos minutos tarda en llegar arriba?", answer: 15 }
+  ];
+
+  const BANKS = { mates: MATES, geo: GEO, geom: GEOM };
+  const CAT_NAME = { mates: "Matemáticas", geo: "Geografía", geom: "Geometría" };
+
+  // ---------- Mapa de la mansión ----------
+  const ROOMS = {
+    vestibulo: {
+      name: "El Vestíbulo", art: "🕯️🚪🕯️",
+      text: n => `¡PAM! La puerta se cierra detrás de ti, <em>${n}</em>. Aparece un fantasma con gafas redondas: «Bienvenida a la Mansión Calabaza. Nadie sale sin resolver mis acertijos».`,
+      cats: ["mates"],
+      doors: [
+        { to: "biblioteca", art: "📚", name: "Biblioteca", desc: "Se oyen páginas que pasan solas" },
+        { to: "cocina", art: "🧪", name: "Cocina de la bruja", desc: "Huele a sopa de calabaza… y a algo raro" },
+        { to: "sotano", art: "🕸️", name: "Sótano", desc: "Escaleras oscuras llenas de telarañas" }
+      ]
+    },
+    biblioteca: {
+      name: "La Biblioteca Encantada", art: "📚🦉📖",
+      text: () => "Los libros vuelan como pájaros. Una lechuza con un globo terráqueo te mira fijamente: «Solo quien conoce el mundo puede seguir»",
+      cats: ["geo"],
+      doors: [
+        { to: "fantasmas", art: "👻", name: "Pasadizo secreto", desc: "Detrás de la estantería suena música" },
+        { to: "torre", art: "🌙", name: "Escalera de caracol", desc: "Sube y sube hacia la luna" }
+      ]
+    },
+    cocina: {
+      name: "La Cocina de la Bruja", art: "🧙‍♀️🍲🐸",
+      text: () => "La bruja Brunilda remueve su caldero. «Mis galletas tienen formas mágicas. Si aciertas, te dejo pasar»",
+      cats: ["geom"],
+      doors: [
+        { to: "jardin", art: "🎃", name: "Puerta trasera", desc: "Da al huerto de calabazas" },
+        { to: "torre", art: "🌙", name: "Montacargas viejo", desc: "Chirría mucho, pero sube a la torre" }
+      ]
+    },
+    sotano: {
+      name: "El Sótano de las Arañas", art: "🕷️🕸️🕷️",
+      text: () => "Todo está lleno de telarañas. Una araña gigante con lazo rosa bosteza: «Tranquila, no muerdo. Pero me encantan los acertijos»",
+      cats: ["geo", "geom"],
+      doors: [
+        { to: "fantasmas", art: "⚰️", name: "La cripta", desc: "Un pasillo frío con velas azules" },
+        { to: "jardin", art: "🍂", name: "Túnel de hojas", desc: "Se nota aire fresco al final" }
+      ]
+    },
+    torre: {
+      name: "La Torre de la Luna", art: "🌕🧹🐈‍⬛", final: true, ending: "escoba",
+      text: () => "En lo alto de la torre hay una escoba mágica atada con un candado de tres cerraduras. Un gato negro te guiña un ojo."
+    },
+    fantasmas: {
+      name: "El Salón de Baile Fantasma", art: "👻🎻👻", final: true, ending: "fiesta",
+      text: () => "Decenas de fantasmas bailan en el aire. La puerta de salida tiene un candado con tres cerraduras brillantes."
+    },
+    jardin: {
+      name: "El Huerto de Calabazas", art: "🎃🌾🎃", final: true, ending: "jardin",
+      text: () => "Cientos de calabazas iluminadas. El espantapájaros vigila la verja de salida, cerrada con un candado de tres cerraduras."
+    }
+  };
+
+  const ENDINGS = {
+    jardin: { art: "🎃🏡", title: "Escapada por el Huerto", text: n => `El espantapájaros abre la verja y te regala una bolsa enorme de caramelos. ${n} vuelve a casa caminando entre calabazas que sonríen. ¡Lo has conseguido!` },
+    escoba: { art: "🧹🌕", title: "Vuelo en Escoba", text: n => `La escoba se despierta, ${n} se sube con el gato negro y salís volando por la ventana de la torre. ¡Ves todo el pueblo iluminado desde el cielo!` },
+    fiesta: { art: "👻🎉", title: "La Fiesta Fantasma", text: n => `Los fantasmas te nombran Reina del Baile. Bailáis toda la noche y al amanecer te acompañan a casa flotando. ¡Ahora ${n} tiene amigos fantasma!` },
+    dorada: { art: "🏆🎃", title: "La Calabaza Dorada", text: n => `Detrás de la puerta secreta brilla el tesoro de la mansión: ¡la Calabaza Dorada! ${n} es la primera persona en 100 años en encontrarla. Final secreto conseguido.` },
+    telarana: { art: "🕸️🕷️", title: "Atrapada en la Telaraña", text: n => `¡Oh, no! Te has quedado sin calabazas de vida y una araña gigante (muy simpática) te envuelve como un regalo. No pasa nada, ${n}: ¡inténtalo otra vez y busca otro camino!` }
+  };
+  const ENDING_ORDER = ["jardin", "escoba", "fiesta", "dorada", "telarana"];
+
+  // ---------- Finales descubiertos (guardados en el navegador si se puede) ----------
+  function loadFound() { try { return JSON.parse(localStorage.getItem("mansion-finales") || "[]"); } catch (e) { return []; } }
+  function saveFound(list) { try { localStorage.setItem("mansion-finales", JSON.stringify(list)); } catch (e) {} }
+
+  // ---------- Estado ----------
+  let S;
+  function fresh(name) {
+    return { screen: "intro", name: name || "", lives: 3, candies: 0, gems: 0, room: null, path: [], used: {}, ch: null, lock: 0, lockCats: [], tries: 0, disabled: [], found: loadFound() };
+  }
+
+  function newChallenge(cat) {
+    const bank = BANKS[cat];
+    S.used[cat] = S.used[cat] || [];
+    let free = bank.map((_, i) => i).filter(i => !S.used[cat].includes(i));
+    if (!free.length) { S.used[cat] = []; free = bank.map((_, i) => i); }
+    const i = pick(free); S.used[cat].push(i);
+    const c = bank[i]();
+    c.cat = cat;
+    if (c.type === "mc") c.options = shuffle(c.options);
+    S.ch = c; S.tries = 0; S.disabled = [];
+  }
+
+  // ---------- Pintado ----------
+  function renderStats() {
+    const lives = S.screen === "intro" ? "" : `<span class="stat" title="Vidas"><span class="lbl">Vidas</span>${"🎃".repeat(S.lives)}${"🖤".repeat(3 - S.lives)}</span>`;
+    const rest = S.screen === "intro" ? "" : `<span class="stat"><span class="lbl">Caramelos</span>🍬 ${S.candies}</span><span class="stat"><span class="lbl">Gemas</span>💎 ${S.gems}</span>`;
+    $("stats").innerHTML = lives + rest + `<button class="icon-btn" id="snd" aria-pressed="${soundOn}">${soundOn ? "🔊 Sonido" : "🔇 Sonido"}</button>`;
+    $("snd").onclick = () => { soundOn = !soundOn; if (soundOn) sfx.good(); renderStats(); };
+    $("path").innerHTML = S.path.length ? `Tu camino: <b>${S.path.map(r => ROOMS[r].name).join(" → ")}</b>` : "";
+  }
+
+  function endingsGrid() {
+    return `<div class="endings">${ENDING_ORDER.map(k => {
+      const f = S.found.includes(k);
+      return `<div class="end-slot ${f ? "found" : "locked"}"><div class="e-art">${f ? ENDINGS[k].art : "❓"}</div>${f ? ENDINGS[k].title : "Final oculto"}</div>`;
+    }).join("")}</div>`;
+  }
+
+  function render() {
+    renderStats();
+    const st = $("stage");
+    if (S.screen === "intro") {
+      st.innerHTML = `<section class="card">
+        <div class="art wobble">🏚️🦇🎃</div>
+        <h2>¿Te atreves a entrar?</h2>
+        <p class="story">Es la noche de Halloween. Sigues a un gato negro hasta una mansión vieja… y la puerta se cierra sola. Para salir tendrás que superar pruebas de <em>matemáticas</em>, <em>geografía</em> y <em>geometría</em>. Cada puerta que elijas te llevará por un camino distinto, ¡y hay varios finales!</p>
+        <form id="f" class="intro-input">
+          <label for="nm" class="room-tag" style="flex-basis:100%">¿Cómo te llamas, exploradora?</label>
+          <input id="nm" maxlength="20" autocomplete="off" placeholder="Escribe tu nombre" value="${esc(S.name)}">
+          <button class="btn primary" type="submit">Entrar en la mansión</button>
+        </form>
+        <ul class="rules">
+          <li>Empiezas con 3 calabazas de vida 🎃. Si fallas pierdes una, pero recibes una pista.</li>
+          <li>Si aciertas a la primera ganas una gema 💎. Con muchas gemas… quizá encuentres algo secreto.</li>
+          <li>Al final de cada camino hay un candado con 3 cerraduras.</li>
+        </ul>
+        <p class="room-tag" style="margin-top:18px">Finales descubiertos: ${S.found.length} de ${ENDING_ORDER.length}</p>
+        ${endingsGrid()}
+      </section>`;
+      $("f").onsubmit = e => {
+        e.preventDefault();
+        const n = $("nm").value.trim() || "Exploradora";
+        const found = S.found;
+        S = fresh(n); S.found = found;
+        enterRoom("vestibulo");
+      };
+      return;
+    }
+
+    if (S.screen === "room") {
+      const R = ROOMS[S.room];
+      const lockBar = R.final ? `<div class="lock-steps" aria-label="Cerraduras">${S.lockCats.map((c, i) => `<span class="lock-step ${i < S.lock ? "done" : i === S.lock ? "now" : ""}">${i < S.lock ? "🔓" : "🔒"}</span>`).join("")}</div>` : "";
+      st.innerHTML = `<section class="card">
+        <div class="room-tag">${R.final ? "Última sala" : "Sala " + S.path.length}</div>
+        <h2>${R.name}</h2>
+        <div class="art wobble">${R.art}</div>
+        <p class="story">${R.text(esc(S.name))}</p>
+        ${lockBar}
+        ${challengeHTML(S.ch)}
+      </section>`;
+      wireChallenge();
+      return;
+    }
+
+    if (S.screen === "doors") {
+      const R = ROOMS[S.room];
+      st.innerHTML = `<section class="card">
+        <div class="room-tag">${R.name}</div>
+        <h2>¡Correcto! Se abren las puertas…</h2>
+        <p class="story">¿Por cuál quieres seguir? Piensa bien: cada camino lleva a un final diferente.</p>
+        <div class="doors">${R.doors.map((d, i) => `<button class="door" data-i="${i}"><span class="d-art">${d.art}</span><span class="d-name">${d.name}</span><span class="d-desc">${d.desc}</span></button>`).join("")}</div>
+      </section>`;
+      st.querySelectorAll(".door").forEach(b => b.onclick = () => { sfx.door(); enterRoom(R.doors[+b.dataset.i].to); });
+      return;
+    }
+
+    if (S.screen === "unlocked") {
+      const R = ROOMS[S.room];
+      const golden = S.gems >= 4;
+      st.innerHTML = `<section class="card">
+        <div class="room-tag">${R.name}</div>
+        <h2>¡Las tres cerraduras están abiertas!</h2>
+        <div class="art">🔓✨</div>
+        ${golden
+          ? `<p class="story">Has ganado <em>${S.gems} gemas</em>. ¡Ellas brillan y revelan una <em>puerta dorada secreta</em> en la pared! Detrás hay un acertijo muy difícil. Si fallas, no pierdes vida: saldrás por la salida normal.</p>
+             <div class="row"><button class="btn primary" id="out">Salir por la salida normal</button><button class="btn gold" id="gold">Abrir la puerta dorada</button></div>`
+          : `<p class="story">La salida está libre. (Dicen que si aciertas casi todo a la primera aparece algo secreto…)</p>
+             <div class="row"><button class="btn primary" id="out">¡Salir!</button></div>`}
+      </section>`;
+      $("out").onclick = () => finish(R.ending);
+      if (golden) $("gold").onclick = () => { sfx.door(); S.screen = "golden"; S.ch = Object.assign({ type: "num", cat: "mates", golden: true }, pick(GOLDEN)); S.tries = 0; render(); };
+      return;
+    }
+
+    if (S.screen === "golden") {
+      st.innerHTML = `<section class="card">
+        <div class="room-tag">Puerta secreta</div>
+        <h2>El Acertijo Dorado</h2>
+        <div class="art wobble">🚪✨🏆</div>
+        <p class="story">Solo tienes <em>una oportunidad</em>. ¡Piensa con calma!</p>
+        ${challengeHTML(S.ch)}
+      </section>`;
+      wireChallenge();
+      return;
+    }
+
+    if (S.screen === "ending") {
+      const E = ENDINGS[S.ending];
+      const isNew = S.newEnding;
+      st.innerHTML = `<section class="card">
+        <div class="room-tag">${S.ending === "telarana" ? "Fin del juego" : "¡Has escapado!"}${isNew ? " · ¡Final nuevo!" : ""}</div>
+        <h2>${E.title}</h2>
+        <div class="end-big">${E.art}</div>
+        <p class="story">${E.text(esc(S.name))}</p>
+        <div class="score"><span class="stat"><span class="lbl">Caramelos</span>🍬 ${S.candies}</span><span class="stat"><span class="lbl">Gemas</span>💎 ${S.gems}</span><span class="stat"><span class="lbl">Vidas</span>${"🎃".repeat(S.lives) || "0"}</span></div>
+        <p class="room-tag" style="margin-top:14px">Finales descubiertos: ${S.found.length} de ${ENDING_ORDER.length}</p>
+        ${endingsGrid()}
+        <div class="row"><button class="btn primary" id="again">${S.found.length < ENDING_ORDER.length ? "Jugar otra vez y buscar otro final" : "Jugar otra vez"}</button></div>
+      </section>`;
+      $("again").onclick = () => { const n = S.name, f = S.found; S = fresh(n); S.found = f; enterRoom("vestibulo"); };
+      return;
+    }
+  }
+
+  function challengeHTML(c) {
+    const body = c.type === "mc"
+      ? `<div class="opts">${c.options.map((o, i) => `<button class="btn opt" data-i="${i}" ${S.disabled.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>`
+      : `<form class="answer-row" id="af"><input id="ans" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="Tu respuesta"><button class="btn primary" type="submit">Comprobar</button></form>`;
+    return `<div class="challenge" id="chal">
+      <span class="cat ${c.cat}">${c.golden ? "Acertijo dorado" : CAT_NAME[c.cat]}</span>
+      <p class="q">${c.q}</p>
+      ${c.svg ? `<div class="figure">${c.svg}</div>` : ""}
+      ${body}
+      <div class="feedback" id="fb"></div>
+      ${S.tries > 0 && c.hint ? `<div class="hint">Pista: ${c.hint}</div>` : ""}
+    </div>`;
+  }
+
+  function wireChallenge() {
+    const c = S.ch;
+    if (c.type === "mc") {
+      document.querySelectorAll(".opt").forEach(b => b.onclick = () => answer(c.options[+b.dataset.i]));
+    } else {
+      const inp = $("ans");
+      try { inp.focus({ preventScroll: true }); } catch (e) {}
+      $("af").onsubmit = e => { e.preventDefault(); const v = inp.value.trim(); if (v === "") { $("fb").textContent = "Escribe un número primero."; return; } answer(parseInt(v, 10)); };
+    }
+  }
+
+  function answer(v) {
+    const c = S.ch;
+    const ok = c.type === "mc" ? v === c.answer : v === c.answer;
+    if (c.golden) {
+      if (ok) { S.candies += 50; sfx.win(); finish("dorada"); }
+      else { sfx.bad(); const fb = $("fb"); fb.className = "feedback bad"; fb.textContent = `¡Casi! La respuesta era ${c.answer}. La puerta dorada se cierra… pero la salida normal sigue abierta.`; setTimeout(() => finish(ROOMS[S.room].ending), 2600); disableAll(); }
+      return;
+    }
+    if (ok) {
+      sfx.good();
+      if (S.tries === 0) { S.gems++; S.candies += 10; } else S.candies += 5;
+      const fb = $("fb"); fb.className = "feedback good"; fb.textContent = S.tries === 0 ? "¡Perfecto a la primera! +10 caramelos y +1 gema" : "¡Bien! +5 caramelos";
+      disableAll(); renderStats();
+      setTimeout(advance, 1100);
+    } else {
+      sfx.bad();
+      S.lives--; S.tries++;
+      if (c.type === "mc") S.disabled.push(v);
+      if (S.lives <= 0) { renderStats(); setTimeout(() => { sfx.boo(); finish("telarana"); }, 500); disableAll(); return; }
+      render();
+      const fb = $("fb"); fb.className = "feedback bad"; fb.textContent = pick(["¡Buuu! Esa no es. Pierdes una calabaza.", "¡Uy! Un fantasma se ríe. Prueba otra vez.", "¡Casi! Lee la pista y vuelve a intentarlo."]);
+      const ch = $("chal"); ch.classList.add("shake");
+    }
+  }
+
+  function disableAll() { document.querySelectorAll("#chal button, #chal input").forEach(el => el.disabled = true); }
+
+  function enterRoom(id) {
+    S.room = id; S.path.push(id); S.screen = "room";
+    const R = ROOMS[id];
+    if (R.final) { S.lockCats = shuffle(["mates", "geo", "geom"]); S.lock = 0; newChallenge(S.lockCats[0]); }
+    else newChallenge(pick(R.cats));
+    render(); window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function advance() {
+    const R = ROOMS[S.room];
+    if (R.final) {
+      S.lock++;
+      if (S.lock >= 3) { sfx.door(); S.screen = "unlocked"; render(); return; }
+      newChallenge(S.lockCats[S.lock]); render(); return;
+    }
+    S.screen = "doors"; render();
+  }
+
+  function finish(key) {
+    S.ending = key; S.screen = "ending";
+    S.newEnding = !S.found.includes(key);
+    if (S.newEnding) { S.found = S.found.concat(key); saveFound(S.found); }
+    if (key !== "telarana") { sfx.win(); candyRain(); }
+    render(); window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function candyRain() {
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const items = ["🍬", "🍭", "🎃", "🍫", "⭐"];
+    for (let i = 0; i < 28; i++) {
+      const s = document.createElement("span");
+      s.className = "candy"; s.textContent = pick(items);
+      s.style.left = Math.random() * 100 + "vw";
+      s.style.animationDuration = (2.5 + Math.random() * 2.5) + "s";
+      s.style.animationDelay = (Math.random() * 1.2) + "s";
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 6500);
+    }
+  }
+
+  // ---------- Arranque (conserva la partida si la página se actualiza en el visor) ----------
+  function start(data) {
+    S = data && data.S ? data.S : fresh("");
+    S.found = loadFound().length >= (S.found || []).length ? loadFound() : S.found;
+    render();
+  }
+  if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({ S }));
+  window.claude && window.claude.hot && window.claude.hot.ready ? window.claude.hot.ready(start) : start(window.claude && window.claude.hot && window.claude.hot.data || {});
+})();
+</script>
+</body>
+</html>
