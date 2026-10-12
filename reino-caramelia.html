@@ -161,7 +161,7 @@ kbd { background: #fff; border: 2px solid var(--edge); border-bottom-width: 4px;
 @media (max-width: 640px) {
   #mini { width: 96px; height: 86px; }
   #faceSlot { width: 64px; height: 64px; }
-  #area { font-size: 15px; }
+  #area { font-size: 15px; max-width: 34vw; }
   .pill { font-size: 15px; padding: 0 8px; }
   .pill .lbl { display: none; }
   #objective { font-size: 15px; bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); }
@@ -169,7 +169,7 @@ kbd { background: #fff; border: 2px solid var(--edge); border-bottom-width: 4px;
   .picker { grid-template-columns: 1fr; }
   #pvSlot { width: 150px; height: 180px; margin: 0 auto; order: -1; }
 }
-body.touch #objective { left: auto; right: 12px; transform: none; max-width: calc(100% - 180px); text-align: left; }
+body.touch #objective { left: 12px; right: 112px; transform: none; max-width: none; text-align: left; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -220,6 +220,30 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
 }
 .cat.logica { background: #3bc9db; }
 
+.card.mini-mode { height: 100%; overflow: hidden; display: flex; flex-direction: column; padding: 12px 16px; }
+.card.mini-mode .talk { margin: 2px 0 4px !important; }
+.card.mini-mode .npc-face, .card.mini-mode #mFace { width: 44px; height: 44px; font-size: 26px; }
+.card.mini-mode .bubble { padding: 3px 10px; font-size: 15px; }
+.card.mini-mode h2 { font-size: 24px; margin: 0; }
+.card.mini-mode .cat { margin: 0; }
+.card.mini-mode .story { font-size: 15px; margin: 2px 0 6px; line-height: 1.3; }
+.card.mini-mode .tag { display: none; }
+.mini-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.mg-fit { flex: 1 1 auto; min-height: 0; position: relative; overflow: hidden; }
+.mg-stage { position: absolute; left: 50%; top: 0; width: 360px; transform-origin: top center; transform: translateX(-50%); }
+.mini-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 4px; }
+.mini-foot .timer { flex: 1; }
+.timer { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; margin-bottom: 6px; }
+.mini-foot .timer { margin-bottom: 0; }
+.timer .tbar { flex: 1; min-width: 60px; height: 10px; border-radius: 6px; background: #f3d9e8; overflow: hidden; }
+.timer .tfill { height: 100%; background: linear-gradient(90deg, #e8457c, #ffd23f, #2fb98a); transition: width .25s linear; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.tab { font-size: 16px; padding: 5px 12px; }
+.tab.sel { background: var(--berry); color: #fff; border-color: var(--berry-deep); }
+.swatch { display: block; width: 34px; height: 34px; margin: 0 auto 4px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 2px var(--edge); }
+#fireBtn { position: fixed; right: calc(env(safe-area-inset-right, 0px) + 18px); bottom: calc(env(safe-area-inset-bottom, 0px) + 72px); width: 86px; height: 86px; border-radius: 50%; border: 4px solid #fff; background: radial-gradient(circle at 35% 35%, #fff3a0, #ffb100); font-size: 34px; z-index: 6; box-shadow: 0 5px 0 #c98a00, 0 8px 18px rgba(0,0,0,.3); touch-action: none; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; cursor: pointer; color: var(--ink); font-family: var(--body); padding: 0; }
+#fireBtn span { font-size: 12px; font-weight: 800; margin-top: 2px; }
+#fireBtn:active { transform: translateY(3px); box-shadow: 0 2px 0 #c98a00; }
 </style>
 </head>
 <body>
@@ -235,6 +259,7 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
 <div id="objective"></div>
 <div id="toast" role="status"></div>
 <div id="joy" hidden><div id="knob"></div></div>
+<button id="fireBtn" hidden aria-label="Lanzar rayo mágico">⚡<span>Rayo</span></button>
 <div class="overlay" id="overlay"><div class="card" id="panel"></div></div>
 <div id="loading">Abriendo el reino…</div>
 
@@ -479,18 +504,18 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
   const SKIN = {}; SKINS.forEach(s => SKIN[s.id] = s);
   const TONES = [0xf8d7bd, 0xe9b98f, 0xc68a5c, 0x8d5a3b];
 
-  const UPG_COST = [0, 0, 60, 120];
-  const UPG_PERK = ["", "", "+1 corazón en cada nivel y aura brillante", "Imán de caramelos, más velocidad y estrella dorada"];
+  const UPG_COST = [0, 0, 60, 120, 200, 300];
+  const UPG_PERK = ["", "", "+1 corazón en cada nivel y aura brillante", "Imán de caramelos, más velocidad y estrella dorada", "Rayo doble: más fuerte y más rápido", "+1 corazón más y alas de arcoíris"];
 
   // ================= Mundos y niveles =================
   const TILE = 2;
   const VOID = 0, FLOOR = 1, WALL = 2;
   const WORLDS = [
-    { name: "Pueblo Caramelo", floor: 0xe7a3bf, floor2: 0xdc94b2, path: 0xf2c4d6, wall: "candy", ground: 0x7cc46a, fog: 0xf3c0dc, enemy: 0xff7fcf, enemyName: "gominola traviesa", decor: "lolli", trees: [0xffa8d8, 0xb197fc, 0x8ce99a, 0xffd8a8] },
-    { name: "Bosque Encantado", floor: 0x6fb85a, floor2: 0x64ab50, path: 0xc9a97a, wall: "tree", ground: 0x4f9a42, fog: 0xcfe8c0, enemy: 0xffd23f, enemyName: "abeja gruñona", decor: "mush", trees: [0x2f9e44, 0x51cf66, 0x37b24d] },
-    { name: "Cuevas de Cristal", floor: 0x7d6bc2, floor2: 0x7060b4, path: 0x9a8ad4, wall: "crystal", ground: 0x4a3a7a, fog: 0xc9b8f0, enemy: 0x74c0fc, enemyName: "piedra rodante", decor: "crys", trees: [0xb197fc, 0x74c0fc, 0xf783ac] },
-    { name: "Lago de las Hadas", floor: 0x8fdba0, floor2: 0x82cf93, path: 0xbfe9f5, wall: "hedge", ground: 0x5fbf8a, fog: 0xc8f0e6, enemy: 0x63e6be, enemyName: "rana saltarina", decor: "pond", trees: [0x63e6be, 0x96f2d7, 0x38d9a9] },
-    { name: "Castillo de las Nubes", floor: 0xb39ddb, floor2: 0xa68fcf, path: 0xdcd0f5, wall: "magic", ground: 0xe9e2ff, fog: 0xf0e8ff, enemy: 0xb197fc, enemyName: "chispa mágica", decor: "stars", trees: [0xffffff, 0xf3f0ff, 0xe5dbff], clouds: true },
+    { name: "Pueblo Caramelo", floor: 0xe7a3bf, floor2: 0xdc94b2, path: 0xf2c4d6, wall: "candy", ground: 0x7cc46a, fog: 0xf3c0dc, enemy: 0xff7fcf, enemyName: "gominola traviesa", monster: 0x9c36b5, monsterName: "bichito de regaliz", decor: "lolli", trees: [0xffa8d8, 0xb197fc, 0x8ce99a, 0xffd8a8] },
+    { name: "Bosque Encantado", floor: 0x6fb85a, floor2: 0x64ab50, path: 0xc9a97a, wall: "tree", ground: 0x4f9a42, fog: 0xcfe8c0, enemy: 0xffd23f, enemyName: "abeja gruñona", monster: 0x5c940d, monsterName: "trol de musgo", decor: "mush", trees: [0x2f9e44, 0x51cf66, 0x37b24d] },
+    { name: "Cuevas de Cristal", floor: 0x7d6bc2, floor2: 0x7060b4, path: 0x9a8ad4, wall: "crystal", ground: 0x4a3a7a, fog: 0xc9b8f0, enemy: 0x74c0fc, enemyName: "piedra rodante", monster: 0x3b5bdb, monsterName: "gólem chiquitín", decor: "crys", trees: [0xb197fc, 0x74c0fc, 0xf783ac] },
+    { name: "Lago de las Hadas", floor: 0x8fdba0, floor2: 0x82cf93, path: 0xbfe9f5, wall: "hedge", ground: 0x5fbf8a, fog: 0xc8f0e6, enemy: 0x63e6be, enemyName: "rana saltarina", monster: 0x0b7285, monsterName: "pulpo de charca", decor: "pond", trees: [0x63e6be, 0x96f2d7, 0x38d9a9] },
+    { name: "Castillo de las Nubes", floor: 0xb39ddb, floor2: 0xa68fcf, path: 0xdcd0f5, wall: "magic", ground: 0xe9e2ff, fog: 0xf0e8ff, enemy: 0xb197fc, enemyName: "chispa mágica", monster: 0x495057, monsterName: "nubarrón enfadado", decor: "stars", trees: [0xffffff, 0xf3f0ff, 0xe5dbff], clouds: true },
     { name: "Fortaleza de Regaliz", floor: 0x6a5a7a, floor2: 0x5e4f6e, path: 0x7a6a8a, wall: "stone", ground: 0x3d2f4f, fog: 0x8a6aa0, enemy: 0x2b1a3a, enemyName: "", decor: "torch", trees: [0x5a3a6a, 0x4a2a5a] }
   ];
   const LEVEL_NAMES = ["", "La plaza de las piruletas", "Calle del regaliz", "El horno de galletas", "Jardín de algodón de azúcar",
@@ -566,7 +591,7 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
     const mark = (p, rad) => { for (let dy = -rad; dy <= rad; dy++) for (let dx = -rad; dx <= rad; dx++) block.add((p[0] + dx) + "," + (p[1] + dy)); };
     stations.forEach(s => mark([s.x, s.y], 1)); mark(chest, 1); mark(portal, 0); mark(start, 1); if (heart) mark(heart, 0);
     const spots = [];
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (g[y][x].t === FLOOR && !block.has(x + "," + y)) spots.push([x, y, Math.floor(R() * 3)]);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (g[y][x].t === FLOOR && !block.has(x + "," + y)) spots.push([x, y, Math.floor(R() * 4)]);
     for (let i = spots.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [spots[i], spots[j]] = [spots[j], spots[i]]; }
     const candyAt = spots.slice(0, 24 + Math.floor(n / 2));
     const nEnemies = n <= 2 ? 0 : Math.min(mid.length, 1 + Math.floor((n - 1) / 6));
@@ -577,7 +602,12 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
     }
     const decor = [];
     rooms.forEach((r, i) => { if (i === rooms.length - 1) return; [[r.x, r.y + r.h - 1], [r.x + r.w - 1, r.y + r.h - 1]].forEach(p => { if (!heart || p[0] !== heart[0] || p[1] !== heart[1]) decor.push(p); }); });
-    return { n, world, W, H, grid: g, rooms, start, stations, chest, portal, heart, candyAt, enemies, decor, seed: n };
+    const monsters = [];
+    const nMon = n < 2 ? 0 : Math.min(6, 1 + Math.floor(n / 3));
+    const mRooms = rooms.slice(1);
+    for (let i = 0; i < nMon; i++) { const r = mRooms[i % mRooms.length]; monsters.push({ id: "m" + i, x: r.x + Math.floor(R() * r.w), y: r.y + Math.floor(R() * r.h), hp: n > 10 ? 2 : 1 }); }
+    const miniboss = MB_INFO[n] ? { x: clamp(last.cx - 2, last.x, last.x + last.w - 1), y: last.y + last.h - 1, hp: 6 + (n / 5) * 2, name: MB_INFO[n][0], color: MB_INFO[n][1], room: { x: last.x, y: last.y, w: last.w, h: last.h }, shoots: n >= 15 } : null;
+    return { n, world, W, H, grid: g, rooms, start, stations, chest, portal, heart, candyAt, enemies, decor, seed: n, monsters, miniboss };
   }
   function genBoss() {
     const W = 27, H = 23, g = newGrid(W, H);
@@ -588,15 +618,31 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
 
   // ================= Perfil y partida guardada =================
   const SAVE_KEY = "caramelia2-nivel", PROF_KEY = "caramelia2-perfil";
-  let P = Object.assign({ name: "", skin: "hada", tone: 0, unlocked: [], upg: {}, candies: 0, levels: {}, maxLevel: 1, found: [], used: {}, t: 0 }, lsGet(PROF_KEY) || {});
+  let P = Object.assign({ name: "", skin: "hada", tone: 0, unlocked: [], upg: {}, candies: 0, levels: {}, maxLevel: 1, found: [], used: {}, t: 0, color: {}, ownColors: [0, 1], acc: "", ownAcc: [""], pet: "", ownPets: [""] }, lsGet(PROF_KEY) || {});
+  const DRESS_COLORS = [
+    { name: "Original", c: null, price: 0 }, { name: "Rosa chicle", c: 0xff7fcf, price: 0 }, { name: "Menta", c: 0x63e6be, price: 20 },
+    { name: "Limón", c: 0xffd23f, price: 20 }, { name: "Cielo", c: 0x5fb8ff, price: 25 }, { name: "Lavanda", c: 0xb197fc, price: 25 },
+    { name: "Fresa", c: 0xff4d6d, price: 30 }, { name: "Chocolate", c: 0x8a5a35, price: 30 }, { name: "Medianoche", c: 0x2b2a6a, price: 40 }, { name: "Oro", c: 0xffcf3f, price: 60 }
+  ];
+  const ACCS = [
+    { id: "", name: "Nada", icon: "🚫", price: 0 }, { id: "lazo", name: "Lazo", icon: "🎀", price: 30 }, { id: "gafas", name: "Gafas de corazón", icon: "💗", price: 40 },
+    { id: "auris", name: "Orejas de gato", icon: "🐱", price: 45 }, { id: "flores", name: "Corona de flores", icon: "🌸", price: 50 }, { id: "capa", name: "Capa de heroína", icon: "🦸‍♀️", price: 70 }
+  ];
+  const PETS = [
+    { id: "", name: "Sin mascota", icon: "🚫", price: 0 }, { id: "gato", name: "Gatita esfinge", icon: "🐱", price: 60 }, { id: "buho", name: "Búho bebé", icon: "🦉", price: 80 },
+    { id: "dragon", name: "Dragoncito", icon: "🐲", price: 100 }, { id: "hada", name: "Hadita", icon: "🧚", price: 120 }
+  ];
+  const lookOf = id => ({ color: (P.color || {})[id] || 0, acc: P.acc || "" });
+  const stars5 = u => "★".repeat(u) + "☆".repeat(5 - u);
+  const MB_INFO = { 5: ["Ogro de las Setas", 0x2b8a3e], 10: ["Gólem de Cristal", 0x4263eb], 15: ["Sapo Gruñón", 0x0ca678], 20: ["Dragón de Tormenta", 0x5f3dc4] };
   let SAVED = lsGet(SAVE_KEY);
   let S = null, L = null;
   const upgOf = id => P.upg[id] || 1;
   const owns = id => !SKIN[id].price || P.unlocked.includes(id);
   const totalStars = () => Object.values(P.levels).reduce((a, l) => a + (l.stars || 0), 0);
-  const maxLivesNow = () => 3 + (upgOf(P.skin) >= 2 ? 1 : 0);
+  const maxLivesNow = () => 3 + (upgOf(P.skin) >= 2 ? 1 : 0) + (upgOf(P.skin) >= 5 ? 1 : 0);
   function freshRun(n) {
-    return { v: 2, n, lives: maxLivesNow(), maxLives: maxLivesNow(), keys: 0, solved: {}, first: {}, taken: {}, chestOpen: false, px: L.start[0] * TILE, pz: L.start[1] * TILE, face: 0, vis: {}, bossHp: 5, bossHits: 0, mode: "play" };
+    return { v: 2, n, lives: maxLivesNow(), maxLives: maxLivesNow(), keys: 0, solved: {}, first: {}, taken: {}, chestOpen: false, px: L.start[0] * TILE, pz: L.start[1] * TILE, face: 0, vis: {}, bossHp: 5, bossHits: 0, mode: "play", killed: {}, mbHp: L.miniboss ? L.miniboss.hp : 0, mbDead: false, aim: 0 };
   }
   let cloud = null, cloudBusy = false, cloudAgain = false, cloudTimer = null, cloudReady = false;
   function runSnapshot() { return S && (S.mode === "play" || S.mode === "modal") ? Object.assign({}, S, { mode: "play", t: Date.now() }) : null; }
@@ -735,11 +781,12 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
   }
 
   // ---- Constructor del personaje jugable ----
-  function buildHero(skinId, toneIdx, upg) {
-    upg = upg || 1;
+  function buildHero(skinId, toneIdx, upg, look) {
+    upg = upg || 1; look = look || lookOf(skinId);
     const sk = SKIN[skinId] || SKINS[0], tone = TONES[toneIdx] || TONES[0];
     const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-    const skinM = lam(tone), hairM = lam(sk.hair), dressM = lam(sk.dress), topM = lam(sk.top);
+    const dc = (DRESS_COLORS[look.color || 0] || {}).c, topC = dc != null ? new THREE.Color(dc).lerp(new THREE.Color(0xffffff), .45).getHex() : sk.top;
+    const skinM = lam(tone), hairM = lam(sk.hair), dressM = lam(dc != null ? dc : sk.dress), topM = lam(topC);
     [-.13, .13].forEach(x => { const leg = new THREE.Mesh(new THREE.CylinderGeometry(.07, .08, .32, 8), skinM); leg.position.set(x, .16, 0); body.add(leg); const shoe = new THREE.Mesh(new THREE.SphereGeometry(.1, 8, 6), lam(0x7a3b5a)); shoe.scale.set(1, .6, 1.4); shoe.position.set(x, .04, .04); body.add(shoe); });
     const dress = new THREE.Mesh(new THREE.ConeGeometry(.48, .75, 18), dressM); dress.position.y = .62; body.add(dress);
     if (sk.id === "maga") { for (let i = 0; i < 6; i++) { const st = new THREE.Mesh(new THREE.OctahedronGeometry(.045), basic(0xffe066)); const a = i * 1.05; st.position.set(Math.sin(a) * .36, .45 + (i % 2) * .15, Math.cos(a) * .36); body.add(st); } }
@@ -808,6 +855,17 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
     if (sk.prop === "staff") { const st = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, 1.2, 6), lam(0x8a5a35)); st.position.y = .2; hand.add(st); const orb = new THREE.Mesh(new THREE.SphereGeometry(.1, 10, 8), basic(0x91a7ff)); orb.position.y = .82; hand.add(orb); }
     if (sk.prop === "sword") { const bl = new THREE.Mesh(new THREE.BoxGeometry(.06, .6, .02), lam(0xe9ecef, { emissive: 0x333344 })); bl.position.set(0, .2, .06); hand.add(bl); const gd = new THREE.Mesh(new THREE.BoxGeometry(.2, .04, .05), lam(0xffcc33)); gd.position.set(0, -.08, .06); hand.add(gd); }
     if (sk.prop === "shield") { const sh = new THREE.Mesh(new THREE.CylinderGeometry(.25, .25, .05, 16), lam(0x4263eb)); sh.rotation.z = Math.PI / 2; sh.position.set(-.06, 0, 0); arms[0].add(sh); sh.position.y = -.3; const em = new THREE.Mesh(new THREE.OctahedronGeometry(.08), lam(0xffcc33)); em.position.set(-.1, -.3, 0); arms[0].add(em); }
+    const acc = look.acc || "";
+    if (acc === "lazo") { const bm = lam(0xff4d8d); [-1, 1].forEach(s => { const c = new THREE.Mesh(new THREE.ConeGeometry(.12, .22, 8), bm); c.rotation.z = s * Math.PI / 2; c.position.set(.24 + s * .13, .36, -.05); headG.add(c); }); const k = new THREE.Mesh(new THREE.SphereGeometry(.06, 8, 6), bm); k.position.set(.24, .36, -.05); headG.add(k); }
+    if (acc === "gafas") { const fm = lam(0xff4d8d); [-1, 1].forEach(s => { const r = new THREE.Mesh(new THREE.TorusGeometry(.13, .025, 6, 16), fm); r.position.set(s * .19, .03, .47); headG.add(r); }); const br = new THREE.Mesh(new THREE.BoxGeometry(.12, .025, .02), fm); br.position.set(0, .06, .5); headG.add(br); }
+    if (acc === "flores") { [0xff7fcf, 0xffd23f, 0xffffff, 0xb197fc, 0x63e6be, 0xff4d6d, 0xffa94d].forEach((c, i) => { const a = i / 7 * Math.PI * 2; const f = new THREE.Mesh(new THREE.SphereGeometry(.075, 8, 6), lam(c)); f.position.set(Math.sin(a) * .37, .3, Math.cos(a) * .37 - .02); headG.add(f); }); }
+    if (acc === "auris") { [-1, 1].forEach(s => { const e = new THREE.Mesh(new THREE.ConeGeometry(.12, .25, 4), lam(0x2b1a3a)); e.position.set(s * .25, .44, -.02); e.rotation.z = -s * .3; headG.add(e); const inner = new THREE.Mesh(new THREE.ConeGeometry(.06, .14, 4), lam(0xff8fb3)); inner.position.set(s * .25, .43, .04); inner.rotation.z = -s * .3; headG.add(inner); }); }
+    if (acc === "capa") { const cape = new THREE.Mesh(new THREE.ConeGeometry(.6, 1.1, 16, 1, true, Math.PI * .6, Math.PI * .8), lam(0xe03131, { side: THREE.DoubleSide })); cape.position.y = .72; body.add(cape); }
+    if (upg >= 5) {
+      const shp = new THREE.Shape(); shp.moveTo(0, 0); shp.bezierCurveTo(.3, .5, .75, .45, .6, .05); shp.bezierCurveTo(.7, -.3, .3, -.4, 0, 0);
+      wings = wings || [];
+      [-1, 1].forEach((s, i) => { const wg = new THREE.Mesh(new THREE.ShapeGeometry(shp), lam(i ? 0x63e6be : 0xff8ad8, { transparent: true, opacity: .8, side: THREE.DoubleSide, emissive: 0x332244 })); wg.position.set(0, 1.1, -.26); wg.scale.set(s * 1.3, 1.3, 1); body.add(wg); wings.push(wg); });
+    }
     let sparkles = null, star = null;
     if (upg >= 2) {
       const gold = upg >= 3;
@@ -968,6 +1026,27 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
     [-1, 1].forEach(s => { const brow = new THREE.Mesh(new THREE.BoxGeometry(.14, .03, .02), basic(0x2b1a3a)); brow.position.set(s * .13, .66, .46); brow.rotation.z = s * .4; g.add(brow); });
     return { g, body: b };
   }
+  function monsterModel(color, crown) {
+    const g = new THREE.Group(), m = lam(color, { emissive: 0x220011 });
+    const body = new THREE.Mesh(new THREE.SphereGeometry(.55, 16, 12), m); body.scale.set(1, .95, 1); body.position.y = .6; g.add(body);
+    for (let i = 0; i < 5; i++) { const a = (i - 2) * .45; const sp = new THREE.Mesh(new THREE.ConeGeometry(.09, .3, 6), lam(0x2b1a3a)); sp.position.set(Math.sin(a) * .3, 1.08 - Math.abs(i - 2) * .05, -.15); sp.rotation.z = -a * .6; g.add(sp); }
+    [-1, 1].forEach(s => { const h = new THREE.Mesh(new THREE.ConeGeometry(.08, .28, 6), lam(0xfff3d6)); h.position.set(s * .35, 1.05, .1); h.rotation.z = -s * .5; g.add(h); const f = new THREE.Mesh(new THREE.SphereGeometry(.14, 8, 6), m); f.scale.set(1, .6, 1.3); f.position.set(s * .25, .08, .1); g.add(f); });
+    const face = addFace(g, .72, .5, 1, { blush: false, iris: 0xe03131 });
+    setExpr(face, "sad");
+    [-1, 1].forEach(s => { const brow = new THREE.Mesh(new THREE.BoxGeometry(.16, .035, .02), basic(0x2b1a3a)); brow.position.set(s * .14, .9, .52); brow.rotation.z = -s * .45; g.add(brow); const tooth = new THREE.Mesh(new THREE.ConeGeometry(.03, .07, 4), basic(0xffffff)); tooth.rotation.x = Math.PI; tooth.position.set(s * .05, .5, .53); g.add(tooth); });
+    if (crown) {
+      const gold = lam(0xffcc33, { emissive: 0x664400 });
+      const ringC = new THREE.Mesh(new THREE.CylinderGeometry(.26, .28, .12, 14, 1, true), gold); ringC.material.side = THREE.DoubleSide; ringC.position.y = 1.2; g.add(ringC);
+      for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; const sp = new THREE.Mesh(new THREE.ConeGeometry(.05, .14, 5), gold); sp.position.set(Math.sin(a) * .26, 1.32, Math.cos(a) * .26); g.add(sp); }
+    }
+    return { g, body, face };
+  }
+  function petModel(id) {
+    if (id === "gato") return sphinx().g;
+    if (id === "buho") return owl().g;
+    if (id === "dragon") return dragonling().g;
+    return fairyNPC().g;
+  }
   function bossModel() {
     const g = new THREE.Group(), robe = lam(0x3b1f5e), dark = lam(0x1a1020);
     const body = new THREE.Mesh(new THREE.ConeGeometry(1.2, 2.4, 20), robe); body.position.y = 1.2; g.add(body);
@@ -1020,6 +1099,27 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
   const CANDY_GEO = [new THREE.SphereGeometry(.24, 12, 10), new THREE.TorusGeometry(.2, .1, 8, 16), new THREE.OctahedronGeometry(.26)];
   CANDY_GEO.forEach(g => g.userData.keep = true);
   const CANDY_COLS = [0xff5c8a, 0x7fdcff, 0xffd23f, 0x7fe0a8, 0xb197fc, 0xffa94d];
+  const keepG = g => { g.userData.keep = true; return g; };
+  const Mx = (x, y, z, rx, ry, rz, sx, sy, sz) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(sx, sy, sz));
+  const caneTex = keepTex(canvasTex(64, 64, g => { g.fillStyle = "#fff"; g.fillRect(0, 0, 64, 64); g.fillStyle = "#e03131"; for (let i = -64; i < 128; i += 22) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 11, 0); g.lineTo(i + 11 - 64, 64); g.lineTo(i - 64, 64); g.fill(); } }));
+  caneTex.wrapS = caneTex.wrapT = THREE.RepeatWrapping; caneTex.repeat.set(1, 3);
+  const swirlTex = keepTex(canvasTex(128, 128, g => { g.fillStyle = "#fff"; g.fillRect(0, 0, 128, 128); g.strokeStyle = "#8a8a8a"; g.lineWidth = 9; g.beginPath(); for (let a = 0; a < 18; a += .1) { const r = a * 3.4; const x = 64 + Math.cos(a) * r, y = 64 + Math.sin(a) * r; a ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); }));
+  const coneG = keepG(new THREE.ConeGeometry(.15, .22, 10));
+  const CANDY_TYPES = [
+    { parts: [{ geo: keepG(new THREE.SphereGeometry(.2, 14, 10)), mat: "own", local: Mx(0, 0, 0, 0, 0, 0, 1.35, .9, .9) }, { geo: coneG, mat: "own", local: Mx(.36, 0, 0, 0, 0, Math.PI / 2, 1, 1, 1) }, { geo: coneG, mat: "own", local: Mx(-.36, 0, 0, 0, 0, -Math.PI / 2, 1, 1, 1) }] },
+    { parts: [{ geo: keepG(new THREE.CylinderGeometry(.27, .27, .09, 24)), mat: "swirl", local: Mx(0, .16, 0, Math.PI / 2, 0, 0, 1, 1, 1) }, { geo: keepG(new THREE.CylinderGeometry(.03, .03, .55, 6)), mat: "white", local: Mx(0, -.25, 0, 0, 0, 0, 1, 1, 1) }] },
+    { parts: [{ geo: keepG(new THREE.CylinderGeometry(.06, .06, .6, 10)), mat: "cane", local: Mx(0, -.08, 0, 0, 0, 0, 1, 1, 1) }, { geo: keepG(new THREE.TorusGeometry(.14, .06, 8, 14, Math.PI)), mat: "cane", local: Mx(.14, .22, 0, 0, 0, 0, 1, 1, 1) }] },
+    { parts: [{ geo: keepG(new THREE.TorusGeometry(.19, .1, 10, 20)), mat: "dough", local: Mx(0, 0, 0, 0, 0, 0, 1, 1, 1) }, { geo: keepG(new THREE.TorusGeometry(.19, .105, 10, 20)), mat: "own", local: Mx(0, 0, .045, 0, 0, 0, 1, 1, .55) }] }
+  ];
+  const CANDY_MATS = { own: lam(0xffffff, { emissive: 0x221122 }), swirl: lam(0xffffff, { map: swirlTex, emissive: 0x221122 }), white: lam(0xffffff), cane: lam(0xffffff, { map: caneTex }), dough: lam(0xd9a066) };
+  function candyModel(t, color) {
+    const g = new THREE.Group();
+    CANDY_TYPES[t].parts.forEach(pt => {
+      const mat = pt.mat === "own" ? lam(color, { emissive: 0x221122 }) : pt.mat === "swirl" ? lam(color, { map: swirlTex }) : CANDY_MATS[pt.mat];
+      const m = new THREE.Mesh(pt.geo, mat); m.applyMatrix4(pt.local); g.add(m);
+    });
+    g.scale.setScalar(1.3); return g;
+  }
   function disposeGroup(grp) {
     grp.traverse(o => {
       if (o.geometry && !o.geometry.userData.keep) o.geometry.dispose();
@@ -1112,17 +1212,33 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
       c.g.userData.label = null; setChestLabel();
       const p = rainbowPortal(); addL(p, L.portal[0], L.portal[1]); LV.portal = p;
     } else { LV.chest = null; LV.portal = null; }
-    // Caramelos instanciados
-    const groups = [[], [], []];
-    L.candyAt.forEach((p, i) => groups[p[2] || 0].push(i));
-    LV.candy = groups.map((list, t) => {
-      const m = new THREE.InstancedMesh(CANDY_GEO[t], lam(0xffffff, { emissive: 0x332233 }), Math.max(1, list.length));
-      list.forEach((ci, k) => setInst(m, k, 0, -10, 0, 1, 1, 1, 0, CANDY_COLS[ci % CANDY_COLS.length]));
-      m.userData.list = list; levelGroup.add(m); return m;
-    });
+    // Caramelos con forma de caramelo
+    const groups = CANDY_TYPES.map(() => []);
+    L.candyAt.forEach((p, i) => groups[(p[2] || 0) % CANDY_TYPES.length].push(i));
+    LV.candy = groups.map((list, t) => ({ list, parts: CANDY_TYPES[t].parts.map(pt => {
+      const m = new THREE.InstancedMesh(pt.geo, CANDY_MATS[pt.mat], Math.max(1, list.length));
+      if (pt.mat === "own" || pt.mat === "swirl") list.forEach((ci, k) => { COL.setHex(CANDY_COLS[ci % CANDY_COLS.length]); m.setColorAt(k, COL); });
+      levelGroup.add(m); return { m, local: pt.local };
+    }) }));
     if (L.heart) { const h = new THREE.Group(); const hm = heartMesh(); hm.position.y = .8; h.add(hm); const lb = label("+1 vida", "#1f8a66"); lb.scale.set(2.4, .6, 1); lb.position.y = 1.8; h.add(lb); h.userData.h = hm; LV.heart = addL(h, L.heart[0], L.heart[1]); } else LV.heart = null;
     // Enemigos
-    L.enemies.forEach((e, i) => { const sl = slime(Wd.enemy); addL(sl.g, e.a[0], e.a[1]); LV.enemies.push({ e, obj: sl, i }); });
+    L.enemies.forEach((e, i) => { const sl = slime(Wd.enemy); addL(sl.g, e.a[0], e.a[1]); sl.g.visible = !S.killed["p" + i]; LV.enemies.push({ e, obj: sl, i, id: "p" + i }); });
+    // Monstruos que quitan vidas
+    LV.monsters = (L.monsters || []).map(m0 => {
+      const o = monsterModel(Wd.monster || 0x9c36b5, false); addL(o.g, m0.x, m0.y);
+      const alive = !S.killed[m0.id]; o.g.visible = alive;
+      return { id: m0.id, obj: o, hp: m0.hp, alive, hx: wx(m0.x), hz: wx(m0.y), wt: 0, wx: 0, wz: 0, ph: Math.random() * 6, speed: 2.3 + L.n * .05, flash: 0, name: Wd.monsterName };
+    });
+    // Monstruo guardián (cada 5 niveles)
+    if (L.miniboss) {
+      const o = monsterModel(L.miniboss.color, true); o.g.scale.setScalar(2.1); addL(o.g, L.miniboss.x, L.miniboss.y); o.g.visible = !S.mbDead;
+      LV.mb = { obj: o, t: 2.5, flash: 0 };
+      LV.projs = [];
+      for (let i = 0; i < 12; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(.3, 10, 8), lam(0x2b1a3a, { emissive: 0x7a1a8a })); m.visible = false; levelGroup.add(m); LV.projs.push({ m, vx: 0, vz: 0, life: 0 }); }
+    } else LV.mb = null;
+    // Rayos de la heroína
+    LV.bolts = [];
+    for (let i = 0; i < 8; i++) { const m = new THREE.Mesh(new THREE.OctahedronGeometry(.22), basic(0xfff3a0)); m.scale.set(1, 1, 3); m.visible = false; levelGroup.add(m); LV.bolts.push({ m, life: 0, vx: 0, vz: 0, pow: 1 }); }
     // Jefe
     if (L.boss) {
       const b = bossModel(); addL(b.g, L.boss.x, L.boss.y); LV.boss = b;
@@ -1142,10 +1258,12 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
   }
 
   // ---- Personaje jugable ----
-  let hero = null;
+  let hero = null, pet = null;
   function placeHero() {
     if (hero) { scene.remove(hero); disposeGroup(hero); }
     hero = buildHero(P.skin, P.tone, upgOf(P.skin)); scene.add(hero);
+    if (pet) { scene.remove(pet); disposeGroup(pet); pet = null; }
+    if (P.pet) { pet = petModel(P.pet); pet.scale.setScalar(.45); scene.add(pet); pet.position.set(S ? S.px + 1 : 0, 0, S ? S.pz + 1 : 0); }
     if (S) { hero.position.set(S.px, 0, S.pz); hero.rotation.y = S.face; }
     setExpr(hero.userData.face, "normal");
     aux.rebuild();
@@ -1256,7 +1374,9 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
     $("snd").onclick = () => { soundOn = !soundOn; if (soundOn) sfx.pick(); renderStats(); };
     if (inLevel) { $("saveBtn").onclick = () => saveNow(true); $("mapBtn").onclick = askLeave; }
     const bb = $("bossbar");
-    if (inLevel && L && L.boss) { bb.hidden = false; bb.innerHTML = `Brujo Regaliz<div class="bar"><div class="fill" style="width:${S.bossHp * 20}%"></div></div>`; }
+    $("fireBtn").hidden = !inLevel;
+    if (inLevel && L && L.miniboss && !S.mbDead) { bb.hidden = false; bb.innerHTML = `${L.miniboss.name}<div class="bar"><div class="fill" style="width:${Math.max(0, S.mbHp) / L.miniboss.hp * 100}%"></div></div>`; }
+    else if (inLevel && L && L.boss) { bb.hidden = false; bb.innerHTML = `Brujo Regaliz<div class="bar"><div class="fill" style="width:${S.bossHp * 20}%"></div></div>`; }
     else bb.hidden = true;
   }
   let badgeTimer = null;
@@ -1268,9 +1388,10 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
     if (!S || S.mode !== "play" && S.mode !== "modal") { o.hidden = true; return; }
     o.hidden = false;
     if (L.boss) { o.innerHTML = "Esquiva las bolas de regaliz y toca el <b>cristal de luz</b> para lanzar un reto al brujo."; return; }
-    if (S.chestOpen) o.innerHTML = "¡El <b>portal arcoíris</b> está abierto! Entra para pasar de nivel.";
+    if (L.miniboss && !S.mbDead && S.keys >= 3) o.innerHTML = `¡Vence al <b>${L.miniboss.name}</b> con tu rayo ⚡ para abrir el cofre!`;
+    else if (S.chestOpen) o.innerHTML = "¡El <b>portal arcoíris</b> está abierto! Entra para pasar de nivel.";
     else if (S.keys >= 3) o.innerHTML = "¡Tienes las 3 llaves! Busca el <b>cofre del tesoro</b>.";
-    else o.innerHTML = `Habla con los personajes para ganar <b>llaves</b>: ${S.keys} de 3.`;
+    else o.innerHTML = `Habla con los personajes para ganar <b>llaves</b>: ${S.keys} de 3. Rayo ⚡: ${touchy ? "botón amarillo" : "espacio"}.`;
   }
   const mini = $("mini"), mctx = mini.getContext("2d");
   function drawMini() {
@@ -1315,14 +1436,15 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
     camOff.set(0, portrait ? 11 : 8.4, portrait ? 10 : 9.2);
   }
   window.addEventListener("resize", resize); resize();
+  const CBASE = new THREE.Matrix4(), CTMP = new THREE.Matrix4(), CZERO = new THREE.Matrix4().makeScale(0, 0, 0), CSC = new THREE.Vector3(1.3, 1.3, 1.3);
   function updateCandies(t) {
-    LV.candy.forEach(m => {
-      m.userData.list.forEach((ci, k) => {
-        const p = L.candyAt[ci];
-        if (S.taken["c" + ci]) setInst(m, k, 0, -10, 0, .001, .001, .001, 0);
-        else setInst(m, k, wx(p[0]), .55 + Math.sin(t * 3 + ci) * .1, wx(p[1]), 1, 1, 1, t * 2 + ci);
+    LV.candy.forEach(grp => {
+      grp.list.forEach((ci, k) => {
+        const p = L.candyAt[ci], hidden = S.taken["c" + ci];
+        if (!hidden) { CBASE.makeRotationY(t * 1.6 + ci).scale(CSC); CBASE.setPosition(wx(p[0]), .62 + Math.sin(t * 3 + ci) * .1, wx(p[1])); }
+        grp.parts.forEach(pt => pt.m.setMatrixAt(k, hidden ? CZERO : CTMP.multiplyMatrices(CBASE, pt.local)));
       });
-      m.instanceMatrix.needsUpdate = true;
+      grp.parts.forEach(pt => { pt.m.instanceMatrix.needsUpdate = true; });
     });
   }
   function loop(now) {
@@ -1369,6 +1491,9 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
         });
         LV.burst = LV.burst.filter(b => { b.t += dt; b.m.position.x += b.vx * dt; b.m.position.z += b.vz * dt; b.m.position.y += (b.vy - 9 * b.t) * dt; b.m.rotation.y += dt * 6; if (b.t > 1.4) { levelGroup.remove(b.m); return false; } return true; });
         if (LV.boss) updateBoss(dt, playing);
+        if (playing) { updateMonsters(dt); if (LV.projs) updateProjs(dt); }
+        updateBolts(dt); updatePet(dt);
+        LV.enemies.forEach(en => { if (S.killed[en.id]) en.obj.g.visible = false; });
         look.set(S.px, 1.0, S.pz);
         camPos.copy(look).add(camOff);
         camera.position.lerp(camPos, Math.min(1, dt * 5));
@@ -1385,14 +1510,14 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
   function step(dt) {
     let mx = (keys.r ? 1 : 0) - (keys.l ? 1 : 0) + joy.x, mz = (keys.d ? 1 : 0) - (keys.u ? 1 : 0) + joy.y;
     const len = Math.hypot(mx, mz); let moving = false;
-    inv = Math.max(0, inv - dt);
+    inv = Math.max(0, inv - dt); fireCd = Math.max(0, fireCd - dt);
     if (len > .12) {
       moving = true;
       if (len > 1) { mx /= len; mz /= len; }
       const sp = 6.4 * (upgOf(P.skin) >= 3 ? 1.15 : 1) * dt, nx = S.px + mx * sp, nz = S.pz + mz * sp;
       if (!blockedAt(nx, S.pz)) S.px = nx;
       if (!blockedAt(S.px, nz)) S.pz = nz;
-      const target = Math.atan2(mx, mz);
+      const target = Math.atan2(mx, mz); S.aim = target;
       let d = target - S.face; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
       S.face += d * Math.min(1, dt * 12);
       hero.position.y = Math.abs(Math.sin(clock * 11)) * .1;
@@ -1400,31 +1525,39 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
     hero.position.x = S.px; hero.position.z = S.pz; hero.rotation.y = S.face;
     const [tx, ty] = tileOf();
     for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) if (dx * dx + dy * dy <= 20) S.vis[(tx + dx) + "," + (ty + dy)] = 1;
-    // Caramelos (con imán si el traje está mejorado al máximo)
+    // Caramelos (la mascota también los recoge)
     const reach = upgOf(P.skin) >= 3 ? 2.6 : .95;
     let got = 0;
-    L.candyAt.forEach((p, i) => { if (!S.taken["c" + i] && Math.hypot(wx(p[0]) - S.px, wx(p[1]) - S.pz) < reach) { S.taken["c" + i] = 1; P.candies++; got++; } });
+    L.candyAt.forEach((p, i) => {
+      if (S.taken["c" + i]) return;
+      const cx = wx(p[0]), cz = wx(p[1]);
+      if (Math.hypot(cx - S.px, cz - S.pz) < reach || (pet && Math.hypot(cx - pet.position.x, cz - pet.position.z) < 1)) { S.taken["c" + i] = 1; P.candies++; got++; }
+    });
     if (got) { sfx.pick(); renderStats(); if (P.candies % 10 < got) { express("happy", 900); saveNow(false); } }
     if (LV.heart && !S.taken.h && Math.hypot(LV.heart.position.x - S.px, LV.heart.position.z - S.pz) < 1) {
       if (S.lives < S.maxLives) { S.taken.h = 1; LV.heart.visible = false; S.lives++; sfx.good(); express("happy"); toast("¡Corazón mágico! +1 vida ❤️"); renderStats(); }
       else if (!LV.heart.userData.told) { LV.heart.userData.told = true; toast("Ya tienes todas tus vidas. Este corazón te espera por si lo necesitas."); }
     }
-    // Enemigos: te quitan caramelos
+    // Ladronas de caramelos (patrullan)
     if (inv <= 0) for (const en of LV.enemies) {
+      if (S.killed[en.id]) continue;
       const ex = en.obj.g.position.x, ez = en.obj.g.position.z;
       if (Math.hypot(ex - S.px, ez - S.pz) < .95) {
         const lost = Math.min(3, P.candies); P.candies -= lost; inv = 1.6; sfx.bad(); express("sad", 1500);
         const ang = Math.atan2(S.px - ex, S.pz - ez);
         for (let k = 0; k < 6; k++) { const nx = S.px + Math.sin(ang) * .3, nz = S.pz + Math.cos(ang) * .3; if (!blockedAt(nx, S.pz)) S.px = nx; if (!blockedAt(S.px, nz)) S.pz = nz; }
-        toast(lost ? `¡Ay! Una ${WORLDS[L.world].enemyName} te ha quitado ${lost} caramelos.` : `¡Cuidado con la ${WORLDS[L.world].enemyName}!`, 1800);
+        toast(lost ? `¡Ay! Una ${WORLDS[L.world].enemyName} te ha quitado ${lost} caramelos. ¡Usa tu rayo ⚡!` : `¡Cuidado con la ${WORLDS[L.world].enemyName}!`, 1800);
         renderStats(); break;
       }
     }
-    // Cofre
+    // Cofre (si hay guardián, primero hay que vencerlo)
     if (LV.chest && !S.chestOpen) {
       const d = Math.hypot(wx(L.chest[0]) - S.px, wx(L.chest[1]) - S.pz);
-      if (d < 1.7) { if (S.keys >= 3) openChest(); else if (!chestWarn) { chestWarn = true; toast(`El cofre tiene 3 cerraduras. Tienes ${S.keys} ${S.keys === 1 ? "llave" : "llaves"}: ¡habla con los personajes para conseguir más!`, 3000); } }
-      else if (d > 3) chestWarn = false;
+      if (d < 1.7) {
+        if (L.miniboss && !S.mbDead) { if (!chestWarn) { chestWarn = true; toast(`¡El <b>${L.miniboss.name}</b> protege el cofre! Lánzale rayos ⚡ para vencerlo.`, 3000); } }
+        else if (S.keys >= 3) openChest();
+        else if (!chestWarn) { chestWarn = true; toast(`El cofre tiene 3 cerraduras. Tienes ${S.keys} ${S.keys === 1 ? "llave" : "llaves"}: ¡habla con los personajes para conseguir más!`, 3000); }
+      } else if (d > 3) chestWarn = false;
     }
     if (LV.portal && S.chestOpen && Math.hypot(wx(L.portal[0]) - S.px, wx(L.portal[1]) - S.pz) < 1) { levelComplete(); return moving; }
     if (S.mode !== "play") return moving;
@@ -1440,12 +1573,159 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
     return moving;
   }
 
+  // ================= Combate: rayo, monstruos y proyectiles =================
+  let fireCd = 0;
+  sfx.ray = () => { const o = tone(1200, .18, "sawtooth", 0, .06); if (o) o.frequency.exponentialRampToValueAtTime(400, audio.currentTime + .18); };
+  function fire() {
+    if (!S || S.mode !== "play" || fireCd > 0 || !LV.bolts) return;
+    const u = upgOf(P.skin); fireCd = u >= 4 ? .22 : .38;
+    const b = LV.bolts.find(x => x.life <= 0); if (!b) return;
+    const a = S.aim !== undefined ? S.aim : S.face;
+    S.face = a; idleT = 0; hero.rotation.y = a;
+    b.vx = Math.sin(a) * 15; b.vz = Math.cos(a) * 15; b.life = .75; b.pow = u >= 4 ? 2 : 1;
+    b.m.material.color.setHex(u >= 4 ? 0x9ff0ff : 0xfff3a0); b.m.scale.set(u >= 4 ? 1.4 : 1, u >= 4 ? 1.4 : 1, 3);
+    b.m.position.set(S.px + Math.sin(a) * .6, 1.1, S.pz + Math.cos(a) * .6); b.m.rotation.y = a; b.m.visible = true;
+    sfx.ray();
+  }
+  function killBolt(b) { b.life = 0; b.m.visible = false; }
+  function updateBolts(dt) {
+    if (!LV.bolts) return;
+    LV.bolts.forEach(b => {
+      if (b.life <= 0) return;
+      b.life -= dt;
+      const nx = b.m.position.x + b.vx * dt, nz = b.m.position.z + b.vz * dt;
+      if (b.life <= 0 || tileAt(Math.round(nx / TILE), Math.round(nz / TILE)).t !== FLOOR) return killBolt(b);
+      b.m.position.x = nx; b.m.position.z = nz;
+      const near = (o, r) => Math.hypot(o.position.x - nx, o.position.z - nz) < r;
+      for (const mo of LV.monsters) if (mo.alive && near(mo.obj.g, .95)) { damageMonster(mo, b.pow); return killBolt(b); }
+      for (const en of LV.enemies) if (!S.killed[en.id] && near(en.obj.g, .9)) { S.killed[en.id] = 1; en.obj.g.visible = false; poof(en.obj.g.position, 2); toast("¡Adiós, ladrona de caramelos! +2 🍬", 1200); return killBolt(b); }
+      if (LV.mb && !S.mbDead && near(LV.mb.obj.g, 1.7)) { damageMB(b.pow); return killBolt(b); }
+      if (LV.projs) for (const p of LV.projs) if (p.life > 0 && near(p.m, .75)) { p.life = 0; p.m.visible = false; sfx.hit(); return killBolt(b); }
+      if (LV.boss && S.bossHp > 0 && near(LV.boss.g, 1.6)) { killBolt(b); if (!LV.boss.told) { LV.boss.told = true; toast("¡Su escudo de regaliz para tu rayo! Toca los <b>cristales de luz</b> para vencerle. (Tu rayo sí rompe sus bolas)", 3200); } }
+    });
+  }
+  function poof(pos, candies) {
+    for (let i = 0; i < Math.min(8, candies + 3); i++) { const m = candyModel(i % 4, CANDY_COLS[i % CANDY_COLS.length]); m.position.set(pos.x, 1, pos.z); levelGroup.add(m); const a = Math.random() * 6.28; LV.burst.push({ m, t: 0, vx: Math.cos(a) * 2, vz: Math.sin(a) * 2, vy: 5 + Math.random() * 2 }); }
+    P.candies += candies; renderStats();
+  }
+  function damageMonster(mo, pow) {
+    mo.hp -= pow; mo.flash = .2; sfx.hit();
+    if (mo.hp <= 0) { mo.alive = false; S.killed[mo.id] = 1; mo.obj.g.visible = false; poof(mo.obj.g.position, 3); express("happy", 900); toast(`¡Has vencido a un ${mo.name}! +3 🍬`, 1400); }
+  }
+  function damageMB(pow) {
+    S.mbHp -= pow; LV.mb.flash = .2; sfx.hit(); renderStats();
+    if (S.mbHp <= 0) {
+      S.mbDead = true; LV.mb.obj.g.visible = false; LV.projs.forEach(p => { p.life = 0; p.m.visible = false; });
+      poof(LV.mb.obj.g.position, 20); sfx.win(); express("happy", 2500); renderStats(); updateObjective();
+      toast(`<span class="t-title">¡Has vencido al ${L.miniboss.name}!</span>+20 🍬. El cofre ya no tiene guardián.`, 3600); saveNow(false);
+    }
+  }
+  function hurt(fx, fz, msg) {
+    if (!S || S.mode !== "play") return;
+    S.lives--; inv = 1.6; sfx.bad(); express("sad", 1500);
+    const ang = Math.atan2(S.px - fx, S.pz - fz);
+    for (let k = 0; k < 6; k++) { const nx = S.px + Math.sin(ang) * .3, nz = S.pz + Math.cos(ang) * .3; if (!blockedAt(nx, S.pz)) S.px = nx; if (!blockedAt(S.px, nz)) S.pz = nz; }
+    renderStats();
+    if (S.lives <= 0) { failLevel(); return; }
+    toast(msg, 2000);
+  }
+  function shootAt(fx, fz, count, spread, speed) {
+    const base = Math.atan2(S.px - fx, S.pz - fz); let fired = 0;
+    for (const p of LV.projs) {
+      if (p.life > 0) continue;
+      const a = base + (fired - (count - 1) / 2) * spread;
+      p.m.position.set(fx, 1.2, fz); p.vx = Math.sin(a) * speed; p.vz = Math.cos(a) * speed; p.life = 4.5; p.m.visible = true;
+      if (++fired >= count) break;
+    }
+    sfx.zap();
+  }
+  function updateProjs(dt) {
+    for (const p of LV.projs) {
+      if (p.life <= 0) continue;
+      p.life -= dt; p.m.position.x += p.vx * dt; p.m.position.z += p.vz * dt;
+      const tx = Math.round(p.m.position.x / TILE), tz = Math.round(p.m.position.z / TILE);
+      if (p.life <= 0 || tileAt(tx, tz).t !== FLOOR) { p.life = 0; p.m.visible = false; continue; }
+      if (inv <= 0 && Math.hypot(p.m.position.x - S.px, p.m.position.z - S.pz) < .7) {
+        p.life = 0; p.m.visible = false;
+        hurt(p.m.position.x, p.m.position.z, "¡Te ha dado una bola! Pierdes un corazón. Tu rayo ⚡ puede romperlas.");
+        if (!S || S.mode !== "play") return;
+      }
+    }
+  }
+  function updateMonsters(dt) {
+    for (const mo of LV.monsters) {
+      if (!mo.alive) continue;
+      const g = mo.obj.g, dx = S.px - g.position.x, dz = S.pz - g.position.z, d = Math.hypot(dx, dz) || 1;
+      let tx, tz;
+      if (d < 7) { tx = dx / d; tz = dz / d; }
+      else {
+        mo.wt -= dt;
+        if (mo.wt <= 0) { mo.wt = 1.5 + Math.random() * 2; const a = Math.random() * 6.28; mo.wx = Math.sin(a); mo.wz = Math.cos(a); }
+        tx = mo.wx; tz = mo.wz;
+        const hd = Math.hypot(mo.hx - g.position.x, mo.hz - g.position.z);
+        if (hd > 6) { tx = (mo.hx - g.position.x) / hd; tz = (mo.hz - g.position.z) / hd; }
+      }
+      const sp = mo.speed * dt * (d < 7 ? 1 : .5), nx = g.position.x + tx * sp, nz = g.position.z + tz * sp;
+      if (!blockedAt(nx, g.position.z)) g.position.x = nx; else mo.wt = 0;
+      if (!blockedAt(g.position.x, nz)) g.position.z = nz; else mo.wt = 0;
+      g.rotation.y = Math.atan2(tx, tz);
+      g.position.y = Math.abs(Math.sin(clock * 6 + mo.ph)) * .25;
+      mo.obj.body.material.emissive.setHex(mo.flash > 0 ? 0xffffff : 0x220011); mo.flash -= dt;
+      if (d < .95 && inv <= 0) { hurt(g.position.x, g.position.z, `¡Un ${mo.name} te ha pillado! Pierdes un corazón. ¡Usa tu rayo ⚡!`); if (!S || S.mode !== "play") return; }
+    }
+    if (LV.mb && !S.mbDead) {
+      const g = LV.mb.obj.g, r = L.miniboss.room;
+      const dx = S.px - g.position.x, dz = S.pz - g.position.z, d = Math.hypot(dx, dz) || 1;
+      const inRoom = S.px >= wx(r.x) - 1 && S.px <= wx(r.x + r.w - 1) + 1 && S.pz >= wx(r.y) - 1 && S.pz <= wx(r.y + r.h - 1) + 1;
+      if (inRoom) {
+        const sp = (1.9 + L.n * .02) * dt;
+        g.position.x = clamp(g.position.x + dx / d * sp, wx(r.x), wx(r.x + r.w - 1));
+        g.position.z = clamp(g.position.z + dz / d * sp, wx(r.y), wx(r.y + r.h - 1));
+        if (L.miniboss.shoots) { LV.mb.t -= dt; if (LV.mb.t <= 0) { LV.mb.t = 3; shootAt(g.position.x, g.position.z, 3, .4, 4.5); } }
+      }
+      g.rotation.y = Math.atan2(dx, dz);
+      g.position.y = Math.abs(Math.sin(clock * 3)) * .3;
+      LV.mb.obj.body.material.emissive.setHex(LV.mb.flash > 0 ? 0xffffff : 0x220011); LV.mb.flash -= dt;
+      if (d < 1.7 && inv <= 0) hurt(g.position.x, g.position.z, `¡El ${L.miniboss.name} te ha golpeado! Pierdes un corazón. ¡Dispárale rayos ⚡!`);
+    }
+  }
+  function updatePet(dt) {
+    if (!pet || !S || !L) return;
+    const a = S.aim !== undefined ? S.aim : S.face, g = pet;
+    const tx = S.px - Math.sin(a) * 1.3 + Math.cos(a) * .7, tz = S.pz - Math.cos(a) * 1.3 - Math.sin(a) * .7;
+    const k = Math.min(1, dt * 4), ox = g.position.x, oz = g.position.z;
+    g.position.x += (tx - ox) * k; g.position.z += (tz - oz) * k;
+    g.position.y = .35 + Math.sin(clock * 4) * .15;
+    const mvx = g.position.x - ox, mvz = g.position.z - oz;
+    if (Math.hypot(mvx, mvz) > .01) g.rotation.y = Math.atan2(mvx, mvz);
+  }
+  window.addEventListener("keydown", e => { if (e.code === "Space" && S && S.mode === "play" && !(e.target && e.target.tagName === "INPUT")) { e.preventDefault(); fire(); } });
+  (function worldTouch() {
+    const cv = $("world"), base = $("joy"), knob = $("knob"); let id = null, ox = 0, oy = 0;
+    cv.addEventListener("pointerdown", e => {
+      if (!S || S.mode !== "play") return;
+      id = e.pointerId; ox = e.clientX; oy = e.clientY;
+      try { cv.setPointerCapture(id); } catch (er) {}
+      const half = (base.offsetWidth || 130) / 2;
+      base.style.left = (ox - half) + "px"; base.style.top = (oy - half) + "px"; base.style.bottom = "auto"; base.hidden = false; knob.style.transform = "";
+    });
+    cv.addEventListener("pointermove", e => {
+      if (e.pointerId !== id) return;
+      let dx = e.clientX - ox, dy = e.clientY - oy; const max = 55, d = Math.hypot(dx, dy);
+      if (d > max) { dx = dx / d * max; dy = dy / d * max; }
+      knob.style.transform = `translate(${dx}px, ${dy}px)`; joy.x = dx / max; joy.y = dy / max;
+    });
+    const end = e => { if (e.pointerId !== id) return; id = null; joy.x = joy.y = 0; base.hidden = true; };
+    cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
+    $("fireBtn").addEventListener("pointerdown", e => { e.preventDefault(); fire(); });
+  })();
+
   // ---- Cofre, llaves y jefe ----
   function flyKey(s) { const k = keyMesh(); k.scale.setScalar(1.6); levelGroup.add(k); LV.keysFly.push({ m: k, t: 0, from: { x: wx(s.x), z: wx(s.y) } }); }
   function openChest() {
     S.chestOpen = true; const reward = 25 + L.n * 3; P.candies += reward;
     sfx.win(); express("happy", 2500);
-    for (let i = 0; i < 16; i++) { const m = new THREE.Mesh(CANDY_GEO[i % 3], lam(CANDY_COLS[i % CANDY_COLS.length], { emissive: 0x332233 })); m.position.set(wx(L.chest[0]), 1, wx(L.chest[1])); levelGroup.add(m); const a = Math.random() * Math.PI * 2; LV.burst.push({ m, t: 0, vx: Math.cos(a) * 2.5, vz: Math.sin(a) * 2.5, vy: 6 + Math.random() * 3 }); }
+    for (let i = 0; i < 16; i++) { const m = candyModel(i % 4, CANDY_COLS[i % CANDY_COLS.length]); m.position.set(wx(L.chest[0]), 1, wx(L.chest[1])); levelGroup.add(m); const a = Math.random() * Math.PI * 2; LV.burst.push({ m, t: 0, vx: Math.cos(a) * 2.5, vz: Math.sin(a) * 2.5, vy: 6 + Math.random() * 3 }); }
     toast(`<span class="t-title">¡Cofre abierto!</span>+${reward} 🍬. ¡El portal arcoíris se ha abierto!`, 3600);
     applyState(); saveNow(false);
   }
@@ -1468,34 +1748,10 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
     b.orb.material.emissive.setHex(Math.sin(clock * 8) > 0 ? 0xff2255 : 0x880022);
     if (LV.crystal) { LV.crystal.userData.gem.rotation.y = clock * 2; LV.crystal.userData.gem.position.y = 1.1 + Math.sin(clock * 3) * .15; }
     if (LV.beam.visible) { LV.beam.userData.t -= dt; if (LV.beam.userData.t <= 0) LV.beam.visible = false; }
-    if (S.bossHp <= 0) return;
-    if (!playing) return;
-    if (crystalWait > 0) { crystalWait -= dt; if (crystalWait <= 0) { placeCrystal(); } }
+    if (S.bossHp <= 0 || !playing) return;
+    if (crystalWait > 0) { crystalWait -= dt; if (crystalWait <= 0) placeCrystal(); }
     bossT -= dt;
-    if (bossT <= 0) {
-      bossT = 3.2 - (5 - S.bossHp) * .3;
-      const count = 3 + (5 - S.bossHp), base = Math.atan2(S.px - b.g.position.x, S.pz - b.g.position.z);
-      let fired = 0;
-      for (const p of LV.projs) {
-        if (p.life > 0) continue;
-        const a = base + (fired - (count - 1) / 2) * .38;
-        p.m.position.set(b.g.position.x, 1.2, b.g.position.z); p.vx = Math.sin(a) * 5.2; p.vz = Math.cos(a) * 5.2; p.life = 4.5; p.m.visible = true;
-        if (++fired >= count) break;
-      }
-      sfx.zap();
-    }
-    for (const p of LV.projs) {
-      if (p.life <= 0) continue;
-      p.life -= dt; p.m.position.x += p.vx * dt; p.m.position.z += p.vz * dt;
-      const tx = Math.round(p.m.position.x / TILE), tz = Math.round(p.m.position.z / TILE);
-      if (p.life <= 0 || tileAt(tx, tz).t !== FLOOR) { p.life = 0; p.m.visible = false; continue; }
-      if (inv <= 0 && Math.hypot(p.m.position.x - S.px, p.m.position.z - S.pz) < .7) {
-        p.life = 0; p.m.visible = false; inv = 1.6;
-        S.lives--; sfx.bad(); express("sad", 1500); renderStats();
-        if (S.lives <= 0) { failLevel(); return; }
-        toast("¡Te ha dado una bola de regaliz! Pierdes un corazón.", 1800);
-      }
-    }
+    if (bossT <= 0) { bossT = 3.2 - (5 - S.bossHp) * .3; shootAt(b.g.position.x, b.g.position.z, 3 + (5 - S.bossHp), .38, 5.2); }
   }
   function hitBoss() {
     const b = LV.boss;
@@ -1516,7 +1772,7 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
 
   // ================= Retos =================
   let CUR = null, MG = null;
-  function overlay(html) { $("overlay").hidden = false; $("panel").innerHTML = html; $("panel").scrollTop = 0; }
+  function overlay(html, cls) { $("overlay").hidden = false; const p = $("panel"); p.className = "card" + (cls ? " " + cls : ""); p.innerHTML = html; p.scrollTop = 0; }
   function closeOverlay() { $("overlay").hidden = true; $("panel").innerHTML = ""; aux.place($("faceSlot"), "face"); }
   function stopMini() { if (MG) { MG.stop(); MG = null; } }
   function drawFrom(cat) {
@@ -1530,13 +1786,27 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
     return c;
   }
   const diff = () => clamp(((S ? S.n : 1) - 1) / 19, 0, 1);
+  let timerInt = null;
+  function startTimer(limit) { CUR.t0 = performance.now(); CUR.limit = limit; clearInterval(timerInt); timerInt = setInterval(tickTimer, 250); }
+  function timeLeft() { return CUR && CUR.t0 ? Math.max(0, CUR.limit - (performance.now() - CUR.t0) / 1000) : 0; }
+  function timeBonus() { return CUR && CUR.t0 ? 3 + Math.ceil(12 * timeLeft() / CUR.limit) : 3; }
+  const timerHTML = () => `<div class="timer" id="timer" aria-live="off"></div>`;
+  function tickTimer() {
+    if (!CUR) { clearInterval(timerInt); timerInt = null; return; }
+    if (CUR.frozen) return;
+    const el = $("timer"); if (!el) return;
+    const left = timeLeft();
+    el.innerHTML = `<span>⏱️ ${Math.ceil(left)} s</span><div class="tbar"><div class="tfill" style="width:${left / CUR.limit * 100}%"></div></div><span>${left > 0 ? "🍬 +" + timeBonus() : "¡Sin bonus!"}</span>`;
+  }
   function openStation(s) {
     for (const k in keys) keys[k] = false;
+    joy.x = joy.y = 0; $("joy").hidden = true;
     S.mode = "modal"; express("wow", 1200);
     CUR = { s, tries: 0, disabled: [] };
     if (s.kind === "quiz") CUR.c = drawFrom(s.cat);
     else if (s.kind === "mini") CUR.mini = s.mini;
     else CUR.c = drawFrom(s.kind);
+    startTimer(s.kind === "mini" ? 75 : 40);
     renderChallenge();
   }
   function talkHTML(kind, extra) {
@@ -1551,7 +1821,7 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
     const body = c.type === "mc"
       ? `<div class="opts">${c.options.map((o, i) => `<button class="btn opt" data-i="${i}" ${CUR.disabled.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>`
       : `<form class="answer-row" id="af"><input id="ans" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="Tu respuesta"><button class="btn primary" type="submit">Comprobar</button></form>`;
-    overlay(`${talkHTML(CUR.s.kind)}<div id="chal">
+    overlay(`${talkHTML(CUR.s.kind)}${timerHTML()}<div id="chal">
       <span class="cat ${c.cat}">${c.label || CAT_NAME[c.cat]}</span>
       <p class="q">${c.q}</p>
       ${c.html || ""}${c.svg ? `<div class="figure">${c.svg}</div>` : ""}
@@ -1566,7 +1836,7 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
       const inp = $("ans"); setTimeout(() => { try { inp.focus({ preventScroll: true }); } catch (e) {} }, 50);
       $("af").onsubmit = e => { e.preventDefault(); const v = inp.value.trim(); if (v === "") { $("fb").textContent = "Escribe un número primero."; return; } answer(parseInt(v, 10)); };
     }
-    $("leave").onclick = leave;
+    $("leave").onclick = leave; tickTimer();
   }
   function leave() {
     stopMini(); closeOverlay();
@@ -1587,14 +1857,15 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
     renderChallenge(pick(["¡Uy! Esa no es. Pierdes un corazón.", "¡Casi! Lee la pista y prueba otra vez.", "¡No pasa nada! Mira la pista y vuelve a intentarlo."]));
   }
   function success() {
-    const s = CUR.s, first = CUR.tries === 0;
-    stopMini(); sfx.good(); disableAll(); express("happy", 2400);
-    P.candies += first ? 5 : 2;
+    const s = CUR.s, first = CUR.tries === 0, bonus = timeBonus();
+    CUR.frozen = true; stopMini(); sfx.good(); disableAll(); express("happy", 2400);
+    const prize = bonus + (first ? 5 : 0);
+    P.candies += prize;
     const fb = $("fb") || $("mgfb");
-    if (s.boss) { if (fb) { fb.className = "feedback good"; fb.textContent = "¡Correcto! El cristal lanza un rayo de luz…"; } }
+    if (s.boss) { if (fb) { fb.className = "feedback good"; fb.textContent = `¡Correcto! +${prize} 🍬. El cristal lanza un rayo de luz…`; } }
     else {
       S.solved[s.id] = true; if (first) S.first[s.id] = true; S.keys++;
-      if (fb) { fb.className = "feedback good"; fb.textContent = first ? "¡Perfecto a la primera! Ganas una llave 🗝️, una estrella ⭐ y 5 caramelos" : "¡Conseguido! Ganas una llave 🗝️"; }
+      if (fb) { fb.className = "feedback good"; fb.textContent = `${first ? "¡Perfecto a la primera! Llave 🗝️ y estrella ⭐" : "¡Conseguido! Llave 🗝️"} · +${prize} 🍬 (cuanto más rápido, más caramelos)`; }
     }
     renderStats();
     setTimeout(() => {
@@ -1602,7 +1873,7 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
       if (s.boss) hitBoss();
       else {
         flyKey(s); sfx.coin();
-        toast(S.keys >= 3 ? "<span class=\"t-title\">¡Tienes las 3 llaves!</span>Ahora busca el cofre del tesoro." : `¡Llave conseguida! Llevas ${S.keys} de 3.`, 3000);
+        toast(S.keys >= 3 ? `<span class="t-title">¡Tienes las 3 llaves!</span>${L.miniboss && !S.mbDead ? `Pero el ${L.miniboss.name} protege el cofre. ¡Rayos ⚡!` : "Ahora busca el cofre del tesoro."}` : `¡Llave conseguida! Llevas ${S.keys} de 3.`, 3000);
       }
       applyState(); saveNow(false);
     }, 1400);
@@ -1622,13 +1893,24 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
     missing: { title: "¿Qué falta?", how: () => "Mira bien los dibujos y memorízalos. Después desaparecerá uno: <b>¿cuál falta?</b>" }
   };
   let MINI_FN = null;
+  const miniRO = window.ResizeObserver ? new ResizeObserver(() => fitMini()) : null;
+  function fitMini() {
+    const fit = $("mgfit"), st = $("mgstage");
+    if (!fit || !st) return;
+    const s = Math.min(1, fit.clientWidth / st.offsetWidth, fit.clientHeight / Math.max(1, st.offsetHeight));
+    st.style.transform = `translateX(-50%) scale(${s})`;
+  }
+  window.addEventListener("resize", fitMini);
   function renderMini(lostMsg) {
     const info = MINI_INFO[CUR.mini], d = diff();
-    overlay(`${talkHTML("mini")}<span class="cat mini">Minijuego</span><h2>${info.title}</h2><p class="story">${info.how(d)}</p>
-      ${lostMsg ? `<div class="feedback bad">${lostMsg}</div><div class="row"><button class="btn primary" id="mgstart">Reintentar</button><button class="btn ghost" id="leave">Alejarse</button></div>`
-        : `<div id="mgbox"></div><div class="feedback" id="mgfb"></div><div class="row"><button class="btn ghost" id="leave">Alejarse (sin perder vida)</button></div>`}`);
+    overlay(`${talkHTML("mini", CUR.s.boss ? null : "¡Gana mi juego y la llave es tuya!")}
+      <div class="mini-head"><span class="cat mini">Minijuego</span><h2>${info.title}</h2></div>
+      <p class="story">${info.how(d)}</p>
+      <div class="mg-fit" id="mgfit">${lostMsg ? `<div style="text-align:center;padding-top:10px"><div class="feedback bad">${lostMsg}</div><button class="btn primary" id="mgstart">Reintentar</button></div>` : `<div class="mg-stage" id="mgstage"><div id="mgbox"></div><div class="feedback" id="mgfb"></div></div>`}</div>
+      <div class="mini-foot">${timerHTML()}<button class="btn ghost" id="leave">Alejarse</button></div>`, "mini-mode");
     mountFace();
     $("leave").onclick = leave;
+    tickTimer();
     if (lostMsg) { $("mgstart").onclick = () => renderMini(); return; }
     const mine = CUR, ref = {};
     const done = win => {
@@ -1640,6 +1922,8 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
       renderMini("¡Oh! Esta vez no ha salido. Pierdes un corazón, pero puedes volver a intentarlo.");
     };
     MG = ref.mg = MINI_FN[CUR.mini]($("mgbox"), done, d);
+    if (miniRO) { miniRO.disconnect(); miniRO.observe($("mgstage")); miniRO.observe($("mgfit")); }
+    fitMini(); requestAnimationFrame(fitMini);
   }
 
   function mkCanvas(box, w, h, cls) {
@@ -2011,7 +2295,7 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
   function skinCards(sel) {
     return `<div class="skins">${SKINS.map(s => {
       const own = owns(s.id), u = upgOf(s.id);
-      return `<button class="skin ${s.id === sel ? "sel" : ""}" data-skin="${s.id}" aria-pressed="${s.id === sel}"><span class="s-ic">${s.icon}</span>${s.name}${own ? `<span class="lvstars">${"★".repeat(u)}${"☆".repeat(3 - u)}</span>` : `<span class="price">🔒 ${s.price} 🍬</span>`}</button>`;
+      return `<button class="skin ${s.id === sel ? "sel" : ""}" data-skin="${s.id}" aria-pressed="${s.id === sel}"><span class="s-ic">${s.icon}</span>${s.name}${own ? `<span class="lvstars">${stars5(u)}</span>` : `<span class="price">🔒 ${s.price} 🍬</span>`}</button>`;
     }).join("")}</div>`;
   }
   function toneRow(sel) { return `<div class="tones"><span class="tag" style="margin-right:4px">Tono de piel</span>${TONES.map((t, i) => `<button class="tone ${i === sel ? "sel" : ""}" data-tone="${i}" style="background:#${t.toString(16).padStart(6, "0")}" aria-label="Tono ${i + 1}" aria-pressed="${i === sel}"></button>`).join("")}</div>`; }
@@ -2040,7 +2324,8 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
           <div class="row"><button class="btn primary" id="toMap">🗺️ Mapa de niveles</button><button class="btn" id="toWard">👗 Vestidor y mejoras</button></div>
         </div><div id="pvSlot" aria-label="Tu personaje"></div></div>`}
       <div class="controls">
-        <div><b>Moverse:</b> ${touchy ? "joystick rosa de abajo a la izquierda" : "flechas o <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>"}</div>
+        <div><b>Moverse:</b> ${touchy ? "arrastra el dedo por la pantalla" : "flechas, <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> o arrastrando con el ratón"}</div>
+        <div><b>Rayo mágico:</b> ${touchy ? "botón amarillo ⚡" : "barra <kbd>espacio</kbd> o botón ⚡"}. ¡Vence a los monstruos!</div>
         <div><b>Llaves:</b> cada personaje te da una al superar su reto. ¡Con 3 abres el cofre!</div>
         <div><b>Caramelos:</b> úsalos en el vestidor para desbloquear y <b>mejorar trajes</b>.</div>
         <div><b>Guardar:</b> se guarda solo${cloudReady ? " (también en tu cuenta)" : ""}. Usa 💾 cuando quieras.</div>
@@ -2071,34 +2356,60 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
     document.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { const n = +b.dataset.n; if (n > P.maxLevel) { toast("Supera los niveles anteriores para abrir este."); return; } startLevel(n); });
     $("toWard").onclick = () => showWardrobe(showMap); $("toMenu").onclick = showMenu;
   }
-  let wardSel = null;
+  let wardSel = null, wardTab = "trajes";
+  function itemCards(list, ownList, cur, attr) {
+    return `<div class="skins">${list.map((it, i) => { const own = ownList.includes(it.id); return `<button class="skin ${cur === it.id ? "sel" : ""}" data-${attr}="${i}"><span class="s-ic">${it.icon}</span>${it.name}${own ? (cur === it.id ? `<span class="lvstars">¡Puesto!</span>` : "") : `<span class="price">${it.price} 🍬</span>`}</button>`; }).join("")}</div>`;
+  }
   function showWardrobe(back, msg) {
     const inLevel = !!(S && (S.mode === "play" || S.mode === "modal"));
     if (inLevel) { S.mode = "modal"; for (const k in keys) keys[k] = false; } else screenNow = "ward";
     wardSel = wardSel || P.skin;
-    const s = SKIN[wardSel], own = owns(s.id), u = upgOf(s.id), wearing = P.skin === s.id;
-    let actions = "";
-    if (!own) actions = `<button class="btn green" id="wBuy" ${P.candies >= s.price ? "" : "disabled"}>Desbloquear por ${s.price} 🍬</button>`;
-    else {
-      if (!wearing) actions += `<button class="btn primary" id="wWear">Ponerme este traje</button>`;
-      if (u < 3) actions += `<button class="btn green" id="wUp" ${P.candies >= UPG_COST[u + 1] ? "" : "disabled"}>Mejorar a ${"★".repeat(u + 1)} por ${UPG_COST[u + 1]} 🍬</button>`;
+    const tabs = [["trajes", "👗 Trajes"], ["colores", "🎨 Colores"], ["accesorios", "🎀 Accesorios"], ["mascotas", "🐾 Mascotas"]];
+    let body = "", pvSkin = P.skin, pvUpg;
+    if (wardTab === "trajes") {
+      const s = SKIN[wardSel], own = owns(s.id), u = upgOf(s.id), wearing = P.skin === s.id;
+      pvSkin = s.id; pvUpg = own ? u : 1;
+      let actions = "";
+      if (!own) actions = `<button class="btn green" id="wBuy" ${P.candies >= s.price ? "" : "disabled"}>Desbloquear por ${s.price} 🍬</button>`;
+      else {
+        if (!wearing) actions += `<button class="btn primary" id="wWear">Ponerme este traje</button>`;
+        if (u < 5) actions += `<button class="btn green" id="wUp" ${P.candies >= UPG_COST[u + 1] ? "" : "disabled"}>Mejorar a ${"★".repeat(u + 1)} por ${UPG_COST[u + 1]} 🍬</button>`;
+      }
+      body = `<div class="ward"><div>${skinCards(wardSel)}${toneRow(P.tone)}</div><div id="pvSlot" aria-label="Vista previa"></div></div>
+        <div class="ward-panel"><b>${s.icon} ${s.name}</b> ${own ? `<span class="lvstars">${stars5(u)}</span>` : "🔒"}${wearing ? " · <b>¡Lo llevas puesto!</b>" : ""}
+        <ul>${[2, 3, 4, 5].map(k => `<li>${"★".repeat(k)} ${UPG_PERK[k]}${u >= k ? " ✅" : ""}</li>`).join("")}</ul>
+        <div class="row" style="margin-top:6px">${actions}</div></div>`;
+    } else if (wardTab === "colores") {
+      const cur = P.color[P.skin] || 0;
+      body = `<div class="ward"><div><p class="story" style="margin:0 0 6px">Color del traje de <b>${SKIN[P.skin].name}</b>. Los colores que compres sirven para todos los trajes.</p><div class="skins">${DRESS_COLORS.map((c, i) => {
+        const own = P.ownColors.includes(i);
+        return `<button class="skin ${cur === i ? "sel" : ""}" data-col="${i}"><span class="swatch" style="background:${c.c == null ? "conic-gradient(#ff7fcf,#ffd23f,#63e6be,#5fb8ff,#ff7fcf)" : "#" + c.c.toString(16).padStart(6, "0")}"></span>${c.name}${own ? "" : `<span class="price">${c.price} 🍬</span>`}</button>`;
+      }).join("")}</div></div><div id="pvSlot" aria-label="Vista previa"></div></div>`;
+    } else if (wardTab === "accesorios") {
+      body = `<div class="ward"><div>${itemCards(ACCS, P.ownAcc, P.acc, "acc")}</div><div id="pvSlot" aria-label="Vista previa"></div></div>`;
+    } else {
+      body = `<div class="ward"><div><p class="story" style="margin:0 0 6px">Tu mascota te sigue por los niveles y <b>recoge caramelos</b> por ti.</p>${itemCards(PETS, P.ownPets, P.pet, "pet")}</div><div id="pvSlot" aria-label="Vista previa"></div></div>`;
     }
-    overlay(`<div class="tag">Vestidor de Gata Bombón</div><h2>Trajes y mejoras</h2>
-      <p class="story" style="margin:0 0 8px">Tienes <b>${P.candies} 🍬</b>. ${msg || "Cada traje se puede mejorar dos veces. ¡Las mejoras dan poderes!"}</p>
-      <div class="ward"><div>${skinCards(wardSel)}${toneRow(P.tone)}</div><div id="pvSlot" aria-label="Vista previa"></div></div>
-      <div class="ward-panel"><b>${s.icon} ${s.name}</b> ${own ? `<span class="lvstars">${"★".repeat(u)}${"☆".repeat(3 - u)}</span>` : "🔒"} ${wearing ? " · <b>¡Lo llevas puesto!</b>" : ""}
-        <ul><li>★★ ${UPG_PERK[2]}${u >= 2 ? " ✅" : ""}</li><li>★★★ ${UPG_PERK[3]}${u >= 3 ? " ✅" : ""}</li></ul>
-        <div class="row" style="margin-top:6px">${actions}</div></div>
-      ${!inLevel ? `<div class="intro-input" style="margin-top:10px"><label for="nm" class="tag" style="flex-basis:100%">Tu nombre</label><input id="nm" maxlength="20" autocomplete="off" value="${esc(P.name)}"></div>` : ""}
+    overlay(`<div class="tag">Vestidor de Gata Bombón</div><h2>Personaliza a tu heroína</h2>
+      <p class="story" style="margin:0 0 8px">Tienes <b>${P.candies} 🍬</b>. ${msg || "Cada traje se puede mejorar hasta ★★★★★."}</p>
+      <div class="tabs">${tabs.map(t => `<button class="btn tab ${wardTab === t[0] ? "sel" : ""}" data-tab="${t[0]}">${t[1]}</button>`).join("")}</div>
+      ${body}
+      ${!inLevel && wardTab === "trajes" ? `<div class="intro-input" style="margin-top:10px"><label for="nm" class="tag" style="flex-basis:100%">Tu nombre</label><input id="nm" maxlength="20" autocomplete="off" value="${esc(P.name)}"></div>` : ""}
       <div class="row"><button class="btn primary" id="wBack">${inLevel ? "Volver al nivel" : "Listo"}</button></div>`);
-    aux.rebuild(s.id, P.tone, own ? u : 1); aux.place($("pvSlot"), "body");
+    aux.rebuild(pvSkin, P.tone, pvUpg); aux.place($("pvSlot"), "body");
     const nm = $("nm"); if (nm) nm.onchange = () => { P.name = nm.value.trim() || P.name; saveNow(false); };
-    document.querySelectorAll("[data-skin]").forEach(b => b.onclick = () => { wardSel = b.dataset.skin; showWardrobe(back); });
-    document.querySelectorAll("[data-tone]").forEach(b => b.onclick = () => { P.tone = +b.dataset.tone; placeHero(); saveNow(false); showWardrobe(back); });
-    const after = m => { placeHero(); if (S) { S.maxLives = maxLivesNow(); renderStats(); } saveNow(true); showWardrobe(back, m); };
-    if ($("wBuy")) $("wBuy").onclick = () => { P.candies -= s.price; P.unlocked.push(s.id); P.skin = s.id; sfx.coin(); after(`¡El traje de ${s.name} ya es tuyo!`); };
-    if ($("wWear")) $("wWear").onclick = () => { P.skin = s.id; sfx.pick(); after(`¡Qué bien te queda el traje de ${s.name}!`); };
-    if ($("wUp")) $("wUp").onclick = () => { P.candies -= UPG_COST[u + 1]; P.upg[s.id] = u + 1; sfx.win(); after(`¡Mejora conseguida! ${UPG_PERK[u + 1]}.`); };
+    const again = m => showWardrobe(back, m);
+    const after = m => { placeHero(); if (S && L) { S.maxLives = Math.max(S.maxLives, maxLivesNow()); renderStats(); } saveNow(true); again(m); };
+    const pay = (price, name) => { if (P.candies < price) { again(`Te faltan ${price - P.candies} caramelos para ${name}. ¡Sigue jugando!`); return false; } P.candies -= price; sfx.coin(); return true; };
+    document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { wardTab = b.dataset.tab; again(); });
+    document.querySelectorAll("[data-skin]").forEach(b => b.onclick = () => { wardSel = b.dataset.skin; again(); });
+    document.querySelectorAll("[data-tone]").forEach(b => b.onclick = () => { P.tone = +b.dataset.tone; after(); });
+    document.querySelectorAll("[data-col]").forEach(b => b.onclick = () => { const i = +b.dataset.col, c = DRESS_COLORS[i]; if (!P.ownColors.includes(i)) { if (!pay(c.price, "ese color")) return; P.ownColors.push(i); } P.color[P.skin] = i; after(`¡Color ${c.name} puesto!`); });
+    document.querySelectorAll("[data-acc]").forEach(b => b.onclick = () => { const it = ACCS[+b.dataset.acc]; if (!P.ownAcc.includes(it.id)) { if (!pay(it.price, "ese accesorio")) return; P.ownAcc.push(it.id); } P.acc = it.id; after(it.id ? `¡${it.name} puesto!` : "Sin accesorio."); });
+    document.querySelectorAll("[data-pet]").forEach(b => b.onclick = () => { const it = PETS[+b.dataset.pet]; if (!P.ownPets.includes(it.id)) { if (!pay(it.price, "esa mascota")) return; P.ownPets.push(it.id); } P.pet = it.id; after(it.id ? `¡${it.name} viene contigo!` : "Sin mascota."); });
+    if ($("wBuy")) { const s = SKIN[wardSel]; $("wBuy").onclick = () => { if (!pay(s.price, "ese traje")) return; P.unlocked.push(s.id); P.skin = s.id; after(`¡El traje de ${s.name} ya es tuyo!`); }; }
+    if ($("wWear")) $("wWear").onclick = () => { P.skin = wardSel; sfx.pick(); after(`¡Qué bien te queda el traje de ${SKIN[wardSel].name}!`); };
+    if ($("wUp")) { const u = upgOf(wardSel); $("wUp").onclick = () => { if (!pay(UPG_COST[u + 1], "esa mejora")) return; P.upg[wardSel] = u + 1; sfx.win(); after(`¡Mejora conseguida! ${UPG_PERK[u + 1]}.`); }; }
     $("wBack").onclick = () => { wardSel = null; if (inLevel) { closeOverlay(); S.mode = "play"; applyState(); } else back(); };
   }
   $("faceSlot").onclick = () => { if (S && S.mode === "play") showWardrobe(null); };
@@ -2119,10 +2430,10 @@ body.touch #objective { left: auto; right: 12px; transform: none; max-width: cal
     buildLevelScene(); placeHero(); applyState(); closeOverlay();
     $("area").textContent = `Nivel ${n} · ${LEVEL_NAMES[n]}`;
     camera.position.set(S.px, 30, S.pz + 20);
-    $("joy").hidden = !touchy;
+    $("joy").hidden = true; fireCd = 0;
     saveNow(false);
     if (L.boss) toast(`<span class="t-title">¡La Fortaleza de Regaliz!</span>Esquiva sus bolas de regaliz y toca los cristales de luz para lanzarle retos. ¡Necesitas 5 aciertos!`, 6000);
-    else toast(`<span class="t-title">Nivel ${n}: ${LEVEL_NAMES[n]}</span>${resume ? "Sigues donde lo dejaste." : `${WORLDS[L.world].name}. Consigue 3 llaves y abre el cofre del tesoro.`}`, 4200);
+    else toast(`<span class="t-title">Nivel ${n}: ${LEVEL_NAMES[n]}</span>${resume ? "Sigues donde lo dejaste." : `${WORLDS[L.world].name}. Consigue 3 llaves y abre el cofre del tesoro.`}${L.miniboss ? ` <b>¡Cuidado! El ${L.miniboss.name} protege el cofre.</b>` : ""}`, 4600);
   }
   function levelComplete() {
     if (S.mode !== "play") return;
