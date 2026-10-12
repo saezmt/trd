@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>El Reino de Caramelia</title>
+<title>El Mundo de Caramelia y Fantasías</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Baloo+2:wght@400;600;800&display=swap">
@@ -247,11 +247,11 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
 </style>
 </head>
 <body>
-<canvas id="world" aria-label="Mundo 3D del Reino de Caramelia"></canvas>
+<canvas id="world" aria-label="Mundo 3D de Caramelia y Fantasías"></canvas>
 <div class="hud">
   <div class="hud-left">
     <button id="faceSlot" title="Vestidor" aria-label="Tu personaje. Pulsa para abrir el vestidor"></button>
-    <div class="hud-col"><div class="pill" id="area">Reino de Caramelia</div><canvas id="mini" width="148" height="132" aria-label="Mapa del nivel"></canvas></div>
+    <div class="hud-col"><div class="pill" id="area">Caramelia y Fantasías</div><canvas id="mini" width="148" height="132" aria-label="Mapa del nivel"></canvas></div>
   </div>
   <div class="hud-right" id="stats"></div>
 </div>
@@ -261,7 +261,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
 <div id="joy" hidden><div id="knob"></div></div>
 <button id="fireBtn" hidden aria-label="Lanzar rayo mágico">⚡<span>Rayo</span></button>
 <div class="overlay" id="overlay"><div class="card" id="panel"></div></div>
-<div id="loading">Abriendo el reino…</div>
+<div id="loading">Abriendo el mundo de Caramelia…</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -594,7 +594,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (g[y][x].t === FLOOR && !block.has(x + "," + y)) spots.push([x, y, Math.floor(R() * 4)]);
     for (let i = spots.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [spots[i], spots[j]] = [spots[j], spots[i]]; }
     const candyAt = spots.slice(0, 24 + Math.floor(n / 2));
-    const nEnemies = n <= 2 ? 0 : Math.min(mid.length, 1 + Math.floor((n - 1) / 6));
+    const nEnemies = Math.min(mid.length, 1 + Math.floor((n - 1) / 6));
     const enemies = [];
     for (let i = 0; i < nEnemies; i++) {
       const r = mid[i]; if (r === rooms[0]) continue;
@@ -603,9 +603,15 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     const decor = [];
     rooms.forEach((r, i) => { if (i === rooms.length - 1) return; [[r.x, r.y + r.h - 1], [r.x + r.w - 1, r.y + r.h - 1]].forEach(p => { if (!heart || p[0] !== heart[0] || p[1] !== heart[1]) decor.push(p); }); });
     const monsters = [];
-    const nMon = n < 2 ? 0 : Math.min(6, 1 + Math.floor(n / 3));
-    const mRooms = rooms.slice(1);
-    for (let i = 0; i < nMon; i++) { const r = mRooms[i % mRooms.length]; monsters.push({ id: "m" + i, x: r.x + Math.floor(R() * r.w), y: r.y + Math.floor(R() * r.h), hp: n > 10 ? 2 : 1 }); }
+    const nMon = Math.min(9, 2 + Math.floor(n / 2));
+    const mRooms = rooms.slice(1), corr = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (g[y][x].t === FLOOR && g[y][x].r === "c" && Math.hypot(x - start[0], y - start[1]) > 5) corr.push([x, y]);
+    for (let i = 0; i < nMon; i++) {
+      let x, y;
+      if (i % 2 === 1 && corr.length) [x, y] = corr[Math.floor(R() * corr.length)];
+      else { const r = mRooms[Math.floor(i / 2) % mRooms.length]; x = r.x + Math.floor(R() * r.w); y = r.y + Math.floor(R() * r.h); }
+      monsters.push({ id: "m" + i, x, y, hp: n > 10 ? 2 : 1 });
+    }
     const miniboss = MB_INFO[n] ? { x: clamp(last.cx - 2, last.x, last.x + last.w - 1), y: last.y + last.h - 1, hp: 6 + (n / 5) * 2, name: MB_INFO[n][0], color: MB_INFO[n][1], room: { x: last.x, y: last.y, w: last.w, h: last.h }, shoots: n >= 15 } : null;
     return { n, world, W, H, grid: g, rooms, start, stations, chest, portal, heart, candyAt, enemies, decor, seed: n, monsters, miniboss };
   }
@@ -1227,7 +1233,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     LV.monsters = (L.monsters || []).map(m0 => {
       const o = monsterModel(Wd.monster || 0x9c36b5, false); addL(o.g, m0.x, m0.y);
       const alive = !S.killed[m0.id]; o.g.visible = alive;
-      return { id: m0.id, obj: o, hp: m0.hp, alive, hx: wx(m0.x), hz: wx(m0.y), wt: 0, wx: 0, wz: 0, ph: Math.random() * 6, speed: 2.3 + L.n * .05, flash: 0, name: Wd.monsterName };
+      return { id: m0.id, obj: o, hp: m0.hp, alive, hx: wx(m0.x), hz: wx(m0.y), wt: 0, wx: 0, wz: 0, ph: Math.random() * 6, speed: 2.4 + L.n * .05, flash: 0, name: Wd.monsterName };
     });
     // Monstruo guardián (cada 5 niveles)
     if (L.miniboss) {
@@ -1538,16 +1544,13 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
       if (S.lives < S.maxLives) { S.taken.h = 1; LV.heart.visible = false; S.lives++; sfx.good(); express("happy"); toast("¡Corazón mágico! +1 vida ❤️"); renderStats(); }
       else if (!LV.heart.userData.told) { LV.heart.userData.told = true; toast("Ya tienes todas tus vidas. Este corazón te espera por si lo necesitas."); }
     }
-    // Ladronas de caramelos (patrullan)
+    // Monstruos que patrullan (quitan corazones y caramelos)
     if (inv <= 0) for (const en of LV.enemies) {
       if (S.killed[en.id]) continue;
       const ex = en.obj.g.position.x, ez = en.obj.g.position.z;
       if (Math.hypot(ex - S.px, ez - S.pz) < .95) {
-        const lost = Math.min(3, P.candies); P.candies -= lost; inv = 1.6; sfx.bad(); express("sad", 1500);
-        const ang = Math.atan2(S.px - ex, S.pz - ez);
-        for (let k = 0; k < 6; k++) { const nx = S.px + Math.sin(ang) * .3, nz = S.pz + Math.cos(ang) * .3; if (!blockedAt(nx, S.pz)) S.px = nx; if (!blockedAt(S.px, nz)) S.pz = nz; }
-        toast(lost ? `¡Ay! Una ${WORLDS[L.world].enemyName} te ha quitado ${lost} caramelos. ¡Usa tu rayo ⚡!` : `¡Cuidado con la ${WORLDS[L.world].enemyName}!`, 1800);
-        renderStats(); break;
+        hurt(ex, ez, `¡Una ${WORLDS[L.world].enemyName} te ha atacado! Pierdes un corazón.`, 3);
+        break;
       }
     }
     // Cofre (si hay guardián, primero hay que vencerlo)
@@ -1620,8 +1623,10 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
       toast(`<span class="t-title">¡Has vencido al ${L.miniboss.name}!</span>+20 🍬. El cofre ya no tiene guardián.`, 3600); saveNow(false);
     }
   }
-  function hurt(fx, fz, msg) {
+  function hurt(fx, fz, msg, steal) {
     if (!S || S.mode !== "play") return;
+    const lost = Math.min(steal || 0, P.candies); P.candies -= lost;
+    if (lost) msg += ` ¡Y te ha robado ${lost} 🍬!`;
     S.lives--; inv = 1.6; sfx.bad(); express("sad", 1500);
     const ang = Math.atan2(S.px - fx, S.pz - fz);
     for (let k = 0; k < 6; k++) { const nx = S.px + Math.sin(ang) * .3, nz = S.pz + Math.cos(ang) * .3; if (!blockedAt(nx, S.pz)) S.px = nx; if (!blockedAt(S.px, nz)) S.pz = nz; }
@@ -1657,7 +1662,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
       if (!mo.alive) continue;
       const g = mo.obj.g, dx = S.px - g.position.x, dz = S.pz - g.position.z, d = Math.hypot(dx, dz) || 1;
       let tx, tz;
-      if (d < 7) { tx = dx / d; tz = dz / d; }
+      if (d < 8) { tx = dx / d; tz = dz / d; }
       else {
         mo.wt -= dt;
         if (mo.wt <= 0) { mo.wt = 1.5 + Math.random() * 2; const a = Math.random() * 6.28; mo.wx = Math.sin(a); mo.wz = Math.cos(a); }
@@ -1665,13 +1670,13 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
         const hd = Math.hypot(mo.hx - g.position.x, mo.hz - g.position.z);
         if (hd > 6) { tx = (mo.hx - g.position.x) / hd; tz = (mo.hz - g.position.z) / hd; }
       }
-      const sp = mo.speed * dt * (d < 7 ? 1 : .5), nx = g.position.x + tx * sp, nz = g.position.z + tz * sp;
+      const sp = mo.speed * dt * (d < 3 ? 1.6 : d < 8 ? 1 : .5), nx = g.position.x + tx * sp, nz = g.position.z + tz * sp;
       if (!blockedAt(nx, g.position.z)) g.position.x = nx; else mo.wt = 0;
       if (!blockedAt(g.position.x, nz)) g.position.z = nz; else mo.wt = 0;
       g.rotation.y = Math.atan2(tx, tz);
       g.position.y = Math.abs(Math.sin(clock * 6 + mo.ph)) * .25;
       mo.obj.body.material.emissive.setHex(mo.flash > 0 ? 0xffffff : 0x220011); mo.flash -= dt;
-      if (d < .95 && inv <= 0) { hurt(g.position.x, g.position.z, `¡Un ${mo.name} te ha pillado! Pierdes un corazón. ¡Usa tu rayo ⚡!`); if (!S || S.mode !== "play") return; }
+      if (d < .95 && inv <= 0) { hurt(g.position.x, g.position.z, `¡Un ${mo.name} te ha atacado! Pierdes un corazón.`, 4); if (!S || S.mode !== "play") return; }
     }
     if (LV.mb && !S.mbDead) {
       const g = LV.mb.obj.g, r = L.miniboss.room;
@@ -1686,7 +1691,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
       g.rotation.y = Math.atan2(dx, dz);
       g.position.y = Math.abs(Math.sin(clock * 3)) * .3;
       LV.mb.obj.body.material.emissive.setHex(LV.mb.flash > 0 ? 0xffffff : 0x220011); LV.mb.flash -= dt;
-      if (d < 1.7 && inv <= 0) hurt(g.position.x, g.position.z, `¡El ${L.miniboss.name} te ha golpeado! Pierdes un corazón. ¡Dispárale rayos ⚡!`);
+      if (d < 1.7 && inv <= 0) hurt(g.position.x, g.position.z, `¡El ${L.miniboss.name} te ha golpeado! Pierdes un corazón. ¡Dispárale rayos ⚡!`, 5);
     }
   }
   function updatePet(dt) {
@@ -2308,8 +2313,8 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     const run = SAVED && SAVED.v === 2 ? SAVED : null;
     const done = Object.keys(P.levels).length;
     overlay(`<div class="tag">Un cuento para jugar</div>
-      <h1 class="logo">El Reino de Caramelia</h1>
-      <p class="story" style="margin-top:8px">El brujo Regaliz ha encerrado el reino tras <em>20 niveles</em> llenos de retos. En cada nivel, habla con los personajes para ganar <em>3 llaves</em>, abre el <em>cofre del tesoro</em> y cruza el portal. Al final te espera el brujo en su fortaleza.</p>
+      <h1 class="logo">El Mundo de Caramelia y Fantasías</h1>
+      <p class="story" style="margin-top:8px">El brujo Regaliz ha encerrado el reino tras <em>20 niveles</em> llenos de retos. En cada nivel, habla con los personajes para ganar <em>3 llaves</em>, abre el <em>cofre del tesoro</em> y cruza el portal. Al final te espera el brujo en su fortaleza. ¡Cuidado con los <em>monstruos del laberinto</em>: te atacan para quitarte corazones y caramelos! Véncelos con tu <em>rayo mágico ⚡</em>.</p>
       ${isNew ? `<h3>Elige tu personaje</h3>
         <div class="picker"><div>${skinCards(pickSkin)}${toneRow(pickTone)}</div><div id="pvSlot" aria-label="Vista previa del personaje"></div></div>
         <form id="f" class="intro-input" style="margin-top:12px">
