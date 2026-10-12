@@ -1,0 +1,1330 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mansión Calabaza 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Griffy&family=Baloo+2:wght@400;600;800&display=swap">
+<style>
+/* Layout: mundo 3D a pantalla completa; marcador flotante arriba, objetivo abajo y retos en una tarjeta superpuesta. Tema nocturno fijo. */
+:root {
+  --night: #0d0819;
+  --night-2: #241843;
+  --ink: #f6eeff;
+  --muted: #b9a8d9;
+  --pumpkin: #ff8a1f;
+  --pumpkin-deep: #d9620a;
+  --slime: #9be564;
+  --candle: #ffd36b;
+  --blood: #ff5c7a;
+  --sand: #e9c98f;
+  --card: #2b1d4f;
+  --card-edge: #4a3680;
+  --glass: rgba(18, 11, 34, .78);
+  --display: "Griffy", "Papyrus", fantasy;
+  --body: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--night); color: var(--ink); font-family: var(--body); font-size: 18px; line-height: 1.4; overflow: hidden; -webkit-user-select: none; user-select: none; }
+#world { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+/* HUD */
+.hud { position: fixed; left: 0; right: 0; top: 0; padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; pointer-events: none; z-index: 5; }
+.hud-left { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; min-width: 0; }
+.hud-right { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; pointer-events: auto; }
+.pill { background: var(--glass); border: 2px solid var(--card-edge); border-radius: 999px; padding: 2px 12px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; backdrop-filter: blur(4px); }
+.pill .lbl { font-weight: 600; color: var(--muted); font-size: 13px; margin-right: 4px; }
+#area { font-family: var(--display); font-weight: 400; color: var(--candle); font-size: 20px; padding: 2px 14px; max-width: 60vw; overflow: hidden; text-overflow: ellipsis; }
+#mini { width: 148px; height: 132px; border-radius: 12px; border: 2px solid var(--card-edge); background: var(--glass); image-rendering: pixelated; }
+.icon-btn { background: var(--glass); color: var(--ink); border: 2px solid var(--card-edge); border-radius: 999px; padding: 2px 12px; font: inherit; font-weight: 700; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--candle); outline-offset: 2px; }
+
+#objective { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); z-index: 5; max-width: min(560px, calc(100% - 32px)); text-align: center; background: var(--glass); border: 2px solid var(--card-edge); border-radius: 16px; padding: 6px 14px; font-weight: 700; pointer-events: none; }
+#objective b { color: var(--candle); }
+#toast { position: fixed; left: 50%; top: 30%; transform: translate(-50%, -50%); z-index: 6; width: min(520px, calc(100% - 32px)); text-align: center; background: var(--glass); border: 3px solid var(--pumpkin); border-radius: 18px; padding: 12px 18px; font-weight: 700; pointer-events: none; opacity: 0; transition: opacity .35s; }
+#toast.show { opacity: 1; }
+#toast .t-title { font-family: var(--display); font-weight: 400; font-size: 26px; color: var(--candle); display: block; }
+
+/* Joystick táctil */
+#joy { position: fixed; left: calc(env(safe-area-inset-left, 0px) + 22px); bottom: calc(env(safe-area-inset-bottom, 0px) + 70px); width: 130px; height: 130px; border-radius: 50%; background: rgba(255, 255, 255, .08); border: 3px solid rgba(255, 211, 107, .4); z-index: 5; touch-action: none; }
+#knob { position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffb35c, var(--pumpkin-deep)); box-shadow: 0 4px 10px rgba(0,0,0,.5); }
+
+/* Tarjetas superpuestas */
+.overlay { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px calc(env(safe-area-inset-bottom, 0px) + 12px); background: rgba(8, 4, 18, .55); backdrop-filter: blur(2px); }
+.card { width: min(680px, 100%); max-height: 100%; overflow-y: auto; background: linear-gradient(180deg, var(--card), #22173f); border: 3px solid var(--card-edge); border-radius: 22px; padding: clamp(16px, 4vw, 28px); box-shadow: 0 14px 40px rgba(0, 0, 0, .55); animation: rise .35s ease-out; -webkit-user-select: text; user-select: text; }
+@keyframes rise { from { transform: translateY(14px) scale(.98); opacity: .3; } to { transform: none; opacity: 1; } }
+.logo { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 8vw, 50px); color: var(--pumpkin); margin: 0; line-height: 1.05; text-shadow: 0 3px 0 #000, 0 0 18px rgba(255, 138, 31, .45); text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 400; font-size: clamp(26px, 6vw, 36px); margin: 2px 0 6px; color: var(--candle); text-wrap: balance; line-height: 1.1; }
+.tag { font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slime); font-weight: 800; }
+.story { margin: 0 0 12px; }
+.story em { color: var(--candle); font-style: normal; font-weight: 700; }
+.big-art { font-size: clamp(54px, 14vw, 84px); text-align: center; animation: wobble 2.6s ease-in-out infinite; }
+@keyframes wobble { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg) translateY(-4px); } }
+.cat { display: inline-block; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 2px 10px; border-radius: 999px; margin-bottom: 8px; color: #1b1030; }
+.cat.mates { background: var(--pumpkin); }
+.cat.geo { background: var(--slime); }
+.cat.geom { background: var(--candle); }
+.cat.jero { background: var(--sand); }
+.cat.mini { background: #c9a4ff; }
+.cat.gold { background: linear-gradient(90deg, #ffe08a, #e0a91a); }
+.q { font-size: 20px; font-weight: 600; margin: 0 0 12px; }
+.figure { display: flex; justify-content: center; margin: 6px 0 12px; overflow-x: auto; }
+.figure svg { max-width: 100%; height: auto; }
+.rebus { font-size: clamp(40px, 11vw, 60px); text-align: center; font-weight: 800; letter-spacing: 2px; margin: 4px 0 10px; color: var(--candle); }
+.cipher { font-size: clamp(30px, 8vw, 44px); text-align: center; letter-spacing: 6px; margin: 6px 0 10px; background: rgba(233, 201, 143, .12); border: 2px solid var(--sand); border-radius: 14px; padding: 6px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 10px; }
+.legend span { background: #120b22; border: 2px solid var(--card-edge); border-radius: 10px; padding: 2px 8px; font-weight: 800; font-size: 18px; }
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.btn { font: inherit; font-weight: 800; font-size: 19px; cursor: pointer; background: var(--night-2); color: var(--ink); border: 3px solid var(--card-edge); border-radius: 14px; padding: 9px 14px; transition: transform .12s, background .12s, border-color .12s; }
+.btn:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--pumpkin); background: #33245e; }
+.btn:disabled { opacity: .35; cursor: not-allowed; }
+.opt:disabled { text-decoration: line-through; }
+.btn.primary { background: var(--pumpkin); color: #2a1300; border-color: var(--pumpkin-deep); box-shadow: 0 5px 0 var(--pumpkin-deep); }
+.btn.primary:hover { background: #ff9c3f; border-color: var(--pumpkin-deep); }
+.btn.ghost { background: transparent; color: var(--muted); border-color: transparent; font-size: 16px; }
+.answer-row, .intro-input, .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.row { margin-top: 14px; }
+.answer-row input, .intro-input input { font: inherit; font-weight: 800; background: #120b22; color: var(--ink); border: 3px solid var(--card-edge); border-radius: 14px; padding: 6px 12px; }
+.answer-row input { font-size: 24px; width: 140px; text-align: center; }
+.intro-input input { font-size: 20px; flex: 1 1 200px; min-width: 0; }
+.feedback { min-height: 26px; margin-top: 10px; font-weight: 700; }
+.feedback.bad { color: var(--blood); }
+.feedback.good { color: var(--slime); }
+.hint { margin-top: 8px; background: rgba(255, 211, 107, .12); border-left: 4px solid var(--candle); padding: 8px 12px; border-radius: 8px; color: var(--candle); }
+.shake { animation: shake .4s; }
+@keyframes shake { 20%,60% { transform: translateX(-8px); } 40%,80% { transform: translateX(8px); } }
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; margin: 10px 0; }
+.controls div { background: rgba(0,0,0,.25); border: 2px solid var(--card-edge); border-radius: 12px; padding: 8px 10px; font-size: 16px; }
+.controls b { color: var(--candle); }
+kbd { background: #120b22; border: 2px solid var(--card-edge); border-bottom-width: 4px; border-radius: 6px; padding: 0 6px; font-family: var(--body); font-weight: 800; font-size: 14px; }
+
+/* Minijuegos */
+.mg-canvas { display: block; width: 100%; max-width: 340px; margin: 0 auto; border-radius: 14px; border: 3px solid var(--card-edge); touch-action: none; background: #120b22; }
+.mg-status { text-align: center; font-weight: 800; margin: 8px 0; font-variant-numeric: tabular-nums; }
+.mem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-width: 360px; margin: 0 auto; }
+.mem-card { aspect-ratio: 1; font-size: clamp(26px, 8vw, 38px); border-radius: 12px; border: 3px solid var(--card-edge); background: repeating-linear-gradient(45deg, #3a2768 0 8px, #2e1f55 8px 16px); cursor: pointer; color: var(--ink); padding: 0; }
+.mem-card.up { background: #f6eeff; }
+.mem-card.done { background: #c8f5a8; border-color: #5fa832; }
+.simon { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 300px; margin: 0 auto; }
+.simon button { aspect-ratio: 1.3; border-radius: 20px; font-size: 44px; border: 4px solid rgba(0,0,0,.35); cursor: pointer; opacity: .55; transition: opacity .1s, transform .1s; }
+.simon button.lit { opacity: 1; transform: scale(1.06); box-shadow: 0 0 26px currentColor; }
+.endings { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-top: 8px; }
+.end-slot { text-align: center; border: 2px solid var(--card-edge); border-radius: 14px; padding: 8px 6px; background: rgba(0,0,0,.25); font-size: 14px; }
+.end-slot .e-art { font-size: 28px; }
+.end-slot.locked { opacity: .45; }
+.end-slot.found { border-color: var(--slime); }
+.score { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 10px 0; }
+.candy { position: fixed; top: -40px; font-size: 28px; pointer-events: none; z-index: 20; animation: drop linear forwards; }
+@keyframes drop { to { transform: translateY(110vh) rotate(540deg); } }
+#loading { position: fixed; inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: 28px; color: var(--pumpkin); z-index: 30; background: var(--night); }
+
+@media (max-width: 600px) {
+  #mini { width: 104px; height: 93px; }
+  #area { font-size: 16px; }
+  .pill { font-size: 15px; padding: 1px 9px; }
+  .pill .lbl { display: none; }
+  #objective { font-size: 15px; bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); }
+  #joy { bottom: calc(env(safe-area-inset-bottom, 0px) + 64px); width: 116px; height: 116px; }
+}
+body.touch #objective { left: auto; right: 12px; transform: none; max-width: calc(100% - 180px); text-align: left; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<canvas id="world" aria-label="Mundo 3D de la Mansión Calabaza"></canvas>
+<div class="hud">
+  <div class="hud-left"><div class="pill" id="area">La Mansión Calabaza</div><canvas id="mini" width="148" height="132" aria-label="Mapa"></canvas></div>
+  <div class="hud-right" id="stats"></div>
+</div>
+<div id="objective"></div>
+<div id="toast" role="status"></div>
+<div id="joy" hidden><div id="knob"></div></div>
+<div class="overlay" id="overlay"><div class="card" id="panel"></div></div>
+<div id="loading">Abriendo la mansión…</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  // ================= Utilidades =================
+  const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  const shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const $ = id => document.getElementById(id);
+
+  // ================= Sonido =================
+  let audio = null, soundOn = false;
+  function tone(freq, dur, type, when, vol) {
+    if (!soundOn) return null;
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const t = audio.currentTime + (when || 0);
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.type = type || "sine"; o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(vol || .16, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+      o.connect(g); g.connect(audio.destination); o.start(t); o.stop(t + dur);
+      return o;
+    } catch (e) { return null; }
+  }
+  const sfx = {
+    good() { [523, 659, 784, 1046].forEach((f, i) => tone(f, .25, "triangle", i * .09)); },
+    bad() { const o = tone(330, .6, "sawtooth", 0, .1); if (o) o.frequency.exponentialRampToValueAtTime(110, audio.currentTime + .6); },
+    gate() { const o = tone(90, .8, "square", 0, .07); if (o) o.frequency.linearRampToValueAtTime(170, audio.currentTime + .8); },
+    pick() { tone(880, .12, "triangle", 0, .12); tone(1320, .14, "triangle", .06, .1); },
+    hit() { tone(660, .08, "square", 0, .08); },
+    win() { [392, 523, 659, 784, 659, 784, 1046].forEach((f, i) => tone(f, .3, "triangle", i * .13)); },
+    boo() { const o = tone(200, 1.2, "sine", 0, .2); if (o) o.frequency.linearRampToValueAtTime(120, audio.currentTime + 1.2); },
+    zap() { const o = tone(300, .5, "sine", 0, .14); if (o) o.frequency.exponentialRampToValueAtTime(1600, audio.currentTime + .5); }
+  };
+
+  // ================= Dibujos de geometría (SVG) =================
+  const STROKE = "#ffd36b";
+  function polySVG(n) {
+    const cx = 110, cy = 105, r = 80, pts = [];
+    for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + i * 2 * Math.PI / n; pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); }
+    const web = pts.map(p => `<line x1="${cx}" y1="${cy}" x2="${p[0].toFixed(1)}" y2="${p[1].toFixed(1)}" stroke="#b9a8d9" stroke-width="1" opacity=".5"/>`).join("");
+    return `<svg viewBox="0 0 220 215" width="220" role="img" aria-label="Polígono">${web}<polygon points="${pts.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}" fill="rgba(255,138,31,.18)" stroke="${STROKE}" stroke-width="5" stroke-linejoin="round"/><text x="${cx}" y="${cy + 12}" text-anchor="middle" font-size="34">🕷️</text></svg>`;
+  }
+  function rectSVG(w, h, a, b, unit) {
+    const x = (260 - w) / 2, y = 30;
+    return `<svg viewBox="0 0 260 ${h + 80}" width="260" role="img" aria-label="Rectángulo de ${a} por ${b}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="rgba(155,229,100,.15)" stroke="${STROKE}" stroke-width="5"/><text x="130" y="${y - 8}" text-anchor="middle" fill="#f6eeff" font-size="20" font-weight="800">${a} ${unit}</text><text x="${x + w + 8}" y="${y + h / 2 + 7}" fill="#f6eeff" font-size="20" font-weight="800">${b} ${unit}</text></svg>`;
+  }
+  function triSVG(s) {
+    return `<svg viewBox="0 0 240 210" width="240" role="img" aria-label="Triángulo de lados iguales"><polygon points="120,25 30,180 210,180" fill="rgba(255,138,31,.18)" stroke="${STROKE}" stroke-width="5" stroke-linejoin="round"/><text x="120" y="205" text-anchor="middle" fill="#f6eeff" font-size="20" font-weight="800">${s} cm</text><text x="52" y="100" text-anchor="middle" fill="#f6eeff" font-size="20" font-weight="800">${s} cm</text><text x="188" y="100" text-anchor="middle" fill="#f6eeff" font-size="20" font-weight="800">${s} cm</text><text x="120" y="140" text-anchor="middle" font-size="34">🧙</text></svg>`;
+  }
+  function angleSVG(deg) {
+    const ox = 60, oy = 170, L = 150, a = deg * Math.PI / 180;
+    const x2 = ox + L * Math.cos(a), y2 = oy - L * Math.sin(a);
+    const r = 36, ax = ox + r * Math.cos(a), ay = oy - r * Math.sin(a);
+    const arc = deg === 90
+      ? `<polyline points="${ox + 26},${oy} ${ox + 26},${oy - 26} ${ox},${oy - 26}" fill="none" stroke="#ff8a1f" stroke-width="4"/>`
+      : `<path d="M ${ox + r} ${oy} A ${r} ${r} 0 0 0 ${ax.toFixed(1)} ${ay.toFixed(1)}" fill="none" stroke="#ff8a1f" stroke-width="4"/>`;
+    return `<svg viewBox="0 0 260 190" width="260" role="img" aria-label="Un ángulo"><line x1="${ox}" y1="${oy}" x2="${ox + L + 40}" y2="${oy}" stroke="${STROKE}" stroke-width="6" stroke-linecap="round"/><line x1="${ox}" y1="${oy}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${STROKE}" stroke-width="6" stroke-linecap="round"/>${arc}<text x="${(x2 + 6).toFixed(1)}" y="${(y2 - 4).toFixed(1)}" font-size="26">🧹</text></svg>`;
+  }
+  function cubeSVG() {
+    return `<svg viewBox="0 0 200 180" width="200" role="img" aria-label="Un cubo"><polygon points="40,60 120,60 120,150 40,150" fill="rgba(255,138,31,.25)" stroke="${STROKE}" stroke-width="4"/><polygon points="40,60 80,25 160,25 120,60" fill="rgba(255,211,107,.25)" stroke="${STROKE}" stroke-width="4"/><polygon points="120,60 160,25 160,115 120,150" fill="rgba(155,229,100,.2)" stroke="${STROKE}" stroke-width="4"/><text x="80" y="115" text-anchor="middle" font-size="34">🎁</text></svg>`;
+  }
+  function moonSVG() {
+    return `<svg viewBox="0 0 220 200" width="220" role="img" aria-label="Círculo con una línea por el centro"><circle cx="110" cy="100" r="80" fill="rgba(255,211,107,.22)" stroke="${STROKE}" stroke-width="5"/><line x1="30" y1="100" x2="190" y2="100" stroke="#ff8a1f" stroke-width="6" stroke-linecap="round"/><circle cx="110" cy="100" r="6" fill="#ff8a1f"/><text x="150" y="70" font-size="26">🦉</text></svg>`;
+  }
+  function squareSymSVG() {
+    return `<svg viewBox="0 0 200 200" width="200" role="img" aria-label="Un cuadrado"><rect x="30" y="30" width="140" height="140" fill="rgba(155,229,100,.15)" stroke="${STROKE}" stroke-width="5"/><text x="100" y="118" text-anchor="middle" font-size="44">👻</text></svg>`;
+  }
+  function chocoSVG(rows, cols) {
+    const s = Math.min(34, Math.floor(220 / cols)), w = cols * s, h = rows * s, x0 = (240 - w) / 2;
+    let cells = "";
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) cells += `<rect x="${x0 + c * s + 2}" y="${10 + r * s + 2}" width="${s - 4}" height="${s - 4}" rx="4" fill="#6b3a1d" stroke="#3c1f0d" stroke-width="2"/>`;
+    return `<svg viewBox="0 0 240 ${h + 20}" width="240" role="img" aria-label="Tableta de chocolate de ${rows} por ${cols}">${cells}</svg>`;
+  }
+
+  // ---- Números egipcios: trazo = 1, arco = 10, espiral = 100 ----
+  const SAND = "#e9c98f";
+  function egyGlyph(v, x) {
+    if (v === 1) return { w: 14, s: `<line x1="${x + 7}" y1="8" x2="${x + 7}" y2="46" stroke="${SAND}" stroke-width="5" stroke-linecap="round"/>` };
+    if (v === 10) return { w: 32, s: `<path d="M${x + 4} 46 V26 A12 12 0 0 1 ${x + 28} 26 V46" fill="none" stroke="${SAND}" stroke-width="5" stroke-linecap="round"/>` };
+    const cx = x + 16, cy = 27;
+    return { w: 34, s: `<path d="M${cx} ${cy} a3 3 0 1 1 6 0 a6 6 0 1 1 -12 0 a9 9 0 1 1 18 0 a12 12 0 1 1 -24 0" fill="none" stroke="${SAND}" stroke-width="4" stroke-linecap="round"/>` };
+  }
+  function egySVG(n, label) {
+    const parts = [];
+    for (let i = 0; i < Math.floor(n / 100); i++) parts.push(100);
+    for (let i = 0; i < Math.floor(n % 100 / 10); i++) parts.push(10);
+    for (let i = 0; i < n % 10; i++) parts.push(1);
+    let x = 10, body = "";
+    parts.forEach(p => { const g = egyGlyph(p, x); body += g.s; x += g.w + 4; });
+    return `<svg viewBox="0 0 ${x + 6} 56" width="${Math.min(340, (x + 6) * 1.3)}" role="img" aria-label="${label || "Número egipcio"}"><rect x="1" y="1" width="${x + 4}" height="54" rx="8" fill="rgba(233,201,143,.1)" stroke="${SAND}" stroke-opacity=".4"/>${body}</svg>`;
+  }
+  function egyLegend() {
+    return `<div class="legend">${[1, 10, 100].map(v => `<span>${egySVG(v, "Vale " + v).replace(/width="[^"]+"/, 'width="' + (v === 1 ? 34 : 54) + '"')} = ${v}</span>`).join("")}</div>`;
+  }
+
+  // ================= Bancos de retos =================
+  const MATES = [
+    () => { const n = rand(3, 9); return { q: `En el techo hay ${n} arañas colgando. Cada araña tiene 8 patas. ¿Cuántas patas hay en total?`, type: "num", answer: n * 8, hint: `Multiplica ${n} × 8.` }; },
+    () => { const k = rand(3, 8), each = rand(4, 9); return { q: `Tienes ${k * each} caramelos para repartir a partes iguales entre ${k} amigos disfrazados. ¿Cuántos le tocan a cada uno?`, type: "num", answer: each, hint: `Busca qué número multiplicado por ${k} da ${k * each}.` }; },
+    () => { const t = rand(60, 120), o = rand(15, 45); return { q: `En el caldero había ${t} ranas. Saltaron fuera ${o}. ¿Cuántas ranas quedan?`, type: "num", answer: t - o, hint: `Es una resta: ${t} − ${o}.` }; },
+    () => { const m = pick([15, 20, 25, 30, 35, 40, 45, 50]); return { q: `El reloj del abuelo fantasma marca las 11:${m}. ¿Cuántos minutos faltan para la medianoche (las 12:00)?`, type: "num", answer: 60 - m, hint: `Una hora tiene 60 minutos. ¿Cuánto le falta a ${m} para llegar a 60?` }; },
+    () => { const a = rand(1, 3); return { q: `Los murciélagos salen de la cueva así: ${a}, ${a * 2}, ${a * 4}, ${a * 8}… ¿Cuántos saldrán después?`, type: "num", answer: a * 16, hint: "Cada vez sale el doble que la anterior." }; },
+    () => { const s = rand(5, 9); return { q: `Las calabazas siguen esta serie: ${s}, ${s * 2}, ${s * 3}, ___, ${s * 5}. ¿Qué número falta?`, type: "num", answer: s * 4, hint: `Es la tabla del ${s}.` }; },
+    () => { const per = rand(3, 6), n = rand(4, 9); return { q: `Cada poción necesita ${per} ojos de sapo. La bruja tiene ${per * n}. ¿Cuántas pociones puede preparar?`, type: "num", answer: n, hint: `Divide ${per * n} entre ${per}.` }; },
+    () => { const g = rand(2, 4), m = rand(12, 25); return { q: `En la cueva hay ${g} grupos de ${m} murciélagos. ¿Cuántos murciélagos hay en total?`, type: "num", answer: g * m, hint: `Multiplica ${m} × ${g}.` }; },
+    () => { const a = rand(12, 25), b = rand(4, 9); return { q: `Un disfraz de vampiro cuesta ${a} € y la capa ${b} €. Pagas con 50 €. ¿Cuántos euros te devuelven?`, type: "num", answer: 50 - a - b, hint: `Primero suma ${a} + ${b} y después réstalo de 50.` }; },
+    () => { const n = 4 * rand(5, 15); return { q: `En el huerto hay ${n} calabazas. La cuarta parte son blancas. ¿Cuántas son blancas?`, type: "num", answer: n / 4, hint: "La cuarta parte es dividir entre 4: la mitad de la mitad." }; },
+    () => { const f = pick([["1/2", "1/4"], ["1/3", "1/6"], ["3/4", "1/4"]]); return { q: `Dos fantasmas comparten una pizza. Uno se come ${f[0]} y el otro ${f[1]}. ¿Quién comió más?`, type: "mc", options: [`El de ${f[0]}`, `El de ${f[1]}`, "Comieron lo mismo"], answer: `El de ${f[0]}`, hint: "Si partes la pizza en menos trozos, cada trozo es más grande." }; }
+  ];
+  const GEO = [
+    { q: "El conde Drácula vive en Transilvania. ¿En qué país está Transilvania?", options: ["Rumanía", "Noruega", "Portugal", "Egipto"], answer: "Rumanía", hint: "Está en el este de Europa y su capital es Bucarest." },
+    { q: "Halloween nació de una antigua fiesta celta llamada Samhain. ¿En qué país empezó?", options: ["Irlanda", "Japón", "Brasil", "Australia"], answer: "Irlanda", hint: "Es una isla muy verde al oeste de Gran Bretaña." },
+    { q: "Un fantasma navega en barca por el río que pasa por Zaragoza. ¿Qué río es?", options: ["Ebro", "Guadalquivir", "Tajo", "Miño"], answer: "Ebro", hint: "De su nombre viene la palabra «Iberia»." },
+    { q: "La Torre del Oro de Sevilla está junto a un río. ¿Cuál?", options: ["Guadalquivir", "Ebro", "Duero", "Júcar"], answer: "Guadalquivir", hint: "Su nombre viene del árabe y significa «río grande»." },
+    { q: "¿Cuál es la montaña más alta de España?", options: ["Teide", "Mulhacén", "Aneto", "Everest"], answer: "Teide", hint: "Es un volcán en la isla de Tenerife." },
+    { q: "Si caminas hacia donde sale el sol por la mañana, ¿hacia dónde vas?", options: ["Este", "Oeste", "Norte", "Sur"], answer: "Este", hint: "El sol sale por el Este y se pone por el Oeste." },
+    { q: "Miras hacia el Norte y giras a tu derecha. ¿Hacia dónde miras ahora?", options: ["Este", "Oeste", "Sur", "Norte"], answer: "Este", hint: "En una brújula: Norte arriba, Este a la derecha." },
+    { q: "¿Cuál es el continente más grande del mundo?", options: ["Asia", "África", "Europa", "Oceanía"], answer: "Asia", hint: "Allí están China, India y Japón." },
+    { q: "Las momias más famosas son de Egipto. ¿En qué continente está Egipto?", options: ["África", "Asia", "Europa", "América"], answer: "África", hint: "Allí están las pirámides y el río Nilo." },
+    { q: "El fantasma Pierre vive en lo alto de la Torre Eiffel. ¿En qué ciudad está?", options: ["París", "Londres", "Roma", "Berlín"], answer: "París", hint: "Es la capital de Francia." },
+    { q: "¿Qué océano cruzó Cristóbal Colón para llegar a América?", options: ["Atlántico", "Pacífico", "Índico", "Ártico"], answer: "Atlántico", hint: "Es el océano que baña Galicia y las Islas Canarias." },
+    { q: "¿Qué mar baña las playas de Castellón, Valencia y Barcelona?", options: ["Mediterráneo", "Cantábrico", "Mar Rojo", "Mar del Norte"], answer: "Mediterráneo", hint: "Su nombre significa «en medio de las tierras»." },
+    { q: "Un fantasma friolero vive en el continente helado del Polo Sur. ¿Cómo se llama?", options: ["Antártida", "Groenlandia", "Siberia", "Islandia"], answer: "Antártida", hint: "Empieza por «Antár…» y allí viven los pingüinos." },
+    { q: "Un vampiro de vacaciones visita el Coliseo. ¿En qué ciudad está?", options: ["Roma", "Atenas", "Madrid", "Lisboa"], answer: "Roma", hint: "Es la capital de Italia, el país con forma de bota." },
+    { q: "¿Cuál es la capital de Portugal?", options: ["Lisboa", "Oporto", "Madrid", "Sevilla"], answer: "Lisboa", hint: "Está junto a la desembocadura del río Tajo." },
+    { q: "Las pirámides de Egipto están junto a un río muy largo. ¿Cuál?", options: ["Nilo", "Amazonas", "Danubio", "Ebro"], answer: "Nilo", hint: "Es el río más famoso de África." }
+  ].map(g => () => Object.assign({ type: "mc" }, g));
+  const POLY = { 5: "Pentágono", 6: "Hexágono", 8: "Octógono" };
+  const GEOM = [
+    () => { const n = pick([5, 6, 8]); return { q: "Esta ventana embrujada tiene forma de telaraña. ¿Cuántos lados tiene?", svg: polySVG(n), type: "num", answer: n, hint: "Pon el dedo en un lado y ve contando hasta dar la vuelta." }; },
+    () => { const n = pick([5, 6, 8]); return { q: "¿Cómo se llama esta figura del espejo encantado?", svg: polySVG(n), type: "mc", options: ["Pentágono", "Hexágono", "Octógono", "Cuadrado"], answer: POLY[n], hint: "Penta = 5, Hexa = 6, Octo = 8. ¡Cuenta los lados!" }; },
+    () => { const s = rand(4, 9); return { q: `Hay que poner cinta de «PELIGRO» alrededor de esta trampilla cuadrada de ${s} metros de lado. ¿Cuántos metros de cinta hacen falta?`, svg: rectSVG(130, 130, s, s, "m"), type: "num", answer: 4 * s, hint: "El perímetro es la suma de todos los lados. Un cuadrado tiene 4 lados iguales." }; },
+    () => { const a = rand(6, 12), b = rand(2, 5); return { q: `La alfombra mide ${a} m de largo y ${b} m de ancho. ¿Cuál es su perímetro?`, svg: rectSVG(180, 90, a, b, "m"), type: "num", answer: 2 * a + 2 * b, hint: `Suma los cuatro lados: ${a} + ${b} + ${a} + ${b}.` }; },
+    () => { const s = rand(3, 9); return { q: "El sombrero de la bruja visto de frente es un triángulo con los tres lados iguales. ¿Cuál es su perímetro en cm?", svg: triSVG(s), type: "num", answer: 3 * s, hint: `Tres lados de ${s} cm: ${s} + ${s} + ${s}.` }; },
+    () => { const o = pick([[90, "Recto"], [40, "Agudo"], [135, "Obtuso"]]); return { q: "La escoba está apoyada en el suelo formando este ángulo. ¿Qué tipo de ángulo es?", svg: angleSVG(o[0]), type: "mc", options: ["Agudo", "Recto", "Obtuso"], answer: o[1], hint: "Recto es como la esquina de un libro. Agudo, más cerrado. Obtuso, más abierto." }; },
+    () => ({ q: "La caja sorpresa de Halloween es un cubo. ¿Cuántas caras tiene?", svg: cubeSVG(), type: "num", answer: 6, hint: "Arriba, abajo, delante, detrás, izquierda y derecha." }),
+    () => ({ q: "La línea naranja cruza la luna llena pasando por el centro. ¿Cómo se llama?", svg: moonSVG(), type: "mc", options: ["Diámetro", "Radio", "Perímetro", "Vértice"], answer: "Diámetro", hint: "El radio va del centro al borde. Esta línea mide el doble que el radio." }),
+    () => ({ q: "¿Cuántos ejes de simetría tiene este cuadrado fantasma? (líneas por donde puedes doblarlo y las dos mitades coinciden)", svg: squareSymSVG(), type: "mc", options: ["1", "2", "4", "8"], answer: "4", hint: "Puedes doblarlo en vertical, en horizontal… ¡y por las dos diagonales!" }),
+    () => { const r = rand(3, 5), c = rand(4, 6); return { q: "El vampiro ha dejado esta tableta de chocolate. ¿Cuántos cuadraditos tiene?", svg: chocoSVG(r, c), type: "num", answer: r * c, hint: `Hay ${r} filas de ${c} cuadraditos: multiplica ${r} × ${c}.` }; }
+  ];
+
+  // ---- Enigmas y jeroglíficos ----
+  const SYMBOLS = ["🦇", "🎃", "👻", "🕷️", "🌙", "⭐", "🍬", "🔮", "🐸", "🦉", "🕯️", "🧹", "🍭", "💀", "🍄", "🐍"];
+  const WORDS = {
+    4: ["GATO", "LUNA", "MAGO", "LOBO", "RANA", "CAPA"],
+    5: ["MOMIA", "BRUJA", "DULCE", "MIEDO", "NOCHE", "SUSTO", "MAGIA"],
+    6: ["ESCOBA", "SOMBRA", "TUMBAS", "CUEVAS", "GRITOS", "HUESOS"]
+  };
+  const REBUS = [
+    { pic: "☀️ + 🎲", ans: "SOLDADO", opts: ["SOLDADO", "GIRASOL", "SOLAR", "DADOS"], hint: "Lo primero es el sol y lo segundo un dado." },
+    { pic: "🍞 + DA", ans: "PANDA", opts: ["PANDA", "PANADERO", "BANDA", "PAJA"], hint: "Eso es pan. Pan + da…" },
+    { pic: "🌊 + TILLO", ans: "MARTILLO", opts: ["MARTILLO", "CASTILLO", "MARISCO", "OLITA"], hint: "El agua salada de la playa es el mar." },
+    { pic: "👄 + DILLO", ans: "BOCADILLO", opts: ["BOCADILLO", "LABIOSO", "BOCINA", "CABALLO"], hint: "Eso es una boca." },
+    { pic: "🌙 + R", ans: "LUNAR", opts: ["LUNAR", "LUNES", "NOCHE", "LUNA"], hint: "Luna + R…" },
+    { pic: "🦶 + DRA", ans: "PIEDRA", opts: ["PIEDRA", "PIERNA", "DEDO", "PIRATA"], hint: "Eso es un pie." },
+    { pic: "🙂 + 🥬", ans: "CARACOL", opts: ["CARACOL", "CARAMELO", "COLIFLOR", "CARETA"], hint: "Lo primero es una cara y lo segundo una col." }
+  ];
+  const JERO = [
+    () => { const n = rand(23, 349); return { label: "Números egipcios", q: "Los antiguos egipcios escribían los números con dibujos. Mira la clave y descubre qué número está grabado en la tablilla.", html: egyLegend() + `<div class="figure">${egySVG(n)}</div>`, type: "num", answer: n, hint: "Cuenta las espirales (cientos), luego los arcos (decenas) y por último los palitos (unidades)." }; },
+    () => { const a = rand(12, 46), b = rand(11, 42); return { label: "Números egipcios", q: "Una momia ha sumado dos números egipcios. ¿Cuánto da la suma?", html: egyLegend() + `<div class="figure">${egySVG(a)}</div><div class="rebus" style="font-size:34px;margin:0">+</div><div class="figure">${egySVG(b)}</div>`, type: "num", answer: a + b, hint: `El primero es ${a}. Ahora lee el segundo y súmalos.` }; },
+    () => {
+      const len = pick([4, 5, 6]), word = pick(WORDS[len]);
+      const letters = [...new Set(word.split(""))];
+      const extra = shuffle("ABCDEFGILMNOPRSTU".split("").filter(l => !letters.includes(l))).slice(0, 3);
+      const syms = shuffle(SYMBOLS).slice(0, letters.length + extra.length);
+      const map = {}; letters.concat(extra).forEach((l, i) => map[l] = syms[i]);
+      const legend = shuffle(Object.keys(map)).map(l => `<span>${map[l]} = ${l}</span>`).join("");
+      return { label: "Mensaje secreto", q: "La bruja escribe en clave con símbolos. Usa la tabla para descifrar la palabra.", html: `<div class="legend">${legend}</div><div class="cipher">${word.split("").map(l => map[l]).join(" ")}</div>`, type: "mc", options: [word].concat(shuffle(WORDS[len].filter(w => w !== word)).slice(0, 3)), answer: word, hint: `Busca cada símbolo en la tabla. La primera letra es ${word[0]}.` };
+    },
+    () => { const a = rand(2, 9), b = rand(2, 9); const s1 = pick(["🎃", "🦇", "🍬"]), s2 = pick(["👻", "🕷️", "🐸"]); return { label: "Balanza mágica", q: "Cada símbolo esconde un número. ¿Cuánto vale el último?", html: `<div class="cipher" style="letter-spacing:2px;font-size:30px">${s1} + ${s1} = ${2 * a}<br>${s1} + ${s2} = ${a + b}<br>${s2} = ?</div>`, type: "num", answer: b, hint: `Si dos ${s1} son ${2 * a}, un ${s1} vale ${a}.` }; },
+    () => { const c = rand(2, 6), d = rand(3, 9); return { label: "Balanza mágica", q: "Cada símbolo esconde un número. ¿Cuánto vale la calabaza?", html: `<div class="cipher" style="letter-spacing:2px;font-size:30px">🦇 + 🦇 + 🦇 = ${3 * c}<br>🦇 + 🎃 = ${c + d}<br>🎃 = ?</div>`, type: "num", answer: d, hint: `Tres murciélagos son ${3 * c}: cada uno vale ${3 * c} ÷ 3.` }; },
+    () => {
+      const pats = [["🎃", "👻", "👻"], ["🌙", "⭐"], ["🦇", "🦇", "🕷️", "🕷️"], ["💀", "🎃", "🍬"]];
+      const p = pick(pats), shown = [];
+      for (let i = 0; i < 7; i++) shown.push(p[i % p.length]);
+      const ans = p[7 % p.length];
+      const opts = shuffle([...new Set(p.concat(["🐸", "🔮", "🧹"]))]).filter(o => o !== ans).slice(0, 3).concat(ans);
+      return { label: "Serie de símbolos", q: "Estos símbolos siguen un orden secreto. ¿Cuál va en el hueco?", html: `<div class="cipher">${shown.join(" ")} ❓</div>`, type: "mc", options: opts, answer: ans, hint: "Busca el grupo que se repite una y otra vez." };
+    },
+    () => { const r = pick(REBUS); return { label: "Jeroglífico", q: "Junta los dibujos y las letras para formar una palabra. ¿Qué palabra es?", html: `<div class="rebus">${r.pic}</div>`, type: "mc", options: r.opts.slice(), answer: r.ans, hint: r.hint }; }
+  ];
+  const GOLDEN = [
+    () => ({ q: "Soy un número misterioso. Si me multiplicas por 3 y luego sumas 4, obtienes 25. ¿Qué número soy?", type: "num", answer: 7 }),
+    () => ({ q: "En la sala hay 3 gatos negros y 5 murciélagos. Cada gato tiene 4 patas y cada murciélago 2. ¿Cuántas patas hay en total?", type: "num", answer: 22 }),
+    () => ({ q: "Un esqueleto sube 3 escalones cada minuto. La torre tiene 45 escalones. ¿Cuántos minutos tarda en llegar arriba?", type: "num", answer: 15 }),
+    () => { const n = rand(312, 489); return { q: "El faraón grabó su número de la suerte en la Calabaza Dorada. ¿Qué número es?", html: egyLegend() + `<div class="figure">${egySVG(n)}</div>`, type: "num", answer: n }; }
+  ];
+  const BANKS = { mates: MATES, geo: GEO, geom: GEOM, jero: JERO };
+  const CAT_NAME = { mates: "Matemáticas", geo: "Geografía", geom: "Geometría", jero: "Enigma", mini: "Minijuego", gold: "Acertijo dorado" };
+
+  // ================= Mapa de la mansión =================
+  const TILE = 2, W = 37, H = 33;
+  const VOID = 0, FLOOR = 1, WALL = 2, GATE = 3;
+  const grid = [];
+  for (let y = 0; y < H; y++) { const row = []; for (let x = 0; x < W; x++) row.push({ t: VOID, r: null }); grid.push(row); }
+  function carve(x1, y1, x2, y2, r) { for (let y = y1; y <= y2; y++) for (let x = x1; x <= x2; x++) grid[y][x] = { t: FLOOR, r }; }
+  const GATES = {};
+  function gate(x, y, id, r) { grid[y][x] = { t: GATE, r, g: id }; GATES[id] = { x, y, id }; }
+
+  carve(13, 23, 23, 31, "hub");
+  carve(1, 13, 9, 19, "biblio"); carve(13, 13, 23, 18, "cocina"); carve(27, 13, 35, 19, "sotano");
+  carve(1, 1, 9, 7, "torre"); carve(13, 1, 23, 7, "salon"); carve(27, 1, 35, 7, "jardin");
+  carve(5, 27, 11, 27, "tunel"); carve(5, 20, 5, 26, "tunel"); gate(12, 27, "a", "hub");
+  carve(25, 27, 31, 27, "tunel"); carve(31, 20, 31, 26, "tunel"); gate(24, 27, "c", "hub");
+  carve(18, 19, 18, 21, "cocina"); gate(18, 22, "b", "hub");
+  carve(8, 10, 28, 10, "pasillo"); carve(15, 8, 15, 9, "pasillo"); carve(21, 8, 21, 9, "pasillo");
+  carve(8, 11, 8, 11, "pasillo"); gate(8, 12, "e", "biblio");
+  carve(18, 11, 18, 11, "pasillo"); gate(18, 12, "f", "cocina");
+  carve(28, 11, 28, 11, "pasillo"); gate(28, 12, "g", "sotano");
+  carve(3, 8, 3, 11, "torre"); gate(3, 12, "d", "biblio");
+  carve(33, 8, 33, 11, "jardin"); gate(33, 12, "h", "sotano");
+  // Muros alrededor de todo lo excavado
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (grid[y][x].t !== VOID) continue;
+    let reg = null;
+    for (let dy = -1; dy <= 1 && !reg; dy++) for (let dx = -1; dx <= 1 && !reg; dx++) {
+      const c = grid[y + dy] && grid[y + dy][x + dx];
+      if (c && (c.t === FLOOR || c.t === GATE)) reg = c.r;
+    }
+    if (reg) grid[y][x] = { t: WALL, r: reg };
+  }
+  const tileAt = (x, y) => (grid[y] && grid[y][x]) || { t: VOID };
+
+  const REG = {
+    hub: { name: "El Vestíbulo", floor: 0x3b2b5c, wall: 0x2a1f48, story: n => `¡PAM! La puerta se cierra detrás de ti, <em>${n}</em>. Hay rejas por todas partes. Acércate al <em>fantasma</em>, a la <em>tablilla</em> o a la <em>calabaza gigante</em> para abrirlas.` },
+    tunel: { name: "Túnel de las Antorchas", floor: 0x2f2a3a, wall: 0x221c30 },
+    biblio: { name: "La Biblioteca Encantada", floor: 0x553524, wall: 0x3a2216, story: () => "Los libros vuelan como pájaros. Aquí los retos abren el camino a la <em>Torre</em> y al <em>Pasillo de los Retratos</em>." },
+    cocina: { name: "La Cocina de la Bruja", floor: 0x2c4430, wall: 0x1d2e20, story: () => "El caldero burbujea. Hay una reja hacia el <em>Pasillo</em> y un <em>montacargas mágico</em> que sube a la Torre." },
+    sotano: { name: "El Sótano de las Arañas", floor: 0x2c2c38, wall: 0x1c1c26, story: () => "Telarañas por todas partes… Desde aquí puedes llegar al <em>Pasillo</em> o al <em>Huerto de Calabazas</em>." },
+    pasillo: { name: "El Pasillo de los Retratos", floor: 0x5a2436, wall: 0x3a1522, story: () => "Los retratos te siguen con la mirada. Al norte se oye música: es el <em>Salón de Baile</em>." },
+    torre: { name: "La Torre de la Luna", floor: 0x323a66, wall: 0x22284a, final: true, ending: "escoba", story: () => "¡Una salida! La escoba mágica está atada con <em>tres cerraduras</em>. Resuelve los tres retos de la torre." },
+    salon: { name: "El Salón de Baile Fantasma", floor: 0x2e4c5c, wall: 0x1d3340, final: true, ending: "fiesta", story: () => "Los fantasmas bailan sin parar. La puerta de salida tiene <em>tres cerraduras</em>: resuelve los tres retos del salón." },
+    jardin: { name: "El Huerto de Calabazas", floor: 0x2c4a22, wall: 0x1f3418, final: true, ending: "jardin", story: () => "Aire fresco y cientos de calabazas. La verja de salida tiene <em>tres cerraduras</em>: resuelve los tres retos del huerto." }
+  };
+
+  // Estaciones de reto. kind: quiz | jero | mini | golden
+  const STATIONS = [
+    { id: "A", x: 15, y: 27, kind: "quiz", cat: "mates", opens: "a", msg: "¡Se abre la reja del oeste! Lleva a la Biblioteca." },
+    { id: "B", x: 18, y: 25, kind: "mini", opens: "b", msg: "¡Se abre la reja del norte! Lleva a la Cocina." },
+    { id: "C", x: 21, y: 27, kind: "jero", opens: "c", msg: "¡Se abre la reja del este! Lleva al Sótano." },
+    { id: "D", x: 3, y: 15, kind: "quiz", cat: "geo", opens: "d", msg: "¡Reja abierta! La escalera sube a la Torre de la Luna." },
+    { id: "E", x: 8, y: 15, kind: "jero", opens: "e", msg: "¡Reja abierta! Lleva al Pasillo de los Retratos." },
+    { id: "F", x: 18, y: 15, kind: "quiz", cat: "geom", opens: "f", msg: "¡Reja abierta! Lleva al Pasillo de los Retratos." },
+    { id: "T", x: 14, y: 15, kind: "mini", teleport: true, msg: "¡El montacargas mágico brilla! Súbete a la plataforma azul para ir a la Torre." },
+    { id: "G", x: 28, y: 15, kind: "mini", opens: "g", msg: "¡Reja abierta! Lleva al Pasillo de los Retratos." },
+    { id: "Hs", x: 33, y: 15, kind: "quiz", cat: "geo", opens: "h", msg: "¡Reja abierta! Lleva al Huerto de Calabazas." },
+    { id: "TQ", x: 2, y: 3, kind: "quiz", cat: "any", room: "torre" },
+    { id: "TJ", x: 5, y: 2, kind: "jero", room: "torre" },
+    { id: "TM", x: 8, y: 3, kind: "mini", room: "torre" },
+    { id: "SQ", x: 14, y: 3, kind: "quiz", cat: "any", room: "salon" },
+    { id: "SJ", x: 18, y: 2, kind: "jero", room: "salon" },
+    { id: "SM", x: 22, y: 3, kind: "mini", room: "salon" },
+    { id: "JQ", x: 28, y: 3, kind: "quiz", cat: "any", room: "jardin" },
+    { id: "JJ", x: 31, y: 2, kind: "jero", room: "jardin" },
+    { id: "JM", x: 34, y: 3, kind: "mini", room: "jardin" },
+    { id: "XT", x: 2, y: 6, kind: "golden", room: "torre" },
+    { id: "XS", x: 23, y: 6, kind: "golden", room: "salon" },
+    { id: "XJ", x: 28, y: 6, kind: "golden", room: "jardin" }
+  ];
+  const ST = {}; STATIONS.forEach(s => ST[s.id] = s);
+  const FINALS = {
+    torre: { stations: ["TQ", "TJ", "TM"], portal: [5, 5], golden: "XT" },
+    salon: { stations: ["SQ", "SJ", "SM"], portal: [18, 5], golden: "XS" },
+    jardin: { stations: ["JQ", "JJ", "JM"], portal: [31, 5], golden: "XJ" }
+  };
+  const PAD_FROM = [14, 17], PAD_TO = [8, 6];
+  const HEARTS = [[1, 19], [23, 18], [35, 19]];
+  const START = [18, 30];
+  const GOLD_GEMS = 4;
+
+  // Obstáculos decorativos (casillas que no se pueden pisar)
+  const SOLID = new Set();
+  const solid = (x, y) => SOLID.add(x + "," + y);
+  [[13, 23], [23, 23], [13, 31], [23, 31]].forEach(p => solid(p[0], p[1]));
+  [[2, 18], [3, 18], [7, 18], [8, 18]].forEach(p => solid(p[0], p[1]));
+  [[21, 13], [20, 17], [21, 17]].forEach(p => solid(p[0], p[1]));
+  [[29, 18], [34, 17], [31, 13]].forEach(p => solid(p[0], p[1]));
+  [[27, 4], [35, 5], [35, 1], [27, 1]].forEach(p => solid(p[0], p[1]));
+  [[13, 1], [23, 1]].forEach(p => solid(p[0], p[1]));
+  [[1, 1], [9, 1]].forEach(p => solid(p[0], p[1]));
+
+  const ENDINGS = {
+    jardin: { art: "🎃🏡", title: "Escapada por el Huerto", text: n => `El espantapájaros abre la verja y te regala una bolsa enorme de caramelos. ${n} vuelve a casa caminando entre calabazas que sonríen. ¡Lo has conseguido!` },
+    escoba: { art: "🧹🌕", title: "Vuelo en Escoba", text: n => `La escoba se despierta, ${n} se sube con el gato negro y salís volando por la ventana de la torre. ¡Todo el pueblo iluminado desde el cielo!` },
+    fiesta: { art: "👻🎉", title: "La Fiesta Fantasma", text: n => `Los fantasmas te nombran Reina del Baile. Bailáis toda la noche y al amanecer te acompañan a casa flotando. ¡Ahora ${n} tiene amigos fantasma!` },
+    dorada: { art: "🏆🎃", title: "La Calabaza Dorada", text: n => `El sarcófago dorado se abre y aparece el tesoro de la mansión: ¡la Calabaza Dorada! ${n} es la primera persona en 100 años en encontrarla. Final secreto conseguido.` },
+    telarana: { art: "🕸️🕷️", title: "Atrapada en la Telaraña", text: n => `¡Oh, no! Te has quedado sin calabazas de vida y una araña gigante (muy simpática) te envuelve como un regalo. No pasa nada, ${n}: ¡inténtalo otra vez y prueba otro camino!` }
+  };
+  const ENDING_ORDER = ["jardin", "escoba", "fiesta", "dorada", "telarana"];
+  function loadFound() { try { return JSON.parse(localStorage.getItem("mansion3d-finales") || "[]"); } catch (e) { return []; } }
+  function saveFound(list) { try { localStorage.setItem("mansion3d-finales", JSON.stringify(list)); } catch (e) {} }
+
+  // ================= Estado =================
+  let S;
+  function candySpots() {
+    const near = new Set();
+    STATIONS.forEach(s => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) near.add((s.x + dx) + "," + (s.y + dy)); });
+    Object.values(FINALS).forEach(f => near.add(f.portal.join(",")));
+    [PAD_FROM, PAD_TO, START].concat(HEARTS).forEach(p => near.add(p.join(",")));
+    const spots = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const k = x + "," + y;
+      if (grid[y][x].t === FLOOR && !near.has(k) && !SOLID.has(k)) spots.push([x, y]);
+    }
+    return shuffle(spots).slice(0, 34);
+  }
+  function fresh(name) {
+    return { mode: "intro", name: name || "", lives: 3, candies: 0, gems: 0, solved: {}, gates: {}, taken: {}, goldFail: {}, used: {}, seen: {}, vis: {}, px: START[0] * TILE, pz: START[1] * TILE, face: Math.PI, candyAt: candySpots(), found: loadFound(), ending: null };
+  }
+
+  // ================= Escena 3D =================
+  const canvas = $("world");
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0d0819);
+  scene.fog = new THREE.Fog(0x0d0819, 22, 46);
+  const camera = new THREE.PerspectiveCamera(50, 1, .1, 200);
+  scene.add(new THREE.HemisphereLight(0x9d8ce0, 0x1a0f2a, .75));
+  scene.add(new THREE.AmbientLight(0x3a2a5a, .45));
+  const moonLight = new THREE.DirectionalLight(0xaab8ff, .45); moonLight.position.set(-20, 40, -10); scene.add(moonLight);
+  const lantern = new THREE.PointLight(0xffb35c, 1.6, 16, 1.6); scene.add(lantern);
+
+  const lam = (color, extra) => new THREE.MeshLambertMaterial(Object.assign({ color }, extra || {}));
+  const wx = x => x * TILE;
+
+  // Suelo y muros (instanciados)
+  (function buildTiles() {
+    const floors = [], walls = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const c = grid[y][x];
+      if (c.t === FLOOR || c.t === GATE) floors.push([x, y, c.r]);
+      else if (c.t === WALL) walls.push([x, y, c.r]);
+    }
+    const m = new THREE.Matrix4(), col = new THREE.Color();
+    const fl = new THREE.InstancedMesh(new THREE.BoxGeometry(TILE, .2, TILE), lam(0xffffff), floors.length);
+    floors.forEach((f, i) => {
+      m.makeTranslation(wx(f[0]), -.1, wx(f[1])); fl.setMatrixAt(i, m);
+      col.setHex(REG[f[2]].floor); col.offsetHSL(0, 0, (f[0] + f[1]) % 2 ? .025 : -.01); fl.setColorAt(i, col);
+    });
+    scene.add(fl);
+    const wl = new THREE.InstancedMesh(new THREE.BoxGeometry(TILE, 1.7, TILE), lam(0xffffff), walls.length);
+    const cap = new THREE.InstancedMesh(new THREE.BoxGeometry(TILE + .02, .18, TILE + .02), lam(0xffffff), walls.length);
+    walls.forEach((w, i) => {
+      m.makeTranslation(wx(w[0]), .85, wx(w[1])); wl.setMatrixAt(i, m);
+      col.setHex(REG[w[2]].wall); col.offsetHSL(0, 0, ((w[0] * 7 + w[1] * 13) % 5) * .006); wl.setColorAt(i, col);
+      m.makeTranslation(wx(w[0]), 1.78, wx(w[1])); cap.setMatrixAt(i, m);
+      col.setHex(REG[w[2]].wall); col.offsetHSL(0, .05, .12); cap.setColorAt(i, col);
+    });
+    scene.add(wl); scene.add(cap);
+  })();
+
+  // Cielo: estrellas y luna
+  (function sky() {
+    const g = new THREE.BufferGeometry(), pts = [];
+    for (let i = 0; i < 500; i++) { const a = Math.random() * Math.PI * 2, r = 60 + Math.random() * 40; pts.push(wx(18) + Math.cos(a) * r, 25 + Math.random() * 30, wx(16) + Math.sin(a) * r - 30); }
+    g.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+    scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xfff3c4, size: .5, fog: false })));
+    const moon = new THREE.Mesh(new THREE.SphereGeometry(5, 24, 16), new THREE.MeshBasicMaterial({ color: 0xfff1b8, fog: false }));
+    moon.position.set(wx(30), 40, wx(-12)); scene.add(moon);
+  })();
+
+  // ---- Texturas dibujadas ----
+  function canvasTex(w, h, draw) { const c = document.createElement("canvas"); c.width = w; c.height = h; draw(c.getContext("2d"), w, h); const t = new THREE.CanvasTexture(c); return t; }
+  const faceTex = canvasTex(256, 128, (g, w, h) => {
+    g.fillStyle = "#ff8a1f"; g.fillRect(0, 0, w, h);
+    g.strokeStyle = "rgba(160,60,0,.5)"; g.lineWidth = 4; for (let x = 0; x < w; x += 21) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
+    [64, 192].forEach(cx => {
+      g.fillStyle = "#ffe27a";
+      g.beginPath(); g.moveTo(cx - 22, 52); g.lineTo(cx - 12, 34); g.lineTo(cx - 2, 52); g.fill();
+      g.beginPath(); g.moveTo(cx + 2, 52); g.lineTo(cx + 12, 34); g.lineTo(cx + 22, 52); g.fill();
+      g.beginPath(); g.moveTo(cx - 26, 66); g.lineTo(cx + 26, 66); g.lineTo(cx + 18, 82); g.lineTo(cx + 9, 74); g.lineTo(cx, 84); g.lineTo(cx - 9, 74); g.lineTo(cx - 18, 82); g.closePath(); g.fill();
+    });
+  });
+  const jeroTex = canvasTex(256, 320, (g, w, h) => {
+    g.fillStyle = "#c9a76a"; g.fillRect(0, 0, w, h);
+    g.strokeStyle = "#8a6a3a"; g.lineWidth = 10; g.strokeRect(10, 10, w - 20, h - 20);
+    g.font = "48px serif"; g.textAlign = "center"; g.textBaseline = "middle";
+    const glyphs = ["👁️", "🐍", "🦅", "☥", "🌙", "🪲", "🦉", "💀", "🐈"];
+    glyphs.forEach((s, i) => g.fillText(s, 60 + (i % 3) * 68, 70 + Math.floor(i / 3) * 90));
+  });
+  function label(text, color, bg) {
+    const tex = canvasTex(512, 128, (g, w, h) => {
+      g.font = '800 56px "Baloo 2", "Trebuchet MS", sans-serif';
+      const tw = Math.min(w - 8, g.measureText(text).width + 48);
+      g.fillStyle = bg || "rgba(18,11,34,.82)";
+      const x = (w - tw) / 2, r = 40;
+      g.beginPath(); g.moveTo(x + r, 14); g.arcTo(x + tw, 14, x + tw, h - 14, r); g.arcTo(x + tw, h - 14, x, h - 14, r); g.arcTo(x, h - 14, x, 14, r); g.arcTo(x, 14, x + tw, 14, r); g.fill();
+      g.fillStyle = color || "#ffd36b"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(text, w / 2, h / 2 + 3, w - 30);
+    });
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+    sp.scale.set(3.4, .85, 1); sp.renderOrder = 10;
+    return sp;
+  }
+
+  // ---- Constructores de objetos ----
+  function pumpkin(r, glow) {
+    const g = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.SphereGeometry(r, 18, 12), lam(0xffffff, { map: faceTex, emissive: glow ? 0x5a2200 : 0x1a0800 }));
+    body.scale.y = .78; body.position.y = r * .78; g.add(body);
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(r * .1, r * .14, r * .4, 6), lam(0x3f7a2a));
+    stem.position.y = r * 1.62; g.add(stem);
+    return g;
+  }
+  function ghost() {
+    const g = new THREE.Group(), mat = lam(0xf4f0ff, { emissive: 0x3b3a5a, transparent: true, opacity: .93 });
+    const head = new THREE.Mesh(new THREE.SphereGeometry(.55, 18, 14), mat); head.position.y = 1.5; g.add(head);
+    const skirt = new THREE.Mesh(new THREE.CylinderGeometry(.55, .7, .9, 18, 1, true), mat); skirt.position.y = 1.0; g.add(skirt);
+    const eyeM = new THREE.MeshBasicMaterial({ color: 0x120b22 });
+    [-.18, .18].forEach(x => { const e = new THREE.Mesh(new THREE.SphereGeometry(.09, 8, 6), eyeM); e.position.set(x, 1.58, .48); g.add(e); });
+    const mouth = new THREE.Mesh(new THREE.SphereGeometry(.08, 8, 6), eyeM); mouth.scale.set(1, 1.4, .6); mouth.position.set(0, 1.36, .5); g.add(mouth);
+    return g;
+  }
+  function tablet() {
+    const g = new THREE.Group();
+    const stone = lam(0xb08f58);
+    const mats = [stone, stone, stone, stone, lam(0xffffff, { map: jeroTex, emissive: 0x1a1206 }), stone];
+    const slab = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.7, .3), mats); slab.position.y = .95; g.add(slab);
+    const base = new THREE.Mesh(new THREE.BoxGeometry(1.6, .2, .6), lam(0x7a6040)); base.position.y = .1; g.add(base);
+    return g;
+  }
+  function sarcophagus() {
+    const g = new THREE.Group(), gold = lam(0xffcf4a, { emissive: 0x6a4a00 });
+    const box = new THREE.Mesh(new THREE.BoxGeometry(1, .7, 1.8), gold); box.position.y = .35; g.add(box);
+    const lid = new THREE.Mesh(new THREE.BoxGeometry(1.1, .2, 1.9), lam(0xffe08a, { emissive: 0x7a5a10 })); lid.position.y = .8; g.add(lid);
+    const p = pumpkin(.3, true); p.position.y = .9; g.add(p);
+    return g;
+  }
+  function ring(color) {
+    const m = new THREE.Mesh(new THREE.RingGeometry(1.05, 1.32, 36), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .85, side: THREE.DoubleSide }));
+    m.rotation.x = -Math.PI / 2; m.position.y = .03; return m;
+  }
+  function gateMesh(gt) {
+    const g = new THREE.Group(), mat = lam(0x7a52c0, { emissive: 0x2a0f55 });
+    for (let i = -2; i <= 2; i++) { const b = new THREE.Mesh(new THREE.CylinderGeometry(.08, .08, 1.7, 8), mat); b.position.set(i * .4, .85, 0); g.add(b); }
+    [.25, 1.6].forEach(y => { const beam = new THREE.Mesh(new THREE.BoxGeometry(2, .14, .14), mat); beam.position.y = y; g.add(beam); });
+    const lock = label("🔒", "#fff", "rgba(0,0,0,0)"); lock.scale.set(2.4, .6, 1); lock.position.y = 2.3; g.add(lock);
+    const hz = tileAt(gt.x - 1, gt.y).t === FLOOR || tileAt(gt.x + 1, gt.y).t === FLOOR;
+    if (hz) g.rotation.y = Math.PI / 2;
+    g.position.set(wx(gt.x), 0, wx(gt.y));
+    g.userData.lock = lock;
+    return g;
+  }
+
+  // ---- Personaje: una niña bruja ----
+  const hero = new THREE.Group();
+  (function buildHero() {
+    const dress = new THREE.Mesh(new THREE.ConeGeometry(.55, 1.1, 16), lam(0x8a4fff)); dress.position.y = .6; hero.add(dress);
+    const belt = new THREE.Mesh(new THREE.CylinderGeometry(.3, .32, .1, 16), lam(0xff8a1f)); belt.position.y = .85; hero.add(belt);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(.32, 18, 14), lam(0xf2c9a0)); head.position.y = 1.4; hero.add(head);
+    const hair = new THREE.Mesh(new THREE.SphereGeometry(.34, 18, 14, 0, Math.PI * 2, 0, Math.PI * .55), lam(0x5a2e12)); hair.position.y = 1.43; hair.rotation.x = -.35; hero.add(hair);
+    [-.28, .28].forEach(x => { const braid = new THREE.Mesh(new THREE.SphereGeometry(.11, 8, 6), lam(0x5a2e12)); braid.position.set(x, 1.2, -.12); hero.add(braid); });
+    const eyeM = new THREE.MeshBasicMaterial({ color: 0x1a1030 });
+    [-.11, .11].forEach(x => { const e = new THREE.Mesh(new THREE.SphereGeometry(.045, 8, 6), eyeM); e.position.set(x, 1.43, .29); hero.add(e); });
+    const brim = new THREE.Mesh(new THREE.CylinderGeometry(.6, .6, .05, 20), lam(0x24123f)); brim.position.y = 1.66; hero.add(brim);
+    const hat = new THREE.Mesh(new THREE.ConeGeometry(.34, .8, 16), lam(0x2e1650)); hat.position.set(0, 2.05, -.05); hat.rotation.x = -.18; hero.add(hat);
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(.33, .34, .09, 16), lam(0xff8a1f, { emissive: 0x401800 })); band.position.y = 1.72; hero.add(band);
+    const cape = new THREE.Mesh(new THREE.ConeGeometry(.6, 1.1, 16, 1, true, Math.PI * .6, Math.PI * .8), lam(0x111111, { side: THREE.DoubleSide })); cape.position.y = .7; hero.add(cape);
+    const lamp = new THREE.Mesh(new THREE.SphereGeometry(.12, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffd36b })); lamp.position.set(.45, .9, .2); hero.add(lamp);
+  })();
+  scene.add(hero);
+
+  // ---- Objetos del mundo ----
+  const gateObjs = {}, stObjs = {}, candyObjs = [], heartObjs = [], portalObjs = {}, anim = [];
+  Object.values(GATES).forEach(gt => { const m = gateMesh(gt); gateObjs[gt.id] = m; scene.add(m); });
+
+  STATIONS.forEach(s => {
+    const g = new THREE.Group(); g.position.set(wx(s.x), 0, wx(s.y));
+    let model, text;
+    if (s.kind === "quiz") { model = ghost(); text = "Fantasma sabio"; }
+    else if (s.kind === "jero") { model = tablet(); text = "Tablilla secreta"; }
+    else if (s.kind === "mini") { model = pumpkin(.7, true); text = "¡Minijuego!"; }
+    else { model = sarcophagus(); text = "Sarcófago dorado"; }
+    g.add(model);
+    const rg = ring(s.kind === "golden" ? 0xffd36b : 0xff8a1f); g.add(rg);
+    const lb = label(text, s.kind === "golden" ? "#ffe08a" : "#ffd36b"); lb.position.y = s.kind === "golden" ? 2.1 : 2.75; g.add(lb);
+    g.userData = { model, ring: rg, label: lb, base: Math.random() * 6 };
+    stObjs[s.id] = g; scene.add(g);
+  });
+
+  Object.keys(FINALS).forEach(k => {
+    const f = FINALS[k], g = new THREE.Group();
+    const color = k === "torre" ? 0x7fb0ff : k === "salon" ? 0x9ff0ff : 0x9be564;
+    const tor = new THREE.Mesh(new THREE.TorusGeometry(1.1, .16, 12, 36), lam(color, { emissive: color, emissiveIntensity: .7 }));
+    tor.position.y = 1.3; g.add(tor);
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(1, 32), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .35, side: THREE.DoubleSide }));
+    disc.position.y = 1.3; g.add(disc);
+    const lb = label("¡SALIDA!", "#9be564"); lb.position.y = 2.9; g.add(lb);
+    const light = new THREE.PointLight(color, 0, 10, 1.5); light.position.y = 1.5; g.add(light);
+    g.position.set(wx(f.portal[0]), 0, wx(f.portal[1]));
+    g.userData = { tor, disc, light };
+    portalObjs[k] = g; scene.add(g);
+  });
+
+  const padFrom = new THREE.Mesh(new THREE.CylinderGeometry(.85, .9, .12, 24), lam(0x3a3f6a, { emissive: 0x000000 }));
+  padFrom.position.set(wx(PAD_FROM[0]), .06, wx(PAD_FROM[1])); scene.add(padFrom);
+  const padTo = new THREE.Mesh(new THREE.CylinderGeometry(.85, .9, .12, 24), lam(0x5fa8ff, { emissive: 0x1a3a80 }));
+  padTo.position.set(wx(PAD_TO[0]), .06, wx(PAD_TO[1])); scene.add(padTo);
+  const padLabel = label("Montacargas", "#9fd0ff"); padLabel.position.set(wx(PAD_FROM[0]), 1.6, wx(PAD_FROM[1])); scene.add(padLabel);
+
+  const candyColors = [0xff5c7a, 0x9be564, 0xffd36b, 0x6fd3ff, 0xc9a4ff];
+  function buildCandies() {
+    candyObjs.forEach(c => scene.remove(c)); candyObjs.length = 0;
+    S.candyAt.forEach((p, i) => {
+      const g = new THREE.Group(), color = candyColors[i % candyColors.length];
+      const mat = lam(color, { emissive: color, emissiveIntensity: .35 });
+      const ball = new THREE.Mesh(new THREE.SphereGeometry(.2, 12, 8), mat); g.add(ball);
+      [-1, 1].forEach(s => { const w = new THREE.Mesh(new THREE.ConeGeometry(.13, .22, 8), mat); w.rotation.z = s * Math.PI / 2; w.position.x = s * .28; g.add(w); });
+      g.position.set(wx(p[0]), .6, wx(p[1])); g.userData.i = i;
+      candyObjs.push(g); scene.add(g);
+    });
+  }
+  HEARTS.forEach((p, i) => {
+    const g = pumpkin(.35, true); g.position.set(wx(p[0]), .2, wx(p[1]));
+    const lb = label("+1 vida", "#9be564"); lb.scale.set(2.4, .6, 1); lb.position.y = 1.4; g.add(lb);
+    heartObjs.push(g); scene.add(g);
+  });
+
+  // ---- Decoración ----
+  function at(obj, x, y, yy) { obj.position.set(wx(x), yy || 0, wx(y)); scene.add(obj); return obj; }
+  [[13, 23], [23, 23], [13, 31], [23, 31]].forEach(p => at(pumpkin(.6, true), p[0], p[1]));
+  at(new THREE.Mesh(new THREE.BoxGeometry(2.2, .02, 13), lam(0x8a1f3a)), 18, 27.5, .01);
+  // Biblioteca: estanterías y libros voladores
+  const shelfTex = canvasTex(128, 128, (g) => { g.fillStyle = "#4a2a14"; g.fillRect(0, 0, 128, 128); const cs = ["#c0392b", "#2980b9", "#27ae60", "#f39c12", "#8e44ad", "#d35400"]; for (let r = 0; r < 3; r++) for (let i = 0; i < 9; i++) { g.fillStyle = cs[(r * 3 + i) % 6]; g.fillRect(6 + i * 13, 8 + r * 42, 10, 32); } });
+  [[2.5, 18], [7.5, 18]].forEach(p => at(new THREE.Mesh(new THREE.BoxGeometry(3.8, 2.2, 1.2), lam(0xffffff, { map: shelfTex })), p[0], p[1], 1.1));
+  for (let i = 0; i < 5; i++) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(.5, .12, .7), lam(pick([0xc0392b, 0x2980b9, 0x27ae60, 0xf39c12])));
+    at(b, 2 + i * 1.6, 13.5 + (i % 2) * 2.5, 2.4); anim.push(t => { b.position.y = 2.2 + Math.sin(t * 1.5 + i) * .35; b.rotation.y = t * .8 + i; });
+  }
+  // Cocina: caldero, mesa
+  const pot = new THREE.Group();
+  pot.add(new THREE.Mesh(new THREE.SphereGeometry(.9, 18, 12, 0, Math.PI * 2, Math.PI * .35, Math.PI * .65), lam(0x1b1b22, { side: THREE.DoubleSide })));
+  const brew = new THREE.Mesh(new THREE.CircleGeometry(.78, 24), new THREE.MeshBasicMaterial({ color: 0x7dff4a })); brew.rotation.x = -Math.PI / 2; brew.position.y = .4; pot.add(brew);
+  at(pot, 21, 13, .9);
+  const potLight = new THREE.PointLight(0x7dff4a, 1, 8, 1.6); potLight.position.set(wx(21), 2, wx(13)); scene.add(potLight);
+  anim.push(t => { potLight.intensity = .9 + Math.sin(t * 6) * .25; });
+  at(new THREE.Mesh(new THREE.BoxGeometry(3.6, .9, 1.6), lam(0x6a4022)), 20.5, 17, .45);
+  // Sótano: barriles y una araña gigante
+  [[29, 18], [34, 17]].forEach(p => at(new THREE.Mesh(new THREE.CylinderGeometry(.7, .7, 1.4, 14), lam(0x6a4426)), p[0], p[1], .7));
+  const spider = new THREE.Group();
+  spider.add(new THREE.Mesh(new THREE.SphereGeometry(.8, 16, 12), lam(0x1a1a1a)));
+  const sh = new THREE.Mesh(new THREE.SphereGeometry(.45, 12, 10), lam(0x1a1a1a)); sh.position.z = .9; spider.add(sh);
+  const bow = new THREE.Mesh(new THREE.SphereGeometry(.18, 8, 6), lam(0xff6ab0)); bow.position.set(0, .45, .9); spider.add(bow);
+  for (let i = 0; i < 8; i++) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(.05, .05, 1.6, 6), lam(0x1a1a1a)); const s = i < 4 ? 1 : -1; leg.position.set(s * .9, -.2, (i % 4 - 1.5) * .45); leg.rotation.z = s * 1.0; spider.add(leg); }
+  at(spider, 31, 13, 1.1); anim.push(t => { spider.position.y = 1.1 + Math.sin(t * 2) * .1; });
+  // Pasillo: retratos
+  for (let x = 9; x <= 27; x += 3) {
+    if (x === 15 || x === 21) continue;
+    const fr = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1, .08), lam(0xc8a24a));
+    at(fr, x, 9.5, 1.05);
+    const pic = new THREE.Mesh(new THREE.PlaneGeometry(1.05, .78), new THREE.MeshBasicMaterial({ color: pick([0x3a5a7a, 0x6a3a5a, 0x3a6a4a, 0x7a5a2a]) }));
+    pic.position.set(wx(x), 1.05, wx(9.5) + .05); scene.add(pic);
+    const eyes = new THREE.Mesh(new THREE.PlaneGeometry(.3, .07), new THREE.MeshBasicMaterial({ color: 0xffd36b })); eyes.position.set(wx(x), 1.15, wx(9.5) + .06); scene.add(eyes);
+  }
+  // Túneles: antorchas
+  [[5, 22], [5, 25], [8, 27], [31, 22], [31, 25], [28, 27]].forEach(p => {
+    const st = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, .9, 6), lam(0x4a2a14)); at(st, p[0], p[1], .45);
+    const fl = new THREE.Mesh(new THREE.SphereGeometry(.18, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffa040 })); at(fl, p[0], p[1], 1.0);
+    anim.push(t => { fl.scale.setScalar(1 + Math.sin(t * 12 + p[0]) * .15); });
+  });
+  // Torre: escoba y ventana
+  const broom = new THREE.Group();
+  const stick = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, 2.4, 8), lam(0x8a5a2a)); stick.rotation.z = Math.PI / 2; broom.add(stick);
+  const bristle = new THREE.Mesh(new THREE.ConeGeometry(.35, .8, 10), lam(0xd9b45a)); bristle.rotation.z = Math.PI / 2; bristle.position.x = 1.4; broom.add(bristle);
+  at(broom, 5, 3.6, 1.2); anim.push(t => { broom.position.y = 1.2 + Math.sin(t * 2) * .2; broom.rotation.y = Math.sin(t) * .3; });
+  [[1, 1], [9, 1]].forEach(p => at(new THREE.Mesh(new THREE.CylinderGeometry(.5, .6, 2.6, 10), lam(0x3a4070)), p[0], p[1], 1.3));
+  // Salón: fantasmas bailando y lámpara
+  for (let i = 0; i < 4; i++) {
+    const gh = ghost(); gh.scale.setScalar(.6); scene.add(gh);
+    anim.push(t => { const a = t * .7 + i * Math.PI / 2; gh.position.set(wx(18) + Math.cos(a) * 4.5, .6 + Math.sin(t * 3 + i) * .3, wx(4) + Math.sin(a) * 2.5); gh.rotation.y = -a; });
+  }
+  [[13, 1], [23, 1]].forEach(p => at(pumpkin(.6, true), p[0], p[1]));
+  // Huerto: lápidas, árboles, calabazas
+  [[27, 4], [35, 5]].forEach(p => { const st = new THREE.Mesh(new THREE.BoxGeometry(1, 1.3, .3), lam(0x7a7a8a)); at(st, p[0], p[1], .65); const top = new THREE.Mesh(new THREE.CylinderGeometry(.5, .5, .3, 16, 1, false, 0, Math.PI), lam(0x7a7a8a)); top.rotation.x = Math.PI / 2; top.rotation.z = Math.PI / 2; at(top, p[0], p[1], 1.3); });
+  [[35, 1], [27, 1]].forEach(p => { const tr = new THREE.Mesh(new THREE.ConeGeometry(.9, 2.6, 7), lam(0x1f3a1a)); at(tr, p[0], p[1], 1.3); });
+  [[29, 7], [30, 4], [34, 6], [32, 1], [29, 1]].forEach(p => at(pumpkin(.35, true), p[0], p[1]));
+  // Murciélagos volando
+  for (let i = 0; i < 6; i++) {
+    const bat = new THREE.Group(), bm = new THREE.MeshBasicMaterial({ color: 0x0a0a12, side: THREE.DoubleSide });
+    const wingL = new THREE.Mesh(new THREE.PlaneGeometry(.6, .3), bm), wingR = wingL.clone();
+    wingL.position.x = -.3; wingR.position.x = .3; bat.add(wingL, wingR, new THREE.Mesh(new THREE.SphereGeometry(.12, 6, 5), bm));
+    scene.add(bat);
+    const cx = pick([wx(5), wx(18), wx(31)]), cz = wx(4), rr = 3 + Math.random() * 3;
+    anim.push(t => { const a = t * (.8 + i * .1) + i; bat.position.set(cx + Math.cos(a) * rr, 3.2 + Math.sin(t * 2 + i) * .4, cz + Math.sin(a) * rr); bat.rotation.y = -a; wingL.rotation.y = Math.sin(t * 18) * .8; wingR.rotation.y = -Math.sin(t * 18) * .8; });
+  }
+
+  // ================= Entrada =================
+  const keys = {};
+  const KEYMAP = { ArrowUp: "u", KeyW: "u", ArrowDown: "d", KeyS: "d", ArrowLeft: "l", KeyA: "l", ArrowRight: "r", KeyD: "r" };
+  window.addEventListener("keydown", e => {
+    if (KEYMAP[e.code] && S && S.mode === "play") { keys[KEYMAP[e.code]] = true; e.preventDefault(); }
+  });
+  window.addEventListener("keyup", e => { if (KEYMAP[e.code]) keys[KEYMAP[e.code]] = false; });
+  window.addEventListener("blur", () => { for (const k in keys) keys[k] = false; });
+  const joy = { x: 0, y: 0, id: null };
+  const touchy = ("ontouchstart" in window) || (window.matchMedia && matchMedia("(pointer: coarse)").matches);
+  if (touchy) document.body.classList.add("touch");
+  (function setupJoy() {
+    const base = $("joy"), knob = $("knob");
+    function setFrom(e) {
+      const r = base.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      let dx = e.clientX - cx, dy = e.clientY - cy; const max = r.width / 2 - 10, d = Math.hypot(dx, dy);
+      if (d > max) { dx = dx / d * max; dy = dy / d * max; }
+      knob.style.transform = `translate(${dx}px, ${dy}px)`; joy.x = dx / max; joy.y = dy / max;
+    }
+    base.addEventListener("pointerdown", e => { joy.id = e.pointerId; base.setPointerCapture(e.pointerId); setFrom(e); });
+    base.addEventListener("pointermove", e => { if (joy.id === e.pointerId) setFrom(e); });
+    const end = () => { joy.id = null; joy.x = joy.y = 0; knob.style.transform = ""; };
+    base.addEventListener("pointerup", end); base.addEventListener("pointercancel", end);
+  })();
+
+  // ================= Física sencilla =================
+  const R = .42;
+  function blockedTile(x, y) {
+    const c = tileAt(x, y);
+    if (c.t === FLOOR) return SOLID.has(x + "," + y);
+    if (c.t === GATE) return !S.gates[c.g];
+    return true;
+  }
+  function blockedAt(px, pz) {
+    for (const ox of [-R, R]) for (const oz of [-R, R]) {
+      if (blockedTile(Math.round((px + ox) / TILE), Math.round((pz + oz) / TILE))) return true;
+    }
+    return false;
+  }
+  const tileOf = () => [Math.round(S.px / TILE), Math.round(S.pz / TILE)];
+  const regionHere = () => { const t = tileOf(); const c = tileAt(t[0], t[1]); return c.r; };
+
+  // ================= HUD =================
+  function renderStats() {
+    if (!S) return;
+    const playing = S.mode !== "intro";
+    $("stats").innerHTML = (playing ? `<span class="pill"><span class="lbl">Vidas</span>${"🎃".repeat(S.lives)}${"🖤".repeat(Math.max(0, 3 - S.lives))}</span><span class="pill"><span class="lbl">Caramelos</span>🍬 ${S.candies}</span><span class="pill"><span class="lbl">Gemas</span>💎 ${S.gems}</span>` : "")
+      + `<button class="icon-btn" id="snd" aria-pressed="${soundOn}">${soundOn ? "🔊" : "🔇"} Sonido</button>`;
+    $("snd").onclick = () => { soundOn = !soundOn; if (soundOn) sfx.pick(); renderStats(); };
+  }
+  let toastTimer = null;
+  function toast(html, ms) {
+    const t = $("toast"); t.innerHTML = html; t.classList.add("show");
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), ms || 2800);
+  }
+  function roomDone(k) { return FINALS[k].stations.every(id => S.solved[id]); }
+  function updateObjective() {
+    const r = regionHere(), o = $("objective");
+    if (!S || S.mode === "intro" || S.mode === "ending") { o.hidden = true; return; }
+    o.hidden = false;
+    if (FINALS[r]) {
+      const n = FINALS[r].stations.filter(id => S.solved[id]).length;
+      if (n < 3) o.innerHTML = `Cerraduras abiertas: <b>${n} de 3</b>. Busca los retos de esta sala.`;
+      else if (goldenVisible(r)) o.innerHTML = "¡Entra en el <b>portal de salida</b>… o abre el <b>sarcófago dorado</b>!";
+      else o.innerHTML = "¡El <b>portal de salida</b> está abierto! Camina hasta él.";
+      return;
+    }
+    const open = Object.keys(S.gates).length;
+    if (r === "hub" && !open) o.innerHTML = "Acércate a un <b>reto</b> para abrir una reja. ¡Cada reja lleva a un camino distinto!";
+    else if (S.solved.T && r === "cocina") o.innerHTML = "Súbete a la <b>plataforma azul</b> del montacargas.";
+    else o.innerHTML = "Busca las <b>salidas</b> de la mansión: hay varias, ¡y cada una tiene su final!";
+  }
+  const mini = $("mini"), mctx = mini.getContext("2d");
+  function drawMini() {
+    const sx = mini.width / W, sy = mini.height / H;
+    mctx.clearRect(0, 0, mini.width, mini.height);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (!S.vis[x + "," + y]) continue;
+      const c = grid[y][x];
+      if (c.t === FLOOR) mctx.fillStyle = "#" + REG[c.r].floor.toString(16).padStart(6, "0");
+      else if (c.t === WALL) mctx.fillStyle = "#130c24";
+      else if (c.t === GATE) mctx.fillStyle = S.gates[c.g] ? "#9be564" : "#ff5c7a";
+      else continue;
+      mctx.fillRect(x * sx, y * sy, sx + .5, sy + .5);
+    }
+    STATIONS.forEach(s => {
+      if (!S.vis[s.x + "," + s.y] || (s.kind === "golden" && !goldenVisible(s.room))) return;
+      mctx.fillStyle = S.solved[s.id] ? "#9be564" : s.kind === "golden" ? "#ffe08a" : "#ff8a1f";
+      mctx.beginPath(); mctx.arc((s.x + .5) * sx, (s.y + .5) * sy, Math.max(2, sx * .6), 0, 7); mctx.fill();
+    });
+    Object.keys(FINALS).forEach(k => { if (roomDone(k)) { const p = FINALS[k].portal; mctx.fillStyle = "#6fd3ff"; mctx.fillRect(p[0] * sx - 1, p[1] * sy - 1, sx + 2, sy + 2); } });
+    mctx.fillStyle = "#fff"; mctx.beginPath(); mctx.arc((S.px / TILE + .5) * sx, (S.pz / TILE + .5) * sy, Math.max(2.5, sx * .8), 0, 7); mctx.fill();
+  }
+
+  // ================= Sincronizar escena con el estado =================
+  function goldenVisible(room) { return !!(FINALS[room] && roomDone(room) && S.gems >= GOLD_GEMS && !S.goldFail[room] && !S.solved[FINALS[room].golden]); }
+  function applyState() {
+    Object.keys(gateObjs).forEach(id => { const g = gateObjs[id]; g.position.y = S.gates[id] ? -1.9 : 0; g.userData.lock.visible = !S.gates[id]; g.userData.target = g.position.y; });
+    STATIONS.forEach(s => {
+      const o = stObjs[s.id], done = !!S.solved[s.id];
+      o.userData.ring.material.color.setHex(done ? 0x9be564 : s.kind === "golden" ? 0xffd36b : 0xff8a1f);
+      o.userData.label.visible = !done;
+      if (s.kind === "golden") o.visible = goldenVisible(s.room);
+    });
+    Object.keys(portalObjs).forEach(k => { const on = roomDone(k); portalObjs[k].visible = on; portalObjs[k].userData.light.intensity = on ? 1.6 : 0; });
+    padFrom.material.color.setHex(S.solved.T ? 0x5fa8ff : 0x3a3f6a); padFrom.material.emissive.setHex(S.solved.T ? 0x1a3a80 : 0x000000);
+    padLabel.visible = !!S.solved.T;
+    candyObjs.forEach(c => c.visible = !S.taken["c" + c.userData.i]);
+    heartObjs.forEach((h, i) => h.visible = !S.taken["h" + i]);
+    hero.position.set(S.px, 0, S.pz); hero.rotation.y = S.face;
+    renderStats(); updateObjective();
+  }
+
+  // ================= Bucle principal =================
+  let last = performance.now(), clock = 0, armed = {}, lastRegion = null, miniTimer = 0;
+  const camOff = new THREE.Vector3(), camPos = new THREE.Vector3(), look = new THREE.Vector3();
+  function resize() {
+    const w = window.innerWidth, h = window.innerHeight;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.fov = w / h < .8 ? 62 : 50; camera.updateProjectionMatrix();
+    camOff.set(0, w / h < .8 ? 17 : 13, w / h < .8 ? 10 : 9.5);
+  }
+  window.addEventListener("resize", resize); resize();
+
+  function loop(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now; clock += dt;
+    if (S) {
+      if (S.mode === "play") step(dt);
+      anim.forEach(f => f(clock));
+      STATIONS.forEach(s => {
+        const o = stObjs[s.id];
+        if (s.kind === "quiz") o.userData.model.position.y = Math.sin(clock * 2 + o.userData.base) * .2;
+        if (s.kind === "mini") o.userData.model.rotation.y = Math.sin(clock * 1.5 + o.userData.base) * .4;
+        o.userData.ring.rotation.z = clock * .6;
+        o.userData.ring.material.opacity = S.solved[s.id] ? .5 : .6 + Math.sin(clock * 4) * .3;
+      });
+      candyObjs.forEach(c => { c.rotation.y = clock * 2 + c.userData.i; c.position.y = .6 + Math.sin(clock * 3 + c.userData.i) * .12; });
+      heartObjs.forEach((h, i) => { h.position.y = .2 + Math.sin(clock * 2.5 + i) * .15; });
+      Object.values(portalObjs).forEach(p => { p.userData.tor.rotation.z = clock * 2; p.userData.disc.material.opacity = .3 + Math.sin(clock * 5) * .15; });
+      Object.values(gateObjs).forEach(g => { if (g.userData.anim) { g.position.y = Math.max(-1.9, g.position.y - dt * 1.6); if (g.position.y <= -1.9) g.userData.anim = false; } });
+      padFrom.rotation.y = clock;
+      lantern.position.set(S.px, 2.6, S.pz + .5);
+      look.set(S.px, .8, S.pz);
+      camPos.copy(look).add(camOff);
+      camera.position.lerp(camPos, S.mode === "intro" ? 1 : Math.min(1, dt * 5));
+      camera.lookAt(look);
+      miniTimer -= dt; if (miniTimer <= 0) { miniTimer = .15; drawMini(); }
+    }
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  }
+
+  function step(dt) {
+    let mx = (keys.r ? 1 : 0) - (keys.l ? 1 : 0) + joy.x, mz = (keys.d ? 1 : 0) - (keys.u ? 1 : 0) + joy.y;
+    const len = Math.hypot(mx, mz);
+    if (len > .12) {
+      if (len > 1) { mx /= len; mz /= len; }
+      const sp = 6.2 * dt;
+      const nx = S.px + mx * sp, nz = S.pz + mz * sp;
+      if (!blockedAt(nx, S.pz)) S.px = nx;
+      if (!blockedAt(S.px, nz)) S.pz = nz;
+      const target = Math.atan2(mx, mz);
+      let d = target - S.face; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2;
+      S.face += d * Math.min(1, dt * 12);
+      hero.position.y = Math.abs(Math.sin(clock * 11)) * .12;
+      hero.rotation.z = Math.sin(clock * 11) * .05;
+    } else { hero.position.y = 0; hero.rotation.z = 0; }
+    hero.position.x = S.px; hero.position.z = S.pz; hero.rotation.y = S.face;
+
+    const [tx, ty] = tileOf();
+    for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) if (dx * dx + dy * dy <= 20) S.vis[(tx + dx) + "," + (ty + dy)] = 1;
+
+    const r = regionHere();
+    if (r && r !== lastRegion) {
+      lastRegion = r; $("area").textContent = REG[r].name;
+      if (!S.seen[r] && REG[r].story) { S.seen[r] = 1; toast(`<span class="t-title">${REG[r].name}</span>${REG[r].story(esc(S.name))}`, 5200); }
+      updateObjective();
+    }
+    // Recoger caramelos y vidas
+    candyObjs.forEach(c => {
+      const k = "c" + c.userData.i;
+      if (!S.taken[k] && Math.hypot(c.position.x - S.px, c.position.z - S.pz) < .9) { S.taken[k] = 1; c.visible = false; S.candies += 1; sfx.pick(); renderStats(); }
+    });
+    heartObjs.forEach((h, i) => {
+      const k = "h" + i;
+      if (!S.taken[k] && Math.hypot(h.position.x - S.px, h.position.z - S.pz) < 1) {
+        if (S.lives < 3) { S.taken[k] = 1; h.visible = false; S.lives++; sfx.good(); toast("¡Calabaza de vida! +1 vida 🎃"); renderStats(); }
+        else if (!h.userData.told) { h.userData.told = true; toast("Ya tienes todas tus vidas. Esta calabaza te espera por si la necesitas."); }
+      }
+    });
+    // Montacargas
+    if (S.solved.T && Math.hypot(wx(PAD_FROM[0]) - S.px, wx(PAD_FROM[1]) - S.pz) < .9) {
+      sfx.zap(); S.px = wx(PAD_TO[0]); S.pz = wx(PAD_TO[1]) - 1.2; camera.position.set(S.px, 30, S.pz + 10); toast("¡Ziuuum! El montacargas te sube a la Torre de la Luna.");
+    }
+    // Portales de salida
+    Object.keys(FINALS).forEach(k => {
+      if (!roomDone(k)) return;
+      const p = FINALS[k].portal;
+      if (Math.hypot(wx(p[0]) - S.px, wx(p[1]) - S.pz) < 1) finish(REG[k].ending);
+    });
+    // Estaciones de reto
+    if (S.mode !== "play") return;
+    for (const s of STATIONS) {
+      if (S.solved[s.id]) continue;
+      if (s.kind === "golden" && !goldenVisible(s.room)) continue;
+      const d = Math.hypot(wx(s.x) - S.px, wx(s.y) - S.pz);
+      if (d > 2.6) armed[s.id] = true;
+      if (d < 1.5 && armed[s.id] !== false) { armed[s.id] = false; openStation(s); break; }
+    }
+  }
+
+  // ================= Retos =================
+  let CUR = null, MG = null;
+  function overlay(html) { $("overlay").hidden = false; $("panel").innerHTML = html; $("panel").scrollTop = 0; }
+  function closeOverlay() { $("overlay").hidden = true; $("panel").innerHTML = ""; }
+  function stopMini() { if (MG) { MG.stop(); MG = null; } }
+
+  function drawFrom(cat) {
+    const bank = BANKS[cat];
+    S.used[cat] = S.used[cat] || [];
+    let free = bank.map((_, i) => i).filter(i => !S.used[cat].includes(i));
+    if (!free.length) { S.used[cat] = []; free = bank.map((_, i) => i); }
+    const i = pick(free); S.used[cat].push(i);
+    const c = bank[i](); c.cat = cat;
+    if (c.type === "mc") c.options = shuffle(c.options);
+    return c;
+  }
+  const MINIS = ["catch", "whack", "timing", "memory", "simon"];
+  function nextMini() {
+    S.used.mini = S.used.mini || [];
+    let free = MINIS.filter(m => !S.used.mini.includes(m));
+    if (!free.length) { S.used.mini = []; free = MINIS.slice(); }
+    const m = pick(free); S.used.mini.push(m); return m;
+  }
+
+  function openStation(s) {
+    for (const k in keys) keys[k] = false;
+    S.mode = "modal";
+    CUR = { s, tries: 0, disabled: [] };
+    if (s.kind === "quiz") CUR.c = drawFrom(s.cat === "any" ? pick(["mates", "geo", "geom"]) : s.cat);
+    else if (s.kind === "jero") CUR.c = drawFrom("jero");
+    else if (s.kind === "golden") { CUR.c = pick(GOLDEN)(); CUR.c.cat = "gold"; CUR.oneShot = true; }
+    else CUR.mini = nextMini();
+    renderChallenge();
+  }
+
+  function headerHTML() {
+    const s = CUR.s, r = REG[regionHere()] || REG.hub;
+    const who = s.kind === "quiz" ? "El fantasma sabio dice:" : s.kind === "jero" ? "En la tablilla hay algo grabado…" : s.kind === "golden" ? "Un acertijo dorado. Solo tienes una oportunidad y, si fallas, no pierdes vida." : "¡La calabaza recreativa te reta!";
+    const lock = FINALS[s.room] && s.kind !== "golden" ? ` · Cerradura ${FINALS[s.room].stations.filter(id => S.solved[id]).length + 1} de 3` : "";
+    return `<div class="tag">${r.name}${lock}</div><p class="story" style="margin-top:4px">${who}</p>`;
+  }
+
+  function renderChallenge(feedback) {
+    if (CUR.mini) return renderMini();
+    const c = CUR.c;
+    const cat = c.cat === "jero" ? "jero" : c.cat;
+    const body = c.type === "mc"
+      ? `<div class="opts">${c.options.map((o, i) => `<button class="btn opt" data-i="${i}" ${CUR.disabled.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>`
+      : `<form class="answer-row" id="af"><input id="ans" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="Tu respuesta"><button class="btn primary" type="submit">Comprobar</button></form>`;
+    overlay(`${headerHTML()}<div id="chal">
+      <span class="cat ${cat}">${c.label || CAT_NAME[c.cat]}</span>
+      <p class="q">${c.q}</p>
+      ${c.html || ""}${c.svg ? `<div class="figure">${c.svg}</div>` : ""}
+      ${body}
+      <div class="feedback ${feedback ? "bad" : ""}" id="fb">${feedback || ""}</div>
+      ${CUR.tries > 0 && c.hint ? `<div class="hint">Pista: ${c.hint}</div>` : ""}
+    </div><div class="row"><button class="btn ghost" id="leave">Alejarse (sin perder vida)</button></div>`);
+    if (feedback) $("chal").classList.add("shake");
+    if (c.type === "mc") document.querySelectorAll(".opt").forEach(b => b.onclick = () => answer(c.options[+b.dataset.i]));
+    else {
+      const inp = $("ans"); setTimeout(() => { try { inp.focus({ preventScroll: true }); } catch (e) {} }, 50);
+      $("af").onsubmit = e => { e.preventDefault(); const v = inp.value.trim(); if (v === "") { $("fb").textContent = "Escribe un número primero."; return; } answer(parseInt(v, 10)); };
+    }
+    $("leave").onclick = leave;
+  }
+  function leave() { stopMini(); closeOverlay(); CUR = null; S.mode = "play"; updateObjective(); }
+  function disableAll() { document.querySelectorAll("#panel button, #panel input").forEach(el => el.disabled = true); }
+
+  function answer(v) {
+    const c = CUR.c, ok = v === c.answer;
+    if (CUR.oneShot) {
+      disableAll();
+      if (ok) { sfx.win(); S.solved[CUR.s.id] = true; S.candies += 50; setTimeout(() => finish("dorada"), 900); $("fb").className = "feedback good"; $("fb").textContent = "¡CORRECTO! El sarcófago se abre…"; }
+      else {
+        sfx.bad(); S.goldFail[CUR.s.room] = true; $("fb").className = "feedback bad"; $("fb").textContent = `¡Casi! Era ${c.answer}. El sarcófago se hunde en el suelo… pero el portal sigue abierto.`;
+        setTimeout(() => { leave(); applyState(); }, 2600);
+      }
+      return;
+    }
+    if (ok) return success();
+    sfx.bad(); CUR.tries++; S.lives--; renderStats();
+    if (c.type === "mc") CUR.disabled.push(v);
+    if (S.lives <= 0) { disableAll(); setTimeout(() => { sfx.boo(); finish("telarana"); }, 600); return; }
+    renderChallenge(pick(["¡Buuu! Esa no es. Pierdes una calabaza.", "¡Uy! Un fantasma se ríe. Lee la pista y prueba otra vez.", "¡Casi! Mira la pista y vuelve a intentarlo."]));
+  }
+
+  function success() {
+    const s = CUR.s, first = CUR.tries === 0;
+    sfx.good(); disableAll();
+    S.solved[s.id] = true;
+    if (first) { S.gems++; S.candies += 10; } else S.candies += 5;
+    const fb = $("fb") || $("mgfb");
+    if (fb) { fb.className = "feedback good"; fb.textContent = first ? "¡Perfecto a la primera! +10 caramelos y +1 gema 💎" : "¡Conseguido! +5 caramelos"; }
+    renderStats();
+    setTimeout(() => {
+      stopMini(); closeOverlay(); CUR = null; S.mode = "play";
+      if (s.opens) { S.gates[s.opens] = true; gateObjs[s.opens].userData.anim = true; gateObjs[s.opens].userData.lock.visible = false; sfx.gate(); }
+      if (s.msg) toast(s.msg, 3400);
+      if (s.room && roomDone(s.room)) {
+        toast(S.gems >= GOLD_GEMS && !S.goldFail[s.room] ? "¡Tres cerraduras abiertas! Se abre el portal… y tus gemas hacen aparecer un <b>sarcófago dorado</b>." : "¡Tres cerraduras abiertas! El <b>portal de salida</b> está brillando.", 4200);
+        sfx.gate();
+      } else if (s.room) toast(`¡Cerradura abierta! Llevas ${FINALS[s.room].stations.filter(id => S.solved[id]).length} de 3.`);
+      applyState();
+      if (s.opens) gateObjs[s.opens].position.y = 0;
+    }, 1400);
+  }
+
+  // ---------- Minijuegos ----------
+  const MINI_INFO = {
+    catch: { title: "Lluvia de caramelos", how: "Mueve el caldero (arrastra con el dedo o usa ← →) y atrapa <b>12 caramelos</b> en 30 segundos. ¡Cuidado con las arañas, te quitan 2!" },
+    whack: { title: "Caza fantasmas", how: "Toca o haz clic en los fantasmas cuando salgan de las tumbas. Atrapa <b>10</b> en 25 segundos." },
+    timing: { title: "El puente de la escoba", how: "La escoba va y viene. Pulsa <b>¡Ahora!</b> (o la barra espaciadora) cuando esté en la zona verde. Necesitas <b>3 aciertos</b> y solo puedes fallar 2 veces." },
+    memory: { title: "Parejas embrujadas", how: "Da la vuelta a las cartas y encuentra las <b>6 parejas</b>. Puedes equivocarte 9 veces como máximo." },
+    simon: { title: "Las calabazas cantoras", how: "Mira el orden en que se iluminan las calabazas y repítelo. ¡Son <b>5 pasos</b>!" }
+  };
+  function renderMini(lostMsg) {
+    const info = MINI_INFO[CUR.mini];
+    overlay(`${headerHTML()}<span class="cat mini">Minijuego</span><h2>${info.title}</h2><p class="story">${info.how}</p>
+      ${lostMsg ? `<div class="feedback bad">${lostMsg}</div><div class="row"><button class="btn primary" id="mgstart">Reintentar</button><button class="btn ghost" id="leave">Alejarse</button></div>`
+        : `<div id="mgbox"></div><div class="feedback" id="mgfb"></div><div class="row"><button class="btn ghost" id="leave">Alejarse (sin perder vida)</button></div>`}`);
+    $("leave").onclick = leave;
+    if (lostMsg) { $("mgstart").onclick = () => renderMini(); return; }
+    const box = $("mgbox");
+    const done = win => {
+      MG = null;
+      if (!CUR || S.mode !== "modal") return;
+      if (win) return success();
+      sfx.bad(); CUR.tries++; S.lives--; renderStats();
+      if (S.lives <= 0) { setTimeout(() => { sfx.boo(); finish("telarana"); }, 600); return; }
+      renderMini("¡Oh! Esta vez no ha salido. Pierdes una calabaza, pero puedes volver a intentarlo.");
+    };
+    MG = ({ catch: mgCatch, whack: mgWhack, timing: mgTiming, memory: mgMemory, simon: mgSimon })[CUR.mini](box, done);
+  }
+
+  function mkCanvas(box, w, h) {
+    const c = document.createElement("canvas"); c.width = w; c.height = h; c.className = "mg-canvas"; box.appendChild(c);
+    const st = document.createElement("div"); st.className = "mg-status"; box.appendChild(st);
+    return [c, c.getContext("2d"), st];
+  }
+  function canvasX(cv, e) { const r = cv.getBoundingClientRect(); return (e.clientX - r.left) / r.width * cv.width; }
+  function canvasY(cv, e) { const r = cv.getBoundingClientRect(); return (e.clientY - r.top) / r.height * cv.height; }
+
+  function mgCatch(box, done) {
+    const [cv, g, st] = mkCanvas(box, 320, 400), GOAL = 12;
+    let bx = 160, score = 0, t = 30, items = [], spawn = 0, last = performance.now(), run = true, kl = false, kr = false, flash = 0;
+    const mv = e => { bx = canvasX(cv, e); };
+    cv.addEventListener("pointermove", mv); cv.addEventListener("pointerdown", mv);
+    const kd = e => { if (e.key === "ArrowLeft") { kl = true; e.preventDefault(); } if (e.key === "ArrowRight") { kr = true; e.preventDefault(); } };
+    const ku = e => { if (e.key === "ArrowLeft") kl = false; if (e.key === "ArrowRight") kr = false; };
+    window.addEventListener("keydown", kd); window.addEventListener("keyup", ku);
+    const goods = ["🍬", "🍭", "🍫", "🍬"];
+    function frame(now) {
+      if (!run) return;
+      const dt = Math.min(.05, (now - last) / 1000); last = now; t -= dt; flash = Math.max(0, flash - dt);
+      if (kl) bx -= 320 * dt; if (kr) bx += 320 * dt; bx = clamp(bx, 34, 286);
+      spawn -= dt;
+      if (spawn <= 0) { spawn = .48; const bad = Math.random() < .25; items.push({ x: rand(20, 300), y: -20, v: rand(140, 220), bad, e: bad ? "🕷️" : pick(goods) }); }
+      items.forEach(it => {
+        it.y += it.v * dt;
+        if (!it.done && it.y > 335 && it.y < 375 && Math.abs(it.x - bx) < 42) {
+          it.done = true;
+          if (it.bad) { score = Math.max(0, score - 2); flash = .3; sfx.bad(); } else { score++; sfx.pick(); }
+        }
+      });
+      items = items.filter(i => !i.done && i.y < 430);
+      const grd = g.createLinearGradient(0, 0, 0, 400); grd.addColorStop(0, "#1d1238"); grd.addColorStop(1, "#3a1f5e");
+      g.fillStyle = grd; g.fillRect(0, 0, 320, 400);
+      if (flash) { g.fillStyle = "rgba(255,92,122,.3)"; g.fillRect(0, 0, 320, 400); }
+      g.fillStyle = "#fff1b8"; g.beginPath(); g.arc(270, 50, 26, 0, 7); g.fill();
+      g.font = "30px serif"; g.textAlign = "center"; g.textBaseline = "middle";
+      items.forEach(it => g.fillText(it.e, it.x, it.y));
+      g.fillStyle = "#1b1b22"; g.beginPath(); g.ellipse(bx, 362, 40, 24, 0, 0, Math.PI); g.fill();
+      g.fillStyle = "#7dff4a"; g.fillRect(bx - 40, 356, 80, 7);
+      st.textContent = `Caramelos: ${score} / ${GOAL}   ·   Tiempo: ${Math.ceil(t)} s`;
+      if (score >= GOAL) return end(true);
+      if (t <= 0) return end(false);
+      requestAnimationFrame(frame);
+    }
+    function cleanup() { run = false; window.removeEventListener("keydown", kd); window.removeEventListener("keyup", ku); }
+    function end(w) { cleanup(); done(w); }
+    requestAnimationFrame(frame);
+    return { stop: cleanup };
+  }
+
+  function mgWhack(box, done) {
+    const [cv, g, st] = mkCanvas(box, 320, 330), GOAL = 10;
+    let score = 0, t = 25, last = performance.now(), run = true, ghosts = [], spawn = .4, pops = [];
+    const cell = i => [55 + (i % 3) * 105, 70 + Math.floor(i / 3) * 100];
+    cv.addEventListener("pointerdown", e => {
+      const x = canvasX(cv, e), y = canvasY(cv, e);
+      for (const gh of ghosts) { const [cx, cy] = cell(gh.i); if (Math.hypot(x - cx, y - (cy - 10)) < 46) { gh.hit = true; score++; sfx.hit(); pops.push({ x: cx, y: cy, t: .4 }); break; } }
+    });
+    function frame(now) {
+      if (!run) return;
+      const dt = Math.min(.05, (now - last) / 1000); last = now; t -= dt; spawn -= dt;
+      ghosts.forEach(gh => gh.life -= dt); ghosts = ghosts.filter(gh => gh.life > 0 && !gh.hit);
+      if (spawn <= 0 && ghosts.length < 2) { const used = ghosts.map(gh => gh.i); let i; do { i = rand(0, 8); } while (used.includes(i)); ghosts.push({ i, life: Math.max(.75, 1.25 - score * .04) }); spawn = rand(30, 70) / 100; }
+      g.fillStyle = "#1a2a18"; g.fillRect(0, 0, 320, 330);
+      g.textAlign = "center"; g.textBaseline = "middle";
+      for (let i = 0; i < 9; i++) { const [cx, cy] = cell(i); g.fillStyle = "#3a2a1a"; g.beginPath(); g.ellipse(cx, cy + 22, 40, 12, 0, 0, 7); g.fill(); g.fillStyle = "#7a7a8a"; g.fillRect(cx + 18, cy - 4, 22, 30); }
+      g.font = "52px serif";
+      ghosts.forEach(gh => { const [cx, cy] = cell(gh.i); g.fillText("👻", cx - 6, cy - 6); });
+      pops.forEach(p => { p.t -= dt; g.font = "24px serif"; g.fillText("✨", p.x, p.y - 40 + p.t * 30); }); pops = pops.filter(p => p.t > 0);
+      st.textContent = `Fantasmas: ${score} / ${GOAL}   ·   Tiempo: ${Math.ceil(t)} s`;
+      if (score >= GOAL) return end(true);
+      if (t <= 0) return end(false);
+      requestAnimationFrame(frame);
+    }
+    function cleanup() { run = false; }
+    function end(w) { cleanup(); done(w); }
+    requestAnimationFrame(frame);
+    return { stop: cleanup };
+  }
+
+  function mgTiming(box, done) {
+    const [cv, g, st] = mkCanvas(box, 320, 130);
+    const btn = document.createElement("button"); btn.className = "btn primary"; btn.textContent = "¡Ahora!"; btn.style.cssText = "display:block;margin:6px auto 0;min-width:180px";
+    box.appendChild(btn);
+    let p = 0, dir = 1, speed = .75, hits = 0, misses = 0, zone = .5, width = .24, run = true, last = performance.now(), flash = 0, flashColor = "";
+    const newZone = () => { zone = .18 + Math.random() * .64; };
+    newZone();
+    function press() {
+      if (!run) return;
+      if (Math.abs(p - zone) <= width / 2) { hits++; sfx.good(); flash = .35; flashColor = "rgba(155,229,100,.35)"; speed += .25; width = Math.max(.14, width - .04); newZone(); }
+      else { misses++; sfx.bad(); flash = .35; flashColor = "rgba(255,92,122,.35)"; }
+      if (hits >= 3) return end(true);
+      if (misses >= 3) return end(false);
+    }
+    btn.onclick = press; cv.addEventListener("pointerdown", press);
+    const kd = e => { if (e.code === "Space") { e.preventDefault(); press(); } };
+    window.addEventListener("keydown", kd);
+    function frame(now) {
+      if (!run) return;
+      const dt = Math.min(.05, (now - last) / 1000); last = now; flash = Math.max(0, flash - dt);
+      p += dir * speed * dt; if (p > 1) { p = 1; dir = -1; } if (p < 0) { p = 0; dir = 1; }
+      g.fillStyle = "#1d1238"; g.fillRect(0, 0, 320, 130);
+      if (flash) { g.fillStyle = flashColor; g.fillRect(0, 0, 320, 130); }
+      g.fillStyle = "#3a2768"; g.fillRect(20, 55, 280, 24);
+      g.fillStyle = "#9be564"; g.fillRect(20 + (zone - width / 2) * 280, 55, width * 280, 24);
+      g.font = "34px serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("🧹", 20 + p * 280, 40);
+      st.textContent = `Aciertos: ${hits} / 3   ·   Fallos: ${misses} / 2 permitidos`;
+      requestAnimationFrame(frame);
+    }
+    function cleanup() { run = false; window.removeEventListener("keydown", kd); }
+    function end(w) { cleanup(); setTimeout(() => done(w), 300); }
+    requestAnimationFrame(frame);
+    return { stop: cleanup };
+  }
+
+  function mgMemory(box, done) {
+    const faces = shuffle(["🎃", "👻", "🦇", "🕷️", "🧙", "🍬"].flatMap(f => [f, f]));
+    const gridEl = document.createElement("div"); gridEl.className = "mem-grid"; box.appendChild(gridEl);
+    const st = document.createElement("div"); st.className = "mg-status"; box.appendChild(st);
+    let open = [], found = 0, errors = 0, lock = false, run = true; const MAXERR = 9;
+    const status = () => st.textContent = `Parejas: ${found} / 6   ·   Errores: ${errors} / ${MAXERR}`;
+    faces.forEach((f, i) => {
+      const b = document.createElement("button"); b.className = "mem-card"; b.setAttribute("aria-label", "Carta " + (i + 1)); b.dataset.f = f;
+      b.onclick = () => {
+        if (!run || lock || b.classList.contains("up") || b.classList.contains("done")) return;
+        b.classList.add("up"); b.textContent = f; open.push(b); sfx.hit();
+        if (open.length === 2) {
+          lock = true;
+          if (open[0].dataset.f === open[1].dataset.f) { open.forEach(c => c.classList.add("done")); open = []; lock = false; found++; sfx.pick(); status(); if (found === 6) { run = false; setTimeout(() => done(true), 400); } }
+          else { errors++; status(); setTimeout(() => { open.forEach(c => { c.classList.remove("up"); c.textContent = ""; }); open = []; lock = false; if (errors >= MAXERR && run) { run = false; done(false); } }, 750); }
+        }
+      };
+      gridEl.appendChild(b);
+    });
+    status();
+    return { stop() { run = false; } };
+  }
+
+  function mgSimon(box, done) {
+    const pads = [["🎃", "#ff8a1f"], ["👻", "#e8e4ff"], ["🐸", "#7dff4a"], ["🔮", "#c9a4ff"]];
+    const freqs = [392, 494, 587, 698];
+    const wrap = document.createElement("div"); wrap.className = "simon"; box.appendChild(wrap);
+    const st = document.createElement("div"); st.className = "mg-status"; box.appendChild(st);
+    const btns = pads.map((p, i) => { const b = document.createElement("button"); b.textContent = p[0]; b.style.background = p[1]; b.style.color = p[1]; b.setAttribute("aria-label", "Calabaza " + (i + 1)); wrap.appendChild(b); return b; });
+    const seq = []; for (let i = 0; i < 5; i++) seq.push(rand(0, 3));
+    let pos = 0, listening = false, run = true;
+    const lit = i => { btns[i].classList.add("lit"); tone(freqs[i], .3, "triangle", 0, .14); setTimeout(() => btns[i].classList.remove("lit"), 380); };
+    function show() {
+      listening = false; st.textContent = "Mira con atención…"; let k = 0;
+      const tick = () => { if (!run) return; if (k >= seq.length) { listening = true; pos = 0; st.textContent = `¡Tu turno! Paso 1 de ${seq.length}`; return; } lit(seq[k]); k++; setTimeout(tick, 700); };
+      setTimeout(tick, 700);
+    }
+    btns.forEach((b, i) => b.onclick = () => {
+      if (!run || !listening) return;
+      lit(i);
+      if (i !== seq[pos]) { run = false; st.textContent = "¡Ese no era!"; setTimeout(() => done(false), 500); return; }
+      pos++;
+      if (pos >= seq.length) { run = false; st.textContent = "¡Perfecto!"; setTimeout(() => done(true), 500); return; }
+      st.textContent = `¡Tu turno! Paso ${pos + 1} de ${seq.length}`;
+    });
+    show();
+    return { stop() { run = false; } };
+  }
+
+  // ================= Pantallas =================
+  function endingsGrid() {
+    return `<div class="endings">${ENDING_ORDER.map(k => { const f = S.found.includes(k); return `<div class="end-slot ${f ? "found" : "locked"}"><div class="e-art">${f ? ENDINGS[k].art : "❓"}</div>${f ? ENDINGS[k].title : "Final oculto"}</div>`; }).join("")}</div>`;
+  }
+  function showIntro() {
+    S.mode = "intro"; renderStats(); updateObjective();
+    overlay(`<div class="tag">Noche de Halloween</div>
+      <h1 class="logo">Mansión Calabaza 3D</h1>
+      <p class="story" style="margin-top:8px">Sigues a un gato negro hasta una mansión vieja… y la puerta se cierra sola. Camina por la mansión y acércate a los <em>fantasmas sabios</em>, las <em>tablillas de jeroglíficos</em> y las <em>calabazas recreativas</em>: cada uno tiene un reto. Cada reja que abras te llevará por un camino distinto, ¡y hay varios finales!</p>
+      <form id="f" class="intro-input">
+        <label for="nm" class="tag" style="flex-basis:100%">¿Cómo te llamas, exploradora?</label>
+        <input id="nm" maxlength="20" autocomplete="off" placeholder="Escribe tu nombre" value="${esc(S.name)}">
+        <button class="btn primary" type="submit">Entrar en la mansión</button>
+      </form>
+      <div class="controls">
+        <div><b>Moverse:</b> ${touchy ? "usa el joystick naranja de abajo a la izquierda" : "flechas o <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>"}</div>
+        <div><b>Vidas:</b> tienes 3 🎃. Si fallas pierdes una, pero recibes una pista.</div>
+        <div><b>Gemas:</b> acierta a la primera para ganar 💎. Con ${GOLD_GEMS} gemas… ¡algo secreto aparece!</div>
+        <div><b>Salidas:</b> cada una tiene un candado de 3 cerraduras.</div>
+      </div>
+      <div class="tag" style="margin-top:12px">Finales descubiertos: ${S.found.length} de ${ENDING_ORDER.length}</div>
+      ${endingsGrid()}`);
+    $("f").onsubmit = e => {
+      e.preventDefault();
+      const n = $("nm").value.trim() || "Exploradora";
+      const found = S.found; S = fresh(n); S.found = found; S.mode = "play";
+      buildCandies(); applyState(); closeOverlay(); lastRegion = null; armed = {};
+      camera.position.set(S.px, 30, S.pz + 20);
+      $("joy").hidden = !touchy;
+    };
+  }
+  function finish(key) {
+    if (S.mode === "ending") return;
+    stopMini(); CUR = null;
+    S.mode = "ending"; S.ending = key;
+    const isNew = !S.found.includes(key);
+    if (isNew) { S.found = S.found.concat(key); saveFound(S.found); }
+    if (key !== "telarana") { sfx.win(); candyRain(); }
+    $("joy").hidden = true; updateObjective();
+    const E = ENDINGS[key];
+    overlay(`<div class="tag">${key === "telarana" ? "Fin del juego" : "¡Has escapado!"}${isNew ? " · ¡Final nuevo!" : ""}</div>
+      <h2>${E.title}</h2><div class="big-art">${E.art}</div>
+      <p class="story">${E.text(esc(S.name))}</p>
+      <div class="score"><span class="pill">🍬 ${S.candies} caramelos</span><span class="pill">💎 ${S.gems} gemas</span><span class="pill">${"🎃".repeat(S.lives) || "0"} vidas</span></div>
+      <div class="tag" style="margin-top:10px">Finales descubiertos: ${S.found.length} de ${ENDING_ORDER.length}</div>
+      ${endingsGrid()}
+      <div class="row"><button class="btn primary" id="again">${S.found.length < ENDING_ORDER.length ? "Jugar otra vez y buscar otro final" : "Jugar otra vez"}</button></div>`);
+    $("again").onclick = () => {
+      const n = S.name, f = S.found; S = fresh(n); S.found = f; S.mode = "play";
+      buildCandies(); applyState(); closeOverlay(); lastRegion = null; armed = {};
+      $("joy").hidden = !touchy;
+    };
+  }
+  function candyRain() {
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    for (let i = 0; i < 28; i++) {
+      const s = document.createElement("span"); s.className = "candy"; s.textContent = pick(["🍬", "🍭", "🎃", "🍫", "⭐"]);
+      s.style.left = Math.random() * 100 + "vw"; s.style.animationDuration = (2.5 + Math.random() * 2.5) + "s"; s.style.animationDelay = (Math.random() * 1.2) + "s";
+      document.body.appendChild(s); setTimeout(() => s.remove(), 6500);
+    }
+  }
+
+  // ================= Arranque =================
+  function start(data) {
+    $("loading").remove();
+    if (data && data.S && data.S.mode && data.S.mode !== "intro" && data.S.mode !== "ending") {
+      S = data.S; S.found = loadFound().length > S.found.length ? loadFound() : S.found;
+      buildCandies(); S.mode = "play"; applyState(); closeOverlay(); $("joy").hidden = !touchy;
+    } else {
+      S = fresh(""); buildCandies(); applyState(); showIntro();
+    }
+    requestAnimationFrame(loop);
+  }
+  window.__mansion = { get S() { return S; }, get CUR() { return CUR; } };
+  if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({ S }));
+  const boot = () => (window.claude && window.claude.hot && window.claude.hot.ready) ? window.claude.hot.ready(start) : start((window.claude && window.claude.hot && window.claude.hot.data) || {});
+  const fontsReady = (document.fonts && document.fonts.load) ? Promise.race([Promise.all([document.fonts.load('800 56px "Baloo 2"'), document.fonts.load('40px "Griffy"')]), new Promise(r => setTimeout(r, 1800))]) : Promise.resolve();
+  fontsReady.then(boot, boot);
+})();
+</script>
+</body>
+</html>
