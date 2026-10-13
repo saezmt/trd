@@ -255,6 +255,12 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
 .sticker.got .st-ic { filter: none; opacity: 1; }
 @media (max-width: 640px) { .icon-btn .lbl { display: none; } }
 #toast { z-index: 15; }
+#toast { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 74px); transform: translateX(-50%); width: auto; max-width: min(460px, calc(100% - 32px)); padding: 5px 14px; font-size: 15px; border-width: 3px; border-radius: 16px; line-height: 1.3; box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+#toast .t-title { font-size: 17px; display: inline; margin-right: 6px; }
+body.touch #toast { left: 12px; right: 112px; transform: none; max-width: none; bottom: calc(env(safe-area-inset-bottom, 0px) + 66px); }
+#objective { font-size: 14px; padding: 4px 12px; }
+.diff-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 12px 0 2px; }
+.diff-row .tag { margin-right: 4px; }
 </style>
 </head>
 <body>
@@ -607,7 +613,18 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     { id: "caballera", name: "Caballera Valiente", icon: "🛡️", dress: 0x5c5f66, top: 0xadb5bd, hair: 0xf2c94c, style: "short", hat: "helmet", prop: "shield" },
     { id: "hielo", name: "Hechicera de Hielo", icon: "❄️", dress: 0x74c0fc, top: 0xd0ebff, hair: 0xf1f3f5, style: "long", hat: "tiara", prop: "wand" },
     { id: "unicornia", name: "Unicornia", icon: "🦄", price: 100, dress: 0xffffff, top: 0xfcc2d7, hair: 0xff8ad8, style: "short", hat: "unicorn" },
-    { id: "dragona", name: "Dragoncita", icon: "🐉", price: 150, dress: 0x40c057, top: 0xb2f2bb, hair: 0x2b8a3e, style: "short", hat: "dragon", tail: true }
+    { id: "dragona", name: "Dragoncita", icon: "🐉", price: 150, dress: 0x40c057, top: 0xb2f2bb, hair: 0x2b8a3e, style: "short", hat: "dragon", tail: true },
+    { id: "leo", name: "Leo Caballero", icon: "⚔️", pants: true, dress: 0x364fc7, top: 0xadb5bd, hair: 0x5a2e12, style: "short", hat: "helmet", prop: "sword" },
+    { id: "mago", name: "Mago Cometa", icon: "🧙‍♂️", pants: true, dress: 0x5f3dc4, top: 0x845ef7, hair: 0x2b1a12, style: "short", hat: "wizard", prop: "staff" },
+    { id: "pirata", name: "Pirata Galleta", icon: "🏴‍☠️", pants: true, dress: 0x1c4fa0, top: 0xf8f9fa, hair: 0xd9480f, style: "short", hat: "pirate", prop: "sword" },
+    { id: "explorador", name: "Explorador Tito", icon: "🧭", pants: true, dress: 0x8a6a3a, top: 0x69db7c, hair: 0x2b1a12, style: "short", hat: "cap" },
+    { id: "principe", name: "Príncipe Bombón", icon: "🤴", pants: true, dress: 0x1c7ed6, top: 0xffd23f, hair: 0xf2c94c, style: "short", hat: "crown", prop: "wand" },
+    { id: "gato", name: "Gatito Mimo", icon: "🐱", pants: true, dress: 0xffa94d, top: 0xffa94d, hair: 0xffa94d, style: "short", hat: "animal", animal: "cat", earIn: 0xffc2d1 },
+    { id: "conejo", name: "Conejita Nube", icon: "🐰", pants: true, dress: 0xf1f3f5, top: 0xf1f3f5, hair: 0xf1f3f5, style: "short", hat: "animal", animal: "bunny", earIn: 0xffb3cf },
+    { id: "panda", name: "Osito Panda", icon: "🐼", price: 80, pants: true, dress: 0x212529, top: 0xf8f9fa, hair: 0x212529, style: "short", hat: "animal", animal: "panda" },
+    { id: "zorro", name: "Zorrito Canela", icon: "🦊", price: 80, pants: true, dress: 0xf76707, top: 0xf76707, hair: 0xf76707, style: "short", hat: "animal", animal: "fox", earIn: 0xffffff, belly: 0xffffff },
+    { id: "pinguino", name: "Pingüino Polo", icon: "🐧", price: 120, pants: true, dress: 0x212529, top: 0x212529, hair: 0x212529, style: "short", hat: "animal", animal: "penguin", belly: 0xffffff },
+    { id: "leon", name: "Leoncito Rugi", icon: "🦁", price: 150, pants: true, dress: 0xfcc419, top: 0xfcc419, hair: 0xd9480f, style: "short", hat: "animal", animal: "lion" }
   ];
   const SKIN = {}; SKINS.forEach(s => SKIN[s.id] = s);
   const TONES = [0xf8d7bd, 0xe9b98f, 0xc68a5c, 0x8d5a3b];
@@ -624,7 +641,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     { name: "Cuevas de Cristal", floor: 0x7d6bc2, floor2: 0x7060b4, path: 0x9a8ad4, wall: "crystal", ground: 0x4a3a7a, fog: 0xc9b8f0, enemy: 0x74c0fc, enemyName: "piedra rodante", monster: 0x3b5bdb, monsterName: "gólem chiquitín", decor: "crys", trees: [0xb197fc, 0x74c0fc, 0xf783ac] },
     { name: "Lago de las Hadas", floor: 0x8fdba0, floor2: 0x82cf93, path: 0xbfe9f5, wall: "hedge", ground: 0x5fbf8a, fog: 0xc8f0e6, enemy: 0x63e6be, enemyName: "rana saltarina", monster: 0x0b7285, monsterName: "pulpo de charca", decor: "pond", trees: [0x63e6be, 0x96f2d7, 0x38d9a9] },
     { name: "Castillo de las Nubes", floor: 0xb39ddb, floor2: 0xa68fcf, path: 0xdcd0f5, wall: "magic", ground: 0xe9e2ff, fog: 0xf0e8ff, enemy: 0xb197fc, enemyName: "chispa mágica", monster: 0x495057, monsterName: "nubarrón enfadado", decor: "stars", trees: [0xffffff, 0xf3f0ff, 0xe5dbff], clouds: true },
-    { name: "Fortaleza de Regaliz", floor: 0x6a5a7a, floor2: 0x5e4f6e, path: 0x7a6a8a, wall: "stone", ground: 0x3d2f4f, fog: 0x8a6aa0, enemy: 0x2b1a3a, enemyName: "", decor: "torch", trees: [0x5a3a6a, 0x4a2a5a] }
+    { name: "Fortaleza de Regaliz", floor: 0xffb3d9, floor2: 0xd0b3ff, path: 0xfff0a8, wall: "candy", ground: 0xffc9e6, fog: 0xffd6ec, enemy: 0xff7fcf, enemyName: "", decor: "lolli", trees: [0xffa8d8, 0xb197fc, 0x8ce99a, 0xffd8a8, 0x7fdcff] }
   ];
   const LEVEL_NAMES = ["", "La plaza de las piruletas", "Calle del regaliz", "El horno de galletas", "Jardín de algodón de azúcar",
     "Sendero de setas", "Claro de las luciérnagas", "El árbol de los búhos", "Puente de lianas",
@@ -676,6 +693,27 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
       if (R() < .5) { carveG(g, a.cx, a.cy, b.cx, a.cy, "c", true); carveG(g, b.cx, a.cy, b.cx, b.cy, "c", true); }
       else { carveG(g, a.cx, a.cy, a.cx, b.cy, "c", true); carveG(g, a.cx, b.cy, b.cx, b.cy, "c", true); }
     }
+    const giants = [], GR = rng(n * 131 + 9);
+    for (let tries = 0; tries < 120 && giants.length < 2; tries++) {
+      const ri = 1 + Math.floor(GR() * (rooms.length - 1)), r = rooms[ri], side = Math.floor(GR() * 4);
+      let x, y, dx = 0, dy = 0;
+      if (side === 0) { x = r.x + Math.floor(GR() * r.w); y = r.y; dy = -1; }
+      else if (side === 1) { x = r.x + Math.floor(GR() * r.w); y = r.y + r.h - 1; dy = 1; }
+      else if (side === 2) { x = r.x; y = r.y + Math.floor(GR() * r.h); dx = -1; }
+      else { x = r.x + r.w - 1; y = r.y + Math.floor(GR() * r.h); dx = 1; }
+      const a = [x + dx, y + dy], b = [x + 2 * dx, y + 2 * dy];
+      if (b[0] < 1 || b[1] < 1 || b[0] > W - 2 || b[1] > H - 2) continue;
+      if (g[a[1]][a[0]].t !== VOID || g[b[1]][b[0]].t !== VOID) continue;
+      let ok = true;
+      for (let ey = -1; ey <= 1 && ok; ey++) for (let ex = -1; ex <= 1 && ok; ex++) {
+        const ca = g[a[1] + ey] && g[a[1] + ey][a[0] + ex], cb = g[b[1] + ey] && g[b[1] + ey][b[0] + ex];
+        if (ca && ca.t === FLOOR && ca.r !== ri) ok = false;
+        if (cb && cb.t === FLOOR && !(b[0] + ex === a[0] && b[1] + ey === a[1])) ok = false;
+      }
+      if (!ok || giants.some(q => Math.abs(q.x - b[0]) + Math.abs(q.y - b[1]) < 6)) continue;
+      g[a[1]][a[0]] = { t: FLOOR, r: "n" }; g[b[1]][b[0]] = { t: FLOOR, r: "n" };
+      giants.push({ x: b[0], y: b[1], t: Math.floor(GR() * 4) });
+    }
     addWalls(g, W, H);
     const last = rooms[rooms.length - 1];
     const mid = rooms.slice(1, -1);
@@ -721,7 +759,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
       monsters.push({ id: "m" + i, x, y, hp: n <= 5 ? 1 : n <= 12 ? 2 : 3 });
     }
     const miniboss = MB_INFO[n] ? { x: clamp(last.cx - 2, last.x, last.x + last.w - 1), y: last.y + last.h - 1, hp: 14 + (n / 5) * 4, name: MB_INFO[n][0], color: MB_INFO[n][1], room: { x: last.x, y: last.y, w: last.w, h: last.h }, shoots: n >= 15 } : null;
-    return { n, world, W, H, grid: g, rooms, start, stations, chest, portal, heart, candyAt, enemies, decor, seed: n, monsters, miniboss };
+    return { n, world, W, H, grid: g, rooms, start, stations, chest, portal, heart, candyAt, enemies, decor, seed: n, monsters, miniboss, giants };
   }
   function genBoss() {
     const W = 27, H = 23, g = newGrid(W, H);
@@ -736,7 +774,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
   function ensureProfile() {
     const D = { color: {}, ownColors: [0, 1], acc: "", ownAcc: [""], pet: "", ownPets: [""], stickers: [], daily: { last: 0, count: 0 }, eng: { lvl: 6, up: 0, down: 0 }, music: true, sfx: true, used: {}, levels: {}, upg: {}, unlocked: [], found: [] };
     for (const k in D) if (P[k] === undefined) P[k] = D[k];
-    P.stats = Object.assign({ earned: 0, kills: 0, chests: 0, dailies: 0, engOK: 0, sciOK: 0, mb: {}, minis: {} }, P.stats || {});
+    P.stats = Object.assign({ earned: 0, kills: 0, chests: 0, dailies: 0, engOK: 0, sciOK: 0, giants: 0, mb: {}, minis: {} }, P.stats || {});
   }
   ensureProfile(); soundOn = P.sfx !== false;
   const DRESS_COLORS = [
@@ -908,7 +946,12 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     const dc = (DRESS_COLORS[look.color || 0] || {}).c, topC = dc != null ? new THREE.Color(dc).lerp(new THREE.Color(0xffffff), .45).getHex() : sk.top;
     const skinM = lam(tone), hairM = lam(sk.hair), dressM = lam(dc != null ? dc : sk.dress), topM = lam(topC);
     [-.13, .13].forEach(x => { const leg = new THREE.Mesh(new THREE.CylinderGeometry(.07, .08, .32, 8), skinM); leg.position.set(x, .16, 0); body.add(leg); const shoe = new THREE.Mesh(new THREE.SphereGeometry(.1, 8, 6), lam(0x7a3b5a)); shoe.scale.set(1, .6, 1.4); shoe.position.set(x, .04, .04); body.add(shoe); });
-    const dress = new THREE.Mesh(new THREE.ConeGeometry(.48, .75, 18), dressM); dress.position.y = .62; body.add(dress);
+    if (sk.pants) {
+      [-.13, .13].forEach(x => { const pl = new THREE.Mesh(new THREE.CylinderGeometry(.1, .11, .52, 10), dressM); pl.position.set(x, .32, 0); body.add(pl); });
+      const hips = new THREE.Mesh(new THREE.CylinderGeometry(.27, .26, .26, 14), dressM); hips.position.y = .66; body.add(hips);
+      const belly = new THREE.Mesh(new THREE.CylinderGeometry(.24, .27, .3, 14), topM); belly.position.y = .8; body.add(belly);
+      if (sk.belly) { const bp = new THREE.Mesh(new THREE.SphereGeometry(.2, 12, 10), lam(sk.belly)); bp.scale.set(1, 1.3, .5); bp.position.set(0, .88, .17); body.add(bp); }
+    } else { const dress = new THREE.Mesh(new THREE.ConeGeometry(.48, .75, 18), dressM); dress.position.y = .62; body.add(dress); }
     if (sk.id === "maga") { for (let i = 0; i < 6; i++) { const st = new THREE.Mesh(new THREE.OctahedronGeometry(.045), basic(0xffe066)); const a = i * 1.05; st.position.set(Math.sin(a) * .36, .45 + (i % 2) * .15, Math.cos(a) * .36); body.add(st); } }
     const torso = new THREE.Mesh(new THREE.CylinderGeometry(.2, .26, .34, 14), topM); torso.position.y = 1.0; body.add(torso);
     const arms = [];
@@ -922,7 +965,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     const head = new THREE.Mesh(new THREE.SphereGeometry(.42, 22, 18), skinM); headG.add(head);
     const face = addFace(headG, .02, .39, 1.25);
     // Pelo
-    if (sk.hat !== "unicorn" && sk.hat !== "dragon" && sk.hat !== "hood" && sk.hat !== "helmet") {
+    if (sk.hat !== "unicorn" && sk.hat !== "dragon" && sk.hat !== "hood" && sk.hat !== "helmet" && sk.hat !== "animal") {
       const cap = new THREE.Mesh(new THREE.SphereGeometry(.45, 20, 14, 0, Math.PI * 2, 0, Math.PI * .5), hairM); cap.rotation.x = -.45; cap.position.set(0, .03, -.03); headG.add(cap);
       const fringe = new THREE.Mesh(new THREE.SphereGeometry(.3, 14, 8, 0, Math.PI * 2, 0, Math.PI * .4), hairM); fringe.scale.set(1.3, .8, .9); fringe.position.set(0, .22, .14); fringe.rotation.x = .6; headG.add(fringe);
     }
@@ -944,6 +987,27 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
       const c = new THREE.Group(); c.position.set(.28, .3, .12);
       for (let i = 0; i < 5; i++) { const pt = new THREE.Mesh(new THREE.SphereGeometry(.07, 8, 6), lam(0xffffff)); const a = i * 1.256; pt.position.set(Math.cos(a) * .08, Math.sin(a) * .08, 0); c.add(pt); }
       c.add(new THREE.Mesh(new THREE.SphereGeometry(.05, 8, 6), lam(0xffd23f))); headG.add(c);
+    } else if (H_ === "pirate") {
+      const dk = lam(0x1a1a2a);
+      const brim = new THREE.Mesh(new THREE.CylinderGeometry(.6, .6, .05, 3), dk); brim.position.y = .33; brim.rotation.y = Math.PI; headG.add(brim);
+      const cr = new THREE.Mesh(new THREE.CylinderGeometry(.3, .36, .26, 16), dk); cr.position.y = .46; headG.add(cr);
+      const sk2 = new THREE.Mesh(new THREE.SphereGeometry(.07, 8, 6), lam(0xffffff)); sk2.position.set(0, .48, .33); headG.add(sk2);
+    } else if (H_ === "cap") {
+      const k = lam(0xc9a66b);
+      const brim = new THREE.Mesh(new THREE.CylinderGeometry(.62, .62, .04, 24), k); brim.position.y = .3; headG.add(brim);
+      const dome = new THREE.Mesh(new THREE.SphereGeometry(.36, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), k); dome.position.y = .3; headG.add(dome);
+      const band = new THREE.Mesh(new THREE.CylinderGeometry(.365, .365, .07, 16), lam(0x6b3a1d)); band.position.y = .34; headG.add(band);
+    } else if (H_ === "animal") {
+      const fur = lam(sk.top), inner = lam(sk.earIn || 0xffc2d1), A = sk.animal;
+      const hood = new THREE.Mesh(new THREE.SphereGeometry(.48, 20, 14, 0, Math.PI * 2, 0, Math.PI * .62), fur); hood.rotation.x = -.5; hood.position.set(0, .02, -.04); headG.add(hood);
+      if (A === "bunny") [-1, 1].forEach(s => { const e = new THREE.Mesh(new THREE.CylinderGeometry(.07, .09, .55, 10), fur); e.position.set(s * .17, .66, -.05); e.rotation.z = -s * .15; headG.add(e); const e2 = new THREE.Mesh(new THREE.CylinderGeometry(.035, .05, .44, 8), inner); e2.position.set(s * .17, .66, .02); e2.rotation.z = -s * .15; headG.add(e2); });
+      else if (A === "panda") [-1, 1].forEach(s => { const e = new THREE.Mesh(new THREE.SphereGeometry(.13, 12, 10), lam(0x212529)); e.position.set(s * .3, .4, -.02); headG.add(e); });
+      else if (A === "cat" || A === "fox") [-1, 1].forEach(s => { const e = new THREE.Mesh(new THREE.ConeGeometry(.14, .3, 4), fur); e.position.set(s * .27, .44, -.02); e.rotation.z = -s * .3; headG.add(e); const e2 = new THREE.Mesh(new THREE.ConeGeometry(.07, .17, 4), inner); e2.position.set(s * .27, .43, .05); e2.rotation.z = -s * .3; headG.add(e2); });
+      else if (A === "lion") { for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; const m = new THREE.Mesh(new THREE.SphereGeometry(.13, 8, 6), lam(0xd9480f)); m.position.set(Math.cos(a) * .44, Math.sin(a) * .44 + .02, -.02); headG.add(m); } [-1, 1].forEach(s => { const e = new THREE.Mesh(new THREE.SphereGeometry(.1, 10, 8), fur); e.position.set(s * .28, .42, 0); headG.add(e); }); }
+      else if (A === "penguin") { const beak = new THREE.Mesh(new THREE.ConeGeometry(.06, .14, 6), lam(0xffa94d)); beak.rotation.x = Math.PI / 2; beak.position.set(0, -.08, .45); headG.add(beak); }
+      const tail = A === "bunny" ? new THREE.Mesh(new THREE.SphereGeometry(.13, 10, 8), lam(0xffffff)) : A === "panda" ? new THREE.Mesh(new THREE.SphereGeometry(.09, 8, 6), lam(0x212529)) : A === "penguin" ? null : new THREE.Mesh(new THREE.ConeGeometry(.09, .6, 8), fur);
+      if (tail) { if (A === "bunny" || A === "panda") tail.position.set(0, .62, -.3); else { tail.position.set(0, .55, -.48); tail.rotation.x = -1.1; } body.add(tail); }
+      if (A === "fox") { const tip = new THREE.Mesh(new THREE.SphereGeometry(.08, 8, 6), lam(0xffffff)); tip.position.set(0, .3, -.75); body.add(tip); }
     } else if (H_ === "hood" || H_ === "unicorn" || H_ === "dragon" || H_ === "helmet") {
       const hc = H_ === "hood" ? 0x2b8a3e : H_ === "unicorn" ? 0xffffff : H_ === "dragon" ? 0x40c057 : 0xced4da;
       const hm = lam(hc, H_ === "helmet" ? { emissive: 0x222233 } : {});
@@ -1190,21 +1254,23 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     return { g, face };
   }
   function bossModel() {
-    const g = new THREE.Group(), robe = lam(0x3b1f5e), dark = lam(0x1a1020);
+    const g = new THREE.Group(), robe = lam(0x8e5bd6), dark = lam(0x5f3dc4);
     const body = new THREE.Mesh(new THREE.ConeGeometry(1.2, 2.4, 20), robe); body.position.y = 1.2; g.add(body);
-    const belt = new THREE.Mesh(new THREE.TorusGeometry(.55, .08, 8, 20), lam(0xe03131)); belt.rotation.x = Math.PI / 2; belt.position.y = 1.7; g.add(belt);
+    const belt = new THREE.Mesh(new THREE.TorusGeometry(.55, .08, 8, 20), lam(0xff7fcf)); belt.rotation.x = Math.PI / 2; belt.position.y = 1.7; g.add(belt);
     const hd = new THREE.Group(); hd.position.y = 2.75; g.add(hd);
-    hd.add(new THREE.Mesh(new THREE.SphereGeometry(.65, 18, 14), lam(0xcfe0b0)));
+    hd.add(new THREE.Mesh(new THREE.SphereGeometry(.65, 18, 14), lam(0xc3f0a8)));
     const face = addFace(hd, .05, .6, 1.8, { iris: 0xe03131, blush: false });
-    setExpr(face, "sad");
-    [-1, 1].forEach(s => { const brow = new THREE.Mesh(new THREE.BoxGeometry(.3, .07, .05), dark); brow.position.set(s * .27, .32, .58); brow.rotation.z = s * .45; hd.add(brow); });
-    const beard = new THREE.Mesh(new THREE.ConeGeometry(.45, 1.1, 14), lam(0x9aa0a8)); beard.rotation.x = Math.PI; beard.position.set(0, -.65, .25); hd.add(beard);
-    const nose = new THREE.Mesh(new THREE.ConeGeometry(.1, .4, 8), lam(0xb0c890)); nose.rotation.x = Math.PI / 2; nose.position.set(0, -.08, .75); hd.add(nose);
+    setExpr(face, "normal");
+    [-1, 1].forEach(s => { const brow = new THREE.Mesh(new THREE.BoxGeometry(.3, .07, .05), dark); brow.position.set(s * .27, .32, .58); brow.rotation.z = s * .22; hd.add(brow); });
+    const beard = new THREE.Mesh(new THREE.ConeGeometry(.45, 1.1, 14), lam(0xffc2e2)); beard.rotation.x = Math.PI; beard.position.set(0, -.65, .25); hd.add(beard);
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(.1, .4, 8), lam(0xff8fb3)); nose.rotation.x = Math.PI / 2; nose.position.set(0, -.08, .75); hd.add(nose);
     const brim = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, .06, 24), dark); brim.position.y = .5; hd.add(brim);
     const hat = new THREE.Mesh(new THREE.ConeGeometry(.6, 1.6, 18), dark); hat.position.set(0, 1.3, -.1); hat.rotation.x = -.15; hd.add(hat);
-    const hband = new THREE.Mesh(new THREE.CylinderGeometry(.58, .6, .15, 18), lam(0xe03131)); hband.position.y = .62; hd.add(hband);
-    const staff = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, 3.4, 8), dark); staff.position.set(1.3, 1.7, .2); g.add(staff);
+    const hband = new THREE.Mesh(new THREE.CylinderGeometry(.58, .6, .15, 18), lam(0xffd23f)); hband.position.y = .62; hd.add(hband);
+    const staff = new THREE.Mesh(new THREE.CylinderGeometry(.08, .08, 3.4, 8), lam(0xffffff, { map: caneTex })); staff.position.set(1.3, 1.7, .2); g.add(staff);
     const orb = new THREE.Mesh(new THREE.SphereGeometry(.3, 14, 10), lam(0xff2d55, { emissive: 0x880022 })); orb.position.set(1.3, 3.5, .2); g.add(orb);
+    for (let k = 0; k < 7; k++) { const a = k * .9, st = new THREE.Mesh(new THREE.OctahedronGeometry(.12), basic(0xffe066)); st.position.set(Math.sin(a) * .85, .5 + (k % 3) * .45, Math.cos(a) * .85); g.add(st); }
+    const pom = new THREE.Mesh(new THREE.SphereGeometry(.17, 10, 8), lam(0xff7fcf)); pom.position.set(0, 2.05, -.32); hd.add(pom);
     return { g, face, orb, robe };
   }
   function keyMesh() {
@@ -1364,19 +1430,19 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     }) }));
     if (L.heart) { const h = new THREE.Group(); const hm = heartMesh(); hm.position.y = .8; h.add(hm); const lb = label("+1 vida", "#1f8a66"); lb.scale.set(2.4, .6, 1); lb.position.y = 1.8; h.add(lb); h.userData.h = hm; LV.heart = addL(h, L.heart[0], L.heart[1]); } else LV.heart = null;
     // Enemigos
-    L.enemies.forEach((e, i) => { const sl = slime(Wd.enemy); addL(sl.g, e.a[0], e.a[1]); sl.g.visible = !S.killed["p" + i]; LV.enemies.push({ e, obj: sl, i, id: "p" + i }); });
+    (DF().calm ? [] : L.enemies).forEach((e, i) => { const sl = slime(Wd.enemy); addL(sl.g, e.a[0], e.a[1]); sl.g.visible = !S.killed["p" + i]; LV.enemies.push({ e, obj: sl, i, id: "p" + i }); });
     // Monstruos que quitan vidas
-    LV.monsters = (L.monsters || []).map(m0 => {
+    LV.monsters = (DF().calm ? [] : (L.monsters || [])).map(m0 => {
       const o = monsterModel(Wd.monster || 0x9c36b5, false); addL(o.g, m0.x, m0.y);
       const alive = !S.killed[m0.id]; o.g.visible = alive;
-      return { id: m0.id, obj: o, hp: m0.hp, alive, hx: wx(m0.x), hz: wx(m0.y), wt: 0, wx: 0, wz: 0, ph: Math.random() * 6, speed: 2.4 + L.n * .05, flash: 0, name: Wd.monsterName };
+      return { id: m0.id, obj: o, hp: m0.hp, alive, hx: wx(m0.x), hz: wx(m0.y), wt: 0, wx: 0, wz: 0, ph: Math.random() * 6, speed: (2.4 + L.n * .05) * DF().spd, flash: 0, name: Wd.monsterName };
     });
     // Monstruo guardián (cada 5 niveles)
-    if (L.miniboss) {
+    if (L.miniboss && !DF().calm) {
       const o = monsterModel(L.miniboss.color, true); o.g.scale.setScalar(2.1); addL(o.g, L.miniboss.x, L.miniboss.y); o.g.visible = !S.mbDead;
       LV.mb = { obj: o, t: 2.5, flash: 0 };
       LV.projs = [];
-      for (let i = 0; i < 24; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(.3, 10, 8), lam(0x2b1a3a, { emissive: 0x7a1a8a })); m.visible = false; levelGroup.add(m); LV.projs.push({ m, vx: 0, vz: 0, life: 0 }); }
+      for (let i = 0; i < 24; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(.3, 10, 8), lam([0xff5c8a, 0x7fdcff, 0xffd23f, 0x9be564, 0xb197fc][i % 5], { emissive: 0x331133 })); m.visible = false; levelGroup.add(m); LV.projs.push({ m, vx: 0, vz: 0, life: 0 }); }
     } else LV.mb = null;
     // Rayos de la heroína
     LV.bolts = [];
@@ -1385,15 +1451,42 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     if (L.boss) {
       const b = bossModel(); addL(b.g, L.boss.x, L.boss.y); LV.boss = b;
       LV.projs = [];
-      for (let i = 0; i < 40; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(.34, 10, 8), lam(0x1a1020, { emissive: 0xaa1133 })); m.visible = false; levelGroup.add(m); LV.projs.push({ m, vx: 0, vz: 0, life: 0 }); }
+      for (let i = 0; i < 40; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(.34, 10, 8), lam([0xff5c8a, 0x7fdcff, 0xffd23f, 0x9be564, 0xb197fc][i % 5], { emissive: 0x331133 })); m.visible = false; levelGroup.add(m); LV.projs.push({ m, vx: 0, vz: 0, life: 0 }); }
       const cr = new THREE.Group(); const cm = new THREE.Mesh(new THREE.OctahedronGeometry(.55), lam(0x9ff0ff, { emissive: 0x2a8aa0 })); cm.position.y = 1.1; cr.add(cm); const clb = label("¡Súper rayo!", "#1c6fa0"); clb.position.y = 2.3; cr.add(clb); cr.add(ring(0x7fdcff));
       cr.userData.gem = cm; levelGroup.add(cr); LV.crystal = cr;
       const beam = new THREE.Mesh(new THREE.CylinderGeometry(.18, .18, 1, 10), basic(0xfff3a0, { transparent: true, opacity: .85 })); beam.visible = false; levelGroup.add(beam); LV.beam = beam;
     } else { LV.boss = null; LV.crystal = null; }
+    // Golosinas gigantes escondidas (aparecen al acercarse)
+    LV.giants = (L.giants || []).map((q, i) => {
+      const m = candyModel(q.t, CANDY_COLS[(i * 2 + 1) % CANDY_COLS.length]); m.scale.setScalar(3.6);
+      const grp = new THREE.Group(); grp.add(m);
+      const glow = new THREE.Mesh(new THREE.SphereGeometry(1.2, 14, 10), basic(0xfff3a0, { transparent: true, opacity: .25, depthWrite: false })); grp.add(glow);
+      grp.position.set(wx(q.x), 1.5, wx(q.y)); grp.visible = false; levelGroup.add(grp);
+      return { grp, m, i };
+    });
+    // Minimonstruos que acompañan al guardián
+    if (L.miniboss && !DF().calm) {
+      const r = L.miniboss.room;
+      for (let i = 0; i < 4; i++) {
+        if (S.killed["mm" + i]) continue;
+        const x = r.x + (i % 2 ? r.w - 1 : 0), y = r.y + (i < 2 ? 0 : r.h - 1);
+        const o = monsterModel(Wd.monster || 0xff7fcf, false); o.g.scale.setScalar(.62); addL(o.g, x, y);
+        LV.monsters.push({ id: "mm" + i, obj: o, hp: 1, alive: true, hx: wx(x), hz: wx(y), wt: 0, wx: 0, wz: 0, ph: Math.random() * 6, speed: 3.3 * DF().spd, flash: 0, name: "minimonstruo" });
+      }
+    }
+    // Fiesta en la fortaleza: globos de colores
+    if (L.boss) for (let i = 0; i < 12; i++) {
+      const bl = new THREE.Group(), c = [0xff5c8a, 0x7fdcff, 0xffd23f, 0x9be564, 0xb197fc, 0xffa94d][i % 6];
+      const ball = new THREE.Mesh(new THREE.SphereGeometry(.45, 14, 12), lam(c, { emissive: 0x221122 })); ball.scale.y = 1.2; bl.add(ball);
+      const str = new THREE.Mesh(new THREE.CylinderGeometry(.01, .01, 1.4, 4), basic(0xffffff)); str.position.y = -1.2; bl.add(str);
+      const x = i < 6 ? 3 + i * 4 : 3 + (i - 6) * 4, y = i < 6 ? 2 : 16;
+      bl.position.set(wx(x), 3.2, wx(y)); levelGroup.add(bl);
+      LV.anim.push(t => { bl.position.y = 3.2 + Math.sin(t * 1.5 + i) * .4; bl.rotation.z = Math.sin(t + i) * .15; });
+    }
     // Arcade: aviso de salto, chispas, números de daño y estrellas de mareo
     LV.warn = new THREE.Mesh(new THREE.RingGeometry(.25, 2.5, 40), basic(0xff3355, { transparent: true, opacity: .5, side: THREE.DoubleSide, depthWrite: false })); LV.warn.rotation.x = -Math.PI / 2; LV.warn.position.y = .06; LV.warn.visible = false; levelGroup.add(LV.warn);
     LV.sparks = []; for (let i = 0; i < 50; i++) { const m = new THREE.Mesh(SPARK_GEO, basic(0xffffff)); m.visible = false; levelGroup.add(m); LV.sparks.push({ m, life: 0, vx: 0, vy: 0, vz: 0 }); }
-    LV.dmg = []; for (let i = 0; i < 12; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: dmgTex("-1", "#ff4d6d"), transparent: true, depthTest: false })); sp.scale.set(1.5, .75, 1); sp.renderOrder = 20; sp.visible = false; levelGroup.add(sp); LV.dmg.push({ sp, t: 0 }); }
+    LV.dmg = []; for (let i = 0; i < 12; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: dmgTex("-1", "#ff4d6d"), transparent: true, depthTest: false })); sp.scale.set(2.7, .68, 1); sp.renderOrder = 20; sp.visible = false; levelGroup.add(sp); LV.dmg.push({ sp, t: 0 }); }
     LV.slam = null; LV.bheart = null; LV.heartT = 15;
     const dizzyStars = () => { const g = new THREE.Group(); for (let i = 0; i < 3; i++) { const s = new THREE.Mesh(new THREE.OctahedronGeometry(.18), basic(0xffe066)); s.position.set(Math.cos(i * 2.1) * .55, 0, Math.sin(i * 2.1) * .55); g.add(s); } g.visible = false; return g; };
     if (LV.boss) { LV.bossAI = { st: "sleep", t: 0, ph: 1, ang: 0 }; LV.boss.flash = 0; LV.boss.stars = dizzyStars(); LV.boss.stars.position.y = 5.3; LV.boss.g.add(LV.boss.stars); LV.crystal.userData.placed = false; }
@@ -1545,7 +1638,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     if (L.miniboss && !S.mbDead && S.keys >= 3) o.innerHTML = `¡Vence al <b>${L.miniboss.name}</b> con tu rayo ⚡ para abrir el cofre!`;
     else if (S.chestOpen) o.innerHTML = "¡El <b>portal arcoíris</b> está abierto! Entra para pasar de nivel.";
     else if (S.keys >= 3) o.innerHTML = "¡Tienes las 3 llaves! Busca el <b>cofre del tesoro</b>.";
-    else o.innerHTML = `Habla con los personajes para ganar <b>llaves</b>: ${S.keys} de 3. Rayo ⚡: ${touchy ? "botón amarillo" : "espacio"}.`;
+    else o.innerHTML = `${DF().calm ? "🌸 " : ""}Llaves: <b>${S.keys} de 3</b> · Golosinas gigantes escondidas: <b>${(L.giants || []).filter((_, k) => S.taken["g" + k]).length}/${(L.giants || []).length}</b>${DF().calm ? "" : ` · Rayo ⚡: ${touchy ? "botón amarillo" : "espacio"}`}`;
   }
   const mini = $("mini"), mctx = mini.getContext("2d");
   function drawMini() {
@@ -1631,7 +1724,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
         if (LV.chest) { const gl = LV.chest.glow; gl.material.opacity = S.keys >= 3 && !S.chestOpen ? .35 + Math.sin(clock * 5) * .2 : 0; if (S.chestOpen && LV.chest.lid.rotation.x > -1.9) LV.chest.lid.rotation.x = Math.max(-1.9, LV.chest.lid.rotation.x - dt * 3); }
         LV.enemies.forEach(en => {
           const e = en.e, len = Math.max(1, Math.abs(e.b[0] - e.a[0]) + Math.abs(e.b[1] - e.a[1])) * TILE;
-          const k = (Math.sin(clock * e.speed / len * 2 + e.ph) + 1) / 2;
+          const k = (Math.sin(clock * e.speed * DF().spd / len * 2 + e.ph) + 1) / 2;
           const x = wx(e.a[0] + (e.b[0] - e.a[0]) * k), z = wx(e.a[1] + (e.b[1] - e.a[1]) * k);
           en.obj.g.position.set(x, Math.abs(Math.sin(clock * 5 + en.i)) * .3, z);
           en.obj.body.scale.set(1 + Math.sin(clock * 10) * .06, .8 - Math.sin(clock * 10) * .06, 1);
@@ -1697,6 +1790,19 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
       if (Math.hypot(cx - S.px, cz - S.pz) < reach || (pet && Math.hypot(cx - pet.position.x, cz - pet.position.z) < 1)) { S.taken["c" + i] = 1; addCandies(1); got++; }
     });
     if (got) { sfx.pick(); renderStats(); if (P.candies % 10 < got) { express("happy", 900); saveNow(false); } }
+    if (LV.giants) LV.giants.forEach(gi => {
+      if (S.taken["g" + gi.i]) { gi.grp.visible = false; return; }
+      const d = Math.hypot(gi.grp.position.x - S.px, gi.grp.position.z - S.pz);
+      if (!gi.grp.visible && d < 6) { gi.grp.visible = true; sfx.pick(); spawnSparks(gi.grp.position.x, 1.5, gi.grp.position.z, 10, 0xfff3a0); }
+      if (d < 1.6) {
+        S.taken["g" + gi.i] = 1; gi.grp.visible = false; P.stats.giants = (P.stats.giants || 0) + 1;
+        spawnSparks(gi.grp.position.x, 1.5, gi.grp.position.z, 30, 0xff7fcf); sfx.win(); express("happy", 1800);
+        dmgText(gi.grp.position.x, 3.4, gi.grp.position.z, "+25 🍬", "#ffd23f");
+        const found = L.giants.filter((_, k) => S.taken["g" + k]).length;
+        toast(`<span class="t-title">🍭 ¡Golosina gigante!</span>+25 🍬 · ${found} de ${L.giants.length} en este nivel`, 2400);
+        addCandies(25); updateObjective(); saveNow(false);
+      }
+    });
     if (LV.heart && !S.taken.h && Math.hypot(LV.heart.position.x - S.px, LV.heart.position.z - S.pz) < 1) {
       if (S.lives < S.maxLives) { S.taken.h = 1; LV.heart.visible = false; S.lives++; sfx.good(); express("happy"); toast("¡Corazón mágico! +1 vida ❤️"); renderStats(); }
       else if (!LV.heart.userData.told) { LV.heart.userData.told = true; toast("Ya tienes todas tus vidas. Este corazón te espera por si lo necesitas."); }
@@ -1773,7 +1879,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     for (const p of LV.projs) {
       if (p.life > 0) continue;
       const a = base + (fired - (count - 1) / 2) * spread;
-      p.m.position.set(fx, 1.2, fz); p.vx = Math.sin(a) * speed; p.vz = Math.cos(a) * speed; p.life = 4.5; p.m.visible = true;
+      p.m.position.set(fx, 1.2, fz); p.vx = Math.sin(a) * speed * DF().proj; p.vz = Math.cos(a) * speed * DF().proj; p.life = 4.5; p.m.visible = true;
       if (++fired >= count) break;
     }
     sfx.zap();
@@ -2449,7 +2555,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     { id: "c500", icon: "🧁", name: "Superdulce", desc: "Gana 500 caramelos", test: () => P.stats.earned >= 500 },
     { id: "c2000", icon: "🏆", name: "Reina del azúcar", desc: "Gana 2.000 caramelos", test: () => P.stats.earned >= 2000 },
     { id: "pets", icon: "🐾", name: "Amiga de los animales", desc: "Consigue las 4 mascotas", test: () => P.ownPets.length >= 5 },
-    { id: "skins", icon: "🦄", name: "Fashionista", desc: "Desbloquea los 2 trajes especiales", test: () => P.unlocked.length >= 2 },
+    { id: "skins", icon: "🦄", name: "Fashionista", desc: "Desbloquea 2 trajes especiales", test: () => P.unlocked.length >= 2 },
     { id: "upg5", icon: "🌈", name: "Traje legendario", desc: "Mejora un traje a ★★★★★", test: () => Object.values(P.upg).some(u => u >= 5) },
     { id: "d1", icon: "📅", name: "Buenos días", desc: "Supera tu primer reto del día", test: () => P.stats.dailies >= 1 },
     { id: "d7", icon: "🗓️", name: "Constante", desc: "Supera 7 retos del día", test: () => P.stats.dailies >= 7 },
@@ -2457,6 +2563,8 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     { id: "en8", icon: "🎓", name: "English star", desc: "Llega al nivel 8 de inglés", test: () => P.eng.lvl >= 8 },
     { id: "sc10", icon: "🔬", name: "Pequeña científica", desc: "Acierta 10 preguntas de ciencias", test: () => P.stats.sciOK >= 10 },
     { id: "sc25", icon: "🪐", name: "Exploradora del espacio", desc: "Acierta 25 preguntas de ciencias", test: () => P.stats.sciOK >= 25 },
+    { id: "giant5", icon: "🍭", name: "Buscadora de golosinas", desc: "Encuentra 5 golosinas gigantes escondidas", test: () => (P.stats.giants || 0) >= 5 },
+    { id: "giant20", icon: "🕵️", name: "Detective dulce", desc: "Encuentra 20 golosinas gigantes escondidas", test: () => (P.stats.giants || 0) >= 20 },
     { id: "minis", icon: "🎮", name: "Jugona", desc: "Gana los 10 minijuegos distintos", test: () => Object.keys(P.stats.minis).length >= 10 }
   ];
   function checkStickers(silent) {
@@ -2518,7 +2626,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
       w2: { bpm: 80, root: 64, mode: MAJ, penta: [0, 2, 4, 7, 9], prog: [0, 1, 3, 4], seed: 11, wave: "sine" },
       w3: { bpm: 96, root: 65, mode: MAJ, penta: [0, 2, 4, 7, 9], prog: [0, 5, 3, 4], seed: 13, wave: "triangle" },
       w4: { bpm: 100, root: 67, mode: MAJ, penta: [0, 2, 4, 7, 9], prog: [0, 4, 5, 3], seed: 17, wave: "sine" },
-      boss: { bpm: 132, root: 57, mode: MIN, penta: [0, 3, 5, 7, 10], prog: [0, 5, 3, 4], seed: 19, wave: "sawtooth" }
+      boss: { bpm: 128, root: 62, mode: MAJ, penta: [0, 2, 4, 7, 9], prog: [0, 5, 3, 4], seed: 23, wave: "square" }
     };
     let cur = null, step = 0, nextT = 0, timer = null, out = null, noise = null;
     const midi = m => 440 * Math.pow(2, (m - 69) / 12);
@@ -2594,7 +2702,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
   const DMG_TEX = {};
   function dmgTex(txt, color) {
     const k = txt + color;
-    return DMG_TEX[k] || (DMG_TEX[k] = keepTex(canvasTex(160, 72, g => { g.font = '900 46px "Baloo 2", "Trebuchet MS", sans-serif'; g.textAlign = "center"; g.textBaseline = "middle"; g.lineWidth = 9; g.strokeStyle = "#2b1a3a"; g.strokeText(txt, 80, 38); g.fillStyle = color; g.fillText(txt, 80, 38); })));
+    return DMG_TEX[k] || (DMG_TEX[k] = keepTex(canvasTex(288, 72, g => { g.font = '900 46px "Baloo 2", "Trebuchet MS", sans-serif'; g.textAlign = "center"; g.textBaseline = "middle"; g.lineWidth = 9; g.strokeStyle = "#2b1a3a"; g.strokeText(txt, 144, 38, 280); g.fillStyle = color; g.fillText(txt, 144, 38, 280); })));
   }
   function dmgText(x, y, z, txt, color) {
     if (!LV.dmg) return;
@@ -2623,7 +2731,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
   function shootDir(x, z, a, speed) {
     if (!LV.projs) return;
     const p = LV.projs.find(q => q.life <= 0); if (!p) return;
-    p.m.position.set(x, 1.2, z); p.vx = Math.sin(a) * speed; p.vz = Math.cos(a) * speed; p.life = 5; p.m.visible = true;
+    p.m.position.set(x, 1.2, z); p.vx = Math.sin(a) * speed * DF().proj; p.vz = Math.cos(a) * speed * DF().proj; p.life = 5; p.m.visible = true;
   }
   function shootRing(x, z, n, speed, off) { for (let i = 0; i < n; i++) shootDir(x, z, off + i * Math.PI * 2 / n, speed); sfx.zap(); }
   function startSlam(obj, tx, tz, dur, h, onLand) {
@@ -2650,7 +2758,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     const bonus = 2 + combo;
     poof(pos, bonus); express("happy", 900);
     dmgText(pos.x, 2.2, pos.z, "+" + bonus + " 🍬", "#ffd23f");
-    if (combo >= 2) toast(`<span class="t-title">¡Combo x${combo}!</span>+${bonus} 🍬`, 1300);
+    if (combo >= 2) dmgText(pos.x, 3.2, pos.z, "¡Combo x" + combo + "!", "#ff7fcf");
     checkStickers();
   }
   function fire() {
@@ -2722,34 +2830,36 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     if (!ai.awake) { ai.awake = true; toast(`<span class="t-title">¡${L.miniboss.name}!</span>Dispárale rayos ⚡ sin parar. Cuando se marea, ¡le haces el doble de daño!`, 3200); }
     ai.t -= dt;
     if (ai.st === "chase") {
-      const sp = (1.8 + n * .03) * dt;
+      const sp = (1.8 + n * .03) * DF().spd * dt;
       g.position.x = clamp(g.position.x + dx / d * sp, minX, maxX); g.position.z = clamp(g.position.z + dz / d * sp, minZ, maxZ);
       g.rotation.y = Math.atan2(dx, dz); g.position.y = Math.abs(Math.sin(clock * 4)) * .3;
-      if (ai.t <= 0) { const o = ["charge"]; if (n >= 10) o.push("fan"); if (n >= 15) o.push("ring"); if (n >= 20) o.push("slam"); ai.atk = pick(o); ai.st = "tele"; ai.t = .8; sfx.charge(); }
+      if (ai.t <= 0) { const o = ["charge"]; if (n >= 10) o.push("fan", "summon"); if (n >= 15) o.push("ring"); if (n >= 20) o.push("slam"); ai.atk = pick(o); ai.st = "tele"; ai.t = .8; sfx.charge(); }
     } else if (ai.st === "tele") {
       g.position.y = Math.abs(Math.sin(clock * 25)) * .15; g.rotation.y = Math.atan2(dx, dz);
       if (ai.t <= 0) {
         if (ai.atk === "charge") { ai.st = "dash"; ai.t = .8; ai.dx = dx / d; ai.dz = dz / d; }
-        else if (ai.atk === "fan") { shootAt(g.position.x, g.position.z, 5, .3, 5); ai.st = "chase"; ai.t = 2.2; }
-        else if (ai.atk === "ring") { shootRing(g.position.x, g.position.z, 12, 4.5, Math.random()); ai.st = "chase"; ai.t = 2.4; }
+        else if (ai.atk === "fan") { shootAt(g.position.x, g.position.z, 5, .3, 5); ai.st = "chase"; ai.t = 2.2 * DF().atk; }
+        else if (ai.atk === "summon") { summonMinions(g.position.x, g.position.z, 2, [minX, maxX, minZ, maxZ], .62); ai.st = "chase"; ai.t = 2.4 * DF().atk; }
+        else if (ai.atk === "ring") { shootRing(g.position.x, g.position.z, 12, 4.5, Math.random()); ai.st = "chase"; ai.t = 2.4 * DF().atk; }
         else { ai.st = "jump"; startSlam(g, clamp(S.px, minX, maxX), clamp(S.pz, minZ, maxZ), 1.1, 3, () => { ai.st = "dizzy"; ai.t = 2; }); }
       }
     } else if (ai.st === "dash") {
-      const nx = g.position.x + ai.dx * 10 * dt, nz = g.position.z + ai.dz * 10 * dt;
+      const nx = g.position.x + ai.dx * 10 * DF().spd * dt, nz = g.position.z + ai.dz * 10 * DF().spd * dt;
       g.position.x = clamp(nx, minX, maxX); g.position.z = clamp(nz, minZ, maxZ);
       if (nx !== g.position.x || nz !== g.position.z || ai.t <= 0) { ai.st = "dizzy"; ai.t = 1.8; shake = .35; sfx.boom(); spawnSparks(g.position.x, .5, g.position.z, 14, 0xffd23f); }
-    } else if (ai.st === "dizzy") { g.position.y = 0; if (ai.t <= 0) { ai.st = "chase"; ai.t = 2.2; } }
+    } else if (ai.st === "dizzy") { g.position.y = 0; if (ai.t <= 0) { ai.st = "chase"; ai.t = 2.2 * DF().atk; } }
     if (d < 1.7 && inv <= 0 && ai.st !== "dizzy") hurt(g.position.x, g.position.z, `¡El ${L.miniboss.name} te ha golpeado! Pierdes un corazón.`, 5);
   }
   // ---- Jefe final: el brujo Regaliz ----
   const bossPhase = () => { const f = S.bossHp / BOSS_HP; return f > .66 ? 1 : f > .33 ? 2 : 3; };
-  function bossToMove(ai) { ai.st = "move"; ai.t = [0, 2.4, 1.9, 1.5][ai.ph]; }
-  function summonMinions(x, z, n) {
+  function bossToMove(ai) { ai.st = "move"; ai.t = [0, 2.4, 1.9, 1.5][ai.ph] * DF().atk; }
+  function summonMinions(x, z, n, bx, scale) {
+    bx = bx || [wx(4), wx(22), wx(3), wx(15)];
     const alive = LV.monsters.filter(m => m.summon && m.alive).length;
     for (let i = 0; i < Math.min(n, 4 - alive); i++) {
-      const sx = clamp(x + (i ? 2.5 : -2.5), wx(4), wx(22)), sz = clamp(z + 2, wx(3), wx(15));
-      const o = monsterModel(0x7a1fa2, false); o.g.position.set(sx, 0, sz); levelGroup.add(o.g);
-      const mo = { id: "b" + Math.random(), obj: o, hp: 1, maxHp: 1, alive: true, hx: sx, hz: sz, wt: 0, wx: 0, wz: 0, ph: Math.random() * 6, speed: 3, flash: 0, name: "regalicito", summon: true };
+      const sx = clamp(x + (i ? 2.5 : -2.5), bx[0], bx[1]), sz = clamp(z + 2, bx[2], bx[3]);
+      const o = monsterModel(L.boss ? 0xff7fcf : (WORLDS[L.world].monster || 0xff7fcf), false); if (scale) o.g.scale.setScalar(scale); o.g.position.set(sx, 0, sz); levelGroup.add(o.g);
+      const mo = { id: "b" + Math.random(), obj: o, hp: 1, maxHp: 1, alive: true, hx: sx, hz: sz, wt: 0, wx: 0, wz: 0, ph: Math.random() * 6, speed: 3 * DF().spd, flash: 0, name: L.boss ? "regalicito" : "minimonstruo", summon: true };
       mo.bar = makeBar(); mo.bar.position.y = 1.55; mo.bar.visible = false; o.g.add(mo.bar);
       LV.monsters.push(mo); spawnSparks(sx, .5, sz, 10, 0xb197fc);
     }
@@ -2781,17 +2891,18 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     if (ai.st !== "jump") g.rotation.y = Math.atan2(dx, dz);
     ai.t -= dt;
     if (ai.st === "move") {
-      const sp = (2 + ai.ph * .8) * dt; ai.ang += dt * (.5 + ai.ph * .2);
+      const sp = (2 + ai.ph * .8) * DF().spd * dt; ai.ang += dt * (.5 + ai.ph * .2);
       const tx = wx(13) + Math.sin(ai.ang) * 7, tz = wx(7) + Math.cos(ai.ang * .7) * 3;
       g.position.x += clamp(tx - g.position.x, -sp, sp); g.position.z += clamp(tz - g.position.z, -sp, sp);
       g.position.y = .4 + Math.sin(clock * 2) * .25;
-      if (ai.t <= 0) { const o = ["fan", "slam"]; if (ai.ph >= 2) o.push("ring", "summon"); if (ai.ph >= 3) o.push("spiral", "teleport"); ai.atk = pick(o); ai.st = "charge"; ai.t = .7; sfx.charge(); }
+      if (ai.t <= 0 && DF().calm) ai.t = 2;
+      else if (ai.t <= 0) { const o = ["fan", "slam"]; if (ai.ph >= 2) o.push("ring", "summon"); if (ai.ph >= 3) o.push("spiral", "teleport"); ai.atk = pick(o); ai.st = "charge"; ai.t = .7; sfx.charge(); }
     } else if (ai.st === "charge") { g.position.y = .4 + (.7 - ai.t) * 1.2; if (ai.t <= 0) bossAttack(ai); }
     else if (ai.st === "spiral") { ai.fire -= dt; if (ai.fire <= 0) { ai.fire = .11; ai.sa = (ai.sa || 0) + .42; shootDir(g.position.x, g.position.z, ai.sa, 4.4); shootDir(g.position.x, g.position.z, ai.sa + Math.PI, 4.4); } if (ai.t <= 0) bossToMove(ai); }
     else if (ai.st === "fade") { g.scale.setScalar(Math.max(.01, ai.t / .4)); if (ai.t <= 0) { for (let k = 0; k < 20; k++) { const x = wx(5 + Math.floor(Math.random() * 17)), z = wx(4 + Math.floor(Math.random() * 8)); if (Math.hypot(x - S.px, z - S.pz) > 6) { g.position.x = x; g.position.z = z; break; } } ai.st = "appear"; ai.t = .4; } }
     else if (ai.st === "appear") { g.scale.setScalar(Math.min(1, 1 - ai.t / .4)); if (ai.t <= 0) { g.scale.setScalar(1); shootRing(g.position.x, g.position.z, 12, 4.4, 0); bossToMove(ai); } }
     else if (ai.st === "dizzy") { g.position.y = .15; if (ai.t <= 0) bossToMove(ai); }
-    if (d < 1.9 && inv <= 0 && ai.st !== "dizzy" && ai.st !== "fade" && ai.st !== "jump") hurt(g.position.x, g.position.z, "¡El brujo te ha tocado! Pierdes un corazón.", 3);
+    if (!DF().calm && d < 1.9 && inv <= 0 && ai.st !== "dizzy" && ai.st !== "fade" && ai.st !== "jump") hurt(g.position.x, g.position.z, "¡El brujo te ha tocado! Pierdes un corazón.", 3);
   }
   function damageBoss(pow) {
     const ai = LV.bossAI;
@@ -2822,6 +2933,19 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     if (LV.bheart) { LV.bheart.rotation.y = clock * 2; LV.bheart.position.y = .9 + Math.sin(clock * 3) * .15; }
     if (comboT > 0) comboT -= dt;
   }
+
+  // ================= Dificultad de los monstruos =================
+  const DIFFS = {
+    tranquilo: { name: "Tranquilo", icon: "🌸", calm: true, spd: .6, atk: 1.6, proj: .7 },
+    facil: { name: "Fácil", icon: "🙂", spd: .7, atk: 1.35, proj: .75 },
+    medio: { name: "Medio", icon: "😃", spd: 1, atk: 1, proj: 1 },
+    dificil: { name: "Difícil", icon: "😈", spd: 1.3, atk: .8, proj: 1.2 }
+  };
+  const DF = () => DIFFS[P.diff] || DIFFS.medio;
+  function diffRow() {
+    return `<div class="diff-row"><span class="tag">Monstruos</span>${Object.keys(DIFFS).map(k => `<button class="btn tab ${(P.diff || "medio") === k ? "sel" : ""}" data-diff="${k}" aria-pressed="${(P.diff || "medio") === k}">${DIFFS[k].icon} ${DIFFS[k].name}</button>`).join("")}</div><p class="story" style="font-size:14px;margin:2px 0 8px">${DF().calm ? "🌸 Modo tranquilo: sin monstruos ni guardianes, y el brujo no ataca." : "Cambia lo rápido que se mueven y atacan los monstruos."}</p>`;
+  }
+  function bindDiff(redraw) { document.querySelectorAll("[data-diff]").forEach(b => b.onclick = () => { P.diff = b.dataset.diff; saveNow(false); redraw(); }); }
 
   // ================= Pantallas =================
   const ENDINGS = {
@@ -2855,7 +2979,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
       ${isNew ? `<h3>Elige tu personaje</h3>
         <div class="picker"><div>${skinCards(pickSkin)}${toneRow(pickTone)}</div><div id="pvSlot" aria-label="Vista previa del personaje"></div></div>
         <form id="f" class="intro-input" style="margin-top:12px">
-          <label for="nm" class="tag" style="flex-basis:100%">¿Cómo te llamas, aventurera?</label>
+          <label for="nm" class="tag" style="flex-basis:100%">¿Cómo te llamas, aventurera o aventurero?</label>
           <input id="nm" maxlength="20" autocomplete="off" placeholder="Escribe tu nombre" value="">
           <button class="btn primary" type="submit">¡Empezar la aventura!</button>
         </form>`
@@ -2863,7 +2987,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
           <h3 style="margin-top:0">¡Hola, ${esc(P.name)}!</h3>
           <div class="summary"><span class="pill">🏁 ${done} de ${LAST} niveles</span><span class="pill">⭐ ${totalStars()} estrellas</span><span class="pill">🍬 ${P.candies}</span></div>
           ${run ? `<div class="save-card"><b>Nivel ${run.n} a medias</b>: ${run.keys}/3 🗝️, ${"❤️".repeat(run.lives)}<div class="row" style="margin-top:8px"><button class="btn green" id="cont">Continuar el nivel ${run.n}</button></div></div>` : ""}
-          <div class="row"><button class="btn primary" id="toMap">🗺️ Mapa de niveles</button><button class="btn" id="toWard">👗 Vestidor y mejoras</button></div><div class="row" style="margin-top:8px"><button class="btn green" id="toDaily">📅 Reto del día${P.daily.last === dayIdx() ? " ✅" : ""}</button><button class="btn" id="toAlbum">📒 Álbum (${P.stickers.length}/${STICKERS.length})</button></div>
+          <div class="row"><button class="btn primary" id="toMap">🗺️ Mapa de niveles</button><button class="btn" id="toWard">👗 Vestidor y mejoras</button></div><div class="row" style="margin-top:8px"><button class="btn green" id="toDaily">📅 Reto del día${P.daily.last === dayIdx() ? " ✅" : ""}</button><button class="btn" id="toAlbum">📒 Álbum (${P.stickers.length}/${STICKERS.length})</button></div>${diffRow()}
         </div><div id="pvSlot" aria-label="Tu personaje"></div></div>`}
       <div class="controls">
         <div><b>Moverse:</b> ${touchy ? "arrastra el dedo por la pantalla" : "flechas, <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> o arrastrando con el ratón"}</div>
@@ -2881,7 +3005,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
       $("f").onsubmit = e => { e.preventDefault(); P.name = $("nm").value.trim() || "Exploradora"; P.skin = pickSkin; P.tone = pickTone; saveNow(false); placeHero(); showMap(); };
     } else {
       if (run) $("cont").onclick = () => startLevel(run.n, run);
-      $("toMap").onclick = showMap; $("toWard").onclick = () => showWardrobe(showMenu); $("toDaily").onclick = () => showDaily(showMenu); $("toAlbum").onclick = () => showAlbum(showMenu);
+      $("toMap").onclick = showMap; $("toWard").onclick = () => showWardrobe(showMenu); $("toDaily").onclick = () => showDaily(showMenu); $("toAlbum").onclick = () => showAlbum(showMenu); bindDiff(showMenu);
     }
   }
   function showMap() {
@@ -2891,12 +3015,12 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
       return `<button class="lvl ${locked ? "locked" : ""} ${n === P.maxLevel && !lv ? "next" : ""} ${boss ? "boss" : ""}" data-n="${n}" ${locked ? 'aria-disabled="true"' : ""}><span class="ln">${locked ? "🔒" : boss ? "🧙‍♂️ " + n : n}</span><span class="nm">${LEVEL_NAMES[n]}</span><span class="st">${lv ? (boss ? "¡Vencido!" : starsTxt(lv.stars || 0)) : ""}</span></button>`;
     };
     overlay(`<div class="tag">Mapa del reino</div><h2>Elige un nivel</h2>
-      <div class="summary"><span class="pill">🏁 ${Object.keys(P.levels).length} de ${LAST}</span><span class="pill">⭐ ${totalStars()} de 60</span><span class="pill">🍬 ${P.candies}</span></div>
+      <div class="summary"><span class="pill">🏁 ${Object.keys(P.levels).length} de ${LAST}</span><span class="pill">⭐ ${totalStars()} de 60</span><span class="pill">🍬 ${P.candies}</span></div>${diffRow()}
       <div class="worlds">${WORLDS.slice(0, 5).map((w, wi) => `<div class="world"><h3>${w.name}</h3><div class="lvls">${[1, 2, 3, 4].map(k => btn(wi * 4 + k)).join("")}</div></div>`).join("")}
       <div class="world"><h3>${WORLDS[5].name}</h3>${btn(LAST)}<p class="story" style="margin:6px 0 0;font-size:15px">El jefe final. ${P.maxLevel < LAST ? "Se abre al superar el nivel 20." : `Si le vences con ${STARS_FOR_CROWN} estrellas o más… ¡hay un final secreto!`}</p></div></div>
       <div class="row"><button class="btn" id="toWard">👗 Vestidor y mejoras</button><button class="btn" id="toDaily">📅 Reto del día${P.daily.last === dayIdx() ? " ✅" : ""}</button><button class="btn" id="toAlbum">📒 Álbum</button><button class="btn ghost" id="toMenu">Menú</button></div>`);
     document.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { const n = +b.dataset.n; if (n > P.maxLevel) { toast("Supera los niveles anteriores para abrir este."); return; } startLevel(n); });
-    $("toWard").onclick = () => showWardrobe(showMap); $("toMenu").onclick = showMenu; $("toDaily").onclick = () => showDaily(showMap); $("toAlbum").onclick = () => showAlbum(showMap);
+    $("toWard").onclick = () => showWardrobe(showMap); $("toMenu").onclick = showMenu; $("toDaily").onclick = () => showDaily(showMap); $("toAlbum").onclick = () => showAlbum(showMap); bindDiff(showMap);
   }
   let wardSel = null, wardTab = "trajes";
   function itemCards(list, ownList, cur, attr) {
@@ -2932,7 +3056,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     } else {
       body = `<div class="ward"><div><p class="story" style="margin:0 0 6px">Tu mascota te sigue por los niveles y <b>recoge caramelos</b> por ti.</p>${itemCards(PETS, P.ownPets, P.pet, "pet")}</div><div id="pvSlot" aria-label="Vista previa"></div></div>`;
     }
-    overlay(`<div class="tag">Vestidor de Gata Bombón</div><h2>Personaliza a tu heroína</h2>
+    overlay(`<div class="tag">Vestidor de Gata Bombón</div><h2>Personaliza tu personaje</h2>
       <p class="story" style="margin:0 0 8px">Tienes <b>${P.candies} 🍬</b>. ${msg || "Cada traje se puede mejorar hasta ★★★★★."}</p>
       <div class="tabs">${tabs.map(t => `<button class="btn tab ${wardTab === t[0] ? "sel" : ""}" data-tab="${t[0]}">${t[1]}</button>`).join("")}</div>
       ${body}
@@ -2968,6 +3092,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     L = genLevel(n); music.set(L.boss ? "boss" : "w" + L.world);
     S = resume ? Object.assign(freshRun(n), JSON.parse(JSON.stringify(resume))) : freshRun(n);
     S.mode = "play"; S.maxLives = Math.max(S.maxLives || 3, maxLivesNow());
+    if (DF().calm && L.miniboss) S.mbDead = true;
     armed = {}; inv = 0; chestWarn = false; bossT = 2.5; crystalWait = 0; camZoom = 1; shake = 0; combo = 0; fireHeld = false;
     buildLevelScene(); placeHero(); applyState(); closeOverlay();
     $("area").textContent = `Nivel ${n} · ${LEVEL_NAMES[n]}`;
@@ -2988,7 +3113,7 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
     overlay(`<div class="tag">Nivel ${n} · ${LEVEL_NAMES[n]}</div><h2>¡Nivel superado!</h2>
       <div class="big-stars" aria-label="${stars} estrellas de 3">${starsTxt(stars)}</div>
       <p class="story" style="text-align:center">${stars === 3 ? "¡Todos los retos a la primera! Eres increíble." : "Las estrellas se ganan acertando los retos a la primera. ¡Puedes repetir el nivel para conseguirlas todas!"}</p>
-      <div class="score"><span class="pill">🍬 ${P.candies} caramelos</span><span class="pill">⭐ ${totalStars()} estrellas en total</span></div>
+      <div class="score"><span class="pill">🍬 ${P.candies} caramelos</span><span class="pill">⭐ ${totalStars()} estrellas en total</span><span class="pill">🍭 ${(L.giants || []).filter((_, k) => S.taken["g" + k]).length}/${(L.giants || []).length} golosinas gigantes</span></div>
       ${unlockedNew && n === 20 ? `<div class="hint">¡Se ha abierto la <b>Fortaleza de Regaliz</b>! El brujo te espera.</div>` : ""}
       <div class="row"><button class="btn primary" id="next">${n + 1 === LAST ? "¡Ir a por el brujo!" : "Siguiente nivel"}</button><button class="btn" id="toMap">🗺️ Mapa</button><button class="btn" id="toWard">👗 Vestidor</button></div>`);
     $("next").onclick = () => startLevel(Math.min(LAST, n + 1));
