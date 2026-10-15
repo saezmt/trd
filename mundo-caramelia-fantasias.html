@@ -1465,7 +1465,7 @@ window.addEventListener("error", function (e) {
     } else LV.mb = null;
     // Rayos de la heroína
     LV.bolts = [];
-    for (let i = 0; i < 18; i++) { const m = new THREE.Mesh(new THREE.OctahedronGeometry(.22), basic(0xfff3a0)); m.scale.set(1, 1, 3); m.visible = false; levelGroup.add(m); LV.bolts.push({ m, life: 0, vx: 0, vz: 0, pow: 1 }); }
+    for (let i = 0; i < 18; i++) { const m = new THREE.Mesh(new THREE.OctahedronGeometry(.22), basic(0xfff3a0)); m.scale.set(1, 1, 3); m.visible = false; levelGroup.add(m); LV.bolts.push({ m, life: 0, vx: 0, vz: 0, pow: 1, h: 0 }); }
     // Jefe
     if (L.boss) {
       const b = bossModel(); addL(b.g, L.boss.x, L.boss.y); LV.boss = b;
@@ -1776,7 +1776,8 @@ window.addEventListener("error", function (e) {
       }
       aux.render(clock);
     }
-    renderer.render(scene, camera);
+    // Con un minijuego abierto el mundo 3D no se ve: no se redibuja, para que el minijuego vaya fluido en el móvil
+    if (!document.querySelector("#overlay:not([hidden]) #mgbox")) renderer.render(scene, camera);
     requestAnimationFrame(loop);
   }
   function step(dt) {
@@ -1867,6 +1868,7 @@ window.addEventListener("error", function (e) {
     LV.bolts.forEach(b => {
       if (b.life <= 0) return;
       b.life -= dt;
+      b.h = (b.h + dt * 1.2) % 1; b.m.material.color.setHSL(b.h, 1, .62);
       const nx = b.m.position.x + b.vx * dt, nz = b.m.position.z + b.vz * dt;
       if (b.life <= 0 || tileAt(Math.round(nx / TILE), Math.round(nz / TILE)).t !== FLOOR) return killBolt(b);
       b.m.position.x = nx; b.m.position.z = nz;
@@ -2240,6 +2242,38 @@ window.addEventListener("error", function (e) {
     return { stop: cleanup };
   }
 
+  const CATCH_SPR = {};
+  function catchSprite(k) {
+    if (CATCH_SPR[k]) return CATCH_SPR[k];
+    const c = document.createElement("canvas"); c.width = c.height = 96; const g = c.getContext("2d");
+    g.scale(2, 2); g.translate(24, 24); g.lineWidth = 2; g.strokeStyle = "rgba(60,20,70,.55)";
+    const blob = (col, f) => { g.fillStyle = col; g.beginPath(); f(); g.fill(); g.stroke(); };
+    if (k === 0) { // caramelo envuelto
+      blob("#ff5fa2", () => { g.moveTo(-9, 0); g.lineTo(-21, -10); g.lineTo(-21, 10); g.closePath(); });
+      blob("#ff5fa2", () => { g.moveTo(9, 0); g.lineTo(21, -10); g.lineTo(21, 10); g.closePath(); });
+      blob("#ff8cc0", () => g.ellipse(0, 0, 12, 10, 0, 0, Math.PI * 2));
+      g.strokeStyle = "#fff"; g.lineWidth = 3; g.beginPath(); g.moveTo(-5, -8); g.lineTo(3, 8); g.stroke();
+    } else if (k === 1) { // piruleta
+      g.fillStyle = "#f3e6d0"; g.fillRect(-2, 6, 4, 18);
+      blob("#ffd23f", () => g.arc(0, -4, 14, 0, Math.PI * 2));
+      g.strokeStyle = "#e8457c"; g.lineWidth = 3; g.beginPath(); for (let a = 0; a < 12; a += .3) { const r = a * 1.1; g.lineTo(Math.cos(a) * r, -4 + Math.sin(a) * r); } g.stroke();
+    } else if (k === 2) { // dónut
+      blob("#d9a066", () => { g.arc(0, 0, 18, 0, Math.PI * 2); g.arc(0, 0, 6, 0, Math.PI * 2, true); });
+      g.fillStyle = "#ff9ccf"; g.beginPath(); g.arc(0, 0, 15, 0, Math.PI * 2); g.arc(0, 0, 7, 0, Math.PI * 2, true); g.fill("evenodd");
+      ["#fff", "#5fb8ff", "#ffd23f", "#2fb98a"].forEach((col, i) => { g.fillStyle = col; for (let j = 0; j < 3; j++) { const a = i * 1.6 + j * 2.1; g.fillRect(Math.cos(a) * 11 - 1.5, Math.sin(a) * 11 - 1, 3, 2); } });
+    } else if (k === 3) { // magdalena
+      blob("#a8e6ff", () => { g.moveTo(-13, 2); g.lineTo(13, 2); g.lineTo(9, 20); g.lineTo(-9, 20); g.closePath(); });
+      blob("#fff0f6", () => { g.arc(-7, 0, 8, Math.PI, 0); g.arc(7, 0, 8, Math.PI, 0); g.arc(0, -8, 9, Math.PI, 0); });
+      g.fillStyle = "#e8457c"; g.beginPath(); g.arc(0, -17, 4, 0, Math.PI * 2); g.fill();
+    } else { // abeja
+      g.fillStyle = "rgba(255,255,255,.85)"; g.beginPath(); g.ellipse(-6, -13, 7, 9, -.4, 0, Math.PI * 2); g.ellipse(6, -13, 7, 9, .4, 0, Math.PI * 2); g.fill(); g.stroke();
+      blob("#ffcf2e", () => g.ellipse(0, 2, 16, 12, 0, 0, Math.PI * 2));
+      g.fillStyle = "#2a1b2e"; g.fillRect(-5, -9, 5, 22); g.fillRect(5, -8, 4, 20);
+      g.beginPath(); g.moveTo(16, 2); g.lineTo(23, 0); g.lineTo(16, 6); g.fill();
+      g.fillStyle = "#fff"; g.beginPath(); g.arc(-10, -1, 3.5, 0, Math.PI * 2); g.fill(); g.fillStyle = "#000"; g.beginPath(); g.arc(-10.5, -1, 1.8, 0, Math.PI * 2); g.fill();
+    }
+    return (CATCH_SPR[k] = c);
+  }
   function mgCatch(box, done, d) {
     const [cv, g, st] = mkCanvas(box, 320, 400), GOAL = 10 + Math.round((d || 0) * 6);
     let bx = 160, score = 0, t = 30, items = [], spawnT = 0, last = performance.now(), run = true, kl = false, kr = false, flash = 0;
@@ -2248,20 +2282,20 @@ window.addEventListener("error", function (e) {
     const kd = e => { if (e.key === "ArrowLeft") { kl = true; e.preventDefault(); } if (e.key === "ArrowRight") { kr = true; e.preventDefault(); } };
     const ku = e => { if (e.key === "ArrowLeft") kl = false; if (e.key === "ArrowRight") kr = false; };
     window.addEventListener("keydown", kd); window.addEventListener("keyup", ku);
-    const goods = ["🍬", "🍭", "🍫", "🧁", "🍩"];
+    // Golosinas dibujadas a mano una sola vez (no emoji): en iPhone los emoji en canvas se ven mal o no se ven
+    const goods = [0, 1, 2, 3].map(k => catchSprite(k)), bee = catchSprite(4);
     function frame(now) {
       if (!run) return;
       const dt = Math.min(.05, (now - last) / 1000); last = now; t -= dt; flash = Math.max(0, flash - dt);
       if (kl) bx -= 320 * dt; if (kr) bx += 320 * dt; bx = clamp(bx, 34, 286);
       spawnT -= dt;
-      if (spawnT <= 0) { spawnT = .48; const bad = Math.random() < .25; items.push({ x: rand(20, 300), y: -20, v: rand(140, 220), bad, e: bad ? "🐝" : pick(goods) }); }
+      if (spawnT <= 0) { spawnT = .48; const bad = Math.random() < .25; items.push({ x: rand(26, 294), y: -24, v: rand(120, 190), bad, e: bad ? bee : pick(goods), r: Math.random() * 6 }); }
       items.forEach(it => { it.y += it.v * dt; if (!it.done && it.y > 335 && it.y < 375 && Math.abs(it.x - bx) < 42) { it.done = true; if (it.bad) { score = Math.max(0, score - 2); flash = .3; sfx.bad(); } else { score++; sfx.pick(); } } });
       items = items.filter(i => !i.done && i.y < 430);
       const grd = g.createLinearGradient(0, 0, 0, 400); grd.addColorStop(0, "#c78be6"); grd.addColorStop(1, "#ffd9a8");
       g.fillStyle = grd; g.fillRect(0, 0, 320, 400);
       if (flash) { g.fillStyle = "rgba(255,92,122,.3)"; g.fillRect(0, 0, 320, 400); }
-      g.font = "30px serif"; g.textAlign = "center"; g.textBaseline = "middle";
-      items.forEach(it => g.fillText(it.e, it.x, it.y));
+      items.forEach(it => { g.save(); g.translate(it.x, it.y); g.rotate(it.bad ? Math.sin(now / 90) * .2 : (it.r + now / 700) % 6.3); g.drawImage(it.e, -24, -24, 48, 48); g.restore(); });
       g.fillStyle = "#c08457"; g.beginPath(); g.ellipse(bx, 362, 40, 24, 0, 0, Math.PI); g.fill();
       g.fillStyle = "#e8457c"; g.fillRect(bx - 40, 356, 80, 7);
       st.textContent = `Caramelos: ${score} / ${GOAL}   ·   Tiempo: ${Math.ceil(t)} s`;
@@ -2780,6 +2814,8 @@ window.addEventListener("error", function (e) {
     if (combo >= 2) dmgText(pos.x, 3.2, pos.z, "¡Combo x" + combo + "!", "#ff7fcf");
     checkStickers();
   }
+  const RAY_HUES = [.92, .06, .14, .33, .53, .75];
+  let rayIx = 0;
   function fire() {
     if (!S || S.mode !== "play" || fireCd > 0 || !LV.bolts) return;
     const u = upgOf(P.skin), sup = S.power > 0;
@@ -2804,7 +2840,8 @@ window.addEventListener("error", function (e) {
     (sup ? [-.2, 0, .2] : [0]).forEach(off => {
       const b = LV.bolts.find(x => x.life <= 0); if (!b) return;
       const aa = a + off; b.vx = Math.sin(aa) * 16; b.vz = Math.cos(aa) * 16; b.life = .8; b.pow = pow;
-      b.m.material.color.setHex(sup ? 0xff7fcf : u >= 4 ? 0x9ff0ff : 0xfff3a0);
+      // Cada rayo sale de un color del arcoíris y va cambiando de tono mientras vuela
+      b.h = RAY_HUES[rayIx++ % RAY_HUES.length]; b.m.material.color.setHSL(b.h, 1, .62);
       const sc = sup ? 1.7 : u >= 4 ? 1.4 : 1.15; b.m.scale.set(sc, sc, 3);
       b.m.position.set(S.px + Math.sin(aa) * .6, 1.1, S.pz + Math.cos(aa) * .6); b.m.rotation.y = aa; b.m.visible = true;
     });
