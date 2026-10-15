@@ -134,13 +134,15 @@ kbd { background: #fff; border: 2px solid var(--edge); border-bottom-width: 4px;
 
 /* Minijuegos */
 .mg-canvas { display: block; width: 100%; max-width: 340px; margin: 0 auto; border-radius: 16px; border: 3px solid var(--edge); touch-action: none; background: #2a1b52; }
-.mg-canvas.tet { max-width: 200px; }
+.mg-canvas.tet { max-width: 300px; width: 300px; }
 .mg-status { text-align: center; font-weight: 800; margin: 8px 0; font-variant-numeric: tabular-nums; }
-.tet-wrap { display: flex; gap: 12px; justify-content: center; align-items: center; flex-wrap: wrap; }
-.tet-wrap .mg-canvas { margin: 0; flex: 0 1 200px; }
-.tet-ctrl { display: grid; grid-template-columns: repeat(2, auto); gap: 8px; }
-.tet-ctrl .btn[data-a="drop"] { grid-column: span 2; }
-.tet-ctrl .btn { font-size: 24px; padding: 4px 12px; min-width: 56px; }
+.tet-wrap { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.tet-wrap .mg-canvas { margin: 0; }
+.tet-ctrl { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 300px; }
+.tet-ctrl .btn { font-size: 24px; padding: 6px 0; min-width: 0; }
+/* En la torre de dulces el tablero manda: fuera la burbuja del dragón y texto más corto, para que se vea grande en el móvil */
+.card.mini-mode.mini-tetris .talk { display: none; }
+.card.mini-mode.mini-tetris .story { font-size: 13px; line-height: 1.25; margin: 2px 0 4px; }
 .mem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-width: 360px; margin: 0 auto; }
 .mem-card { aspect-ratio: 1; font-size: clamp(26px, 8vw, 38px); border-radius: 14px; border: 3px solid var(--edge); background: repeating-linear-gradient(45deg, #ffb3d1 0 8px, #ffd0e3 8px 16px); cursor: pointer; color: var(--ink); padding: 0; }
 .mem-card.up { background: #fff; }
@@ -2130,7 +2132,7 @@ window.addEventListener("error", function (e) {
 
   // ---------- Minijuegos ----------
   const MINI_INFO = {
-    tetris: { title: "Torre de dulces", how: d => `Encaja las golosinas y completa <b>${2 + Math.round(d * 2)} filas</b> enteras. Usa los botones (o ← → para mover, ↑ para girar y espacio para dejarla caer).` },
+    tetris: { title: "Torre de dulces", how: d => `Completa <b>${2 + Math.round(d * 2)} filas</b>. Con el dedo: <b>desliza</b> la ficha a los lados, <b>toca</b> para girarla y <b>desliza rápido hacia abajo</b> para dejarla caer. También hay botones y teclas (← → ↑ espacio).` },
     catch: { title: "Lluvia de caramelos", how: d => `Mueve la cesta (arrastra o usa ← →) y atrapa <b>${10 + Math.round(d * 6)} caramelos</b> en 30 segundos. ¡Las abejas te quitan 2!` },
     whack: { title: "Ranas traviesas", how: d => `Toca las ranas cuando salgan de las setas. Atrapa <b>${9 + Math.round(d * 5)}</b> en 25 segundos.` },
     timing: { title: "El salto del unicornio", how: () => "Pulsa <b>¡Salta!</b> (o espacio) cuando el unicornio esté en la zona verde. Necesitas <b>3 aciertos</b> y puedes fallar 2 veces." },
@@ -2146,7 +2148,7 @@ window.addEventListener("error", function (e) {
   function fitMini() {
     const fit = $("mgfit"), st = $("mgstage");
     if (!fit || !st) return;
-    const s = Math.min(1, fit.clientWidth / st.offsetWidth, fit.clientHeight / Math.max(1, st.offsetHeight));
+    const s = Math.min(st.querySelector(".tet") ? 1.5 : 1, fit.clientWidth / st.offsetWidth, fit.clientHeight / Math.max(1, st.offsetHeight));
     st.style.transform = `translateX(-50%) scale(${s})`;
   }
   window.addEventListener("resize", fitMini);
@@ -2156,7 +2158,7 @@ window.addEventListener("error", function (e) {
       <div class="mini-head"><span class="cat mini">Minijuego</span><h2>${info.title}</h2></div>
       <p class="story">${info.how(d)}</p>
       <div class="mg-fit" id="mgfit">${lostMsg ? `<div style="text-align:center;padding-top:10px"><div class="feedback bad">${lostMsg}</div><button class="btn primary" id="mgstart">Reintentar</button></div>` : `<div class="mg-stage" id="mgstage"><div id="mgbox"></div><div class="feedback" id="mgfb"></div></div>`}</div>
-      <div class="mini-foot">${timerHTML()}<button class="btn ghost" id="leave">Alejarse</button></div>`, "mini-mode");
+      <div class="mini-foot">${timerHTML()}<button class="btn ghost" id="leave">Alejarse</button></div>`, "mini-mode mini-" + CUR.mini);
     mountFace();
     $("leave").onclick = leave;
     tickTimer();
@@ -2184,7 +2186,7 @@ window.addEventListener("error", function (e) {
   const canvasY = (cv, e) => { const r = cv.getBoundingClientRect(); return (e.clientY - r.top) / r.height * cv.height; };
 
   function mgTetris(box, done, d) {
-    const COLS = 8, ROWS = 14, CS = 27, GOAL = 2 + Math.round((d || 0) * 2);
+    const COLS = 8, ROWS = 12, CS = 36, GOAL = 2 + Math.round((d || 0) * 2);
     const [cv, g, st] = mkCanvas(box, COLS * CS, ROWS * CS, "tet");
     const ctrl = document.createElement("div"); ctrl.className = "tet-ctrl";
     ctrl.innerHTML = [["left", "⬅️", "Mover a la izquierda"], ["rot", "🔄", "Girar"], ["right", "➡️", "Mover a la derecha"], ["down", "⬇️", "Bajar"], ["drop", "⏬", "Dejar caer"]].map(b => `<button class="btn" data-a="${b[0]}" aria-label="${b[2]}">${b[1]}</button>`).join("");
@@ -2212,6 +2214,34 @@ window.addEventListener("error", function (e) {
     ctrl.querySelectorAll("[data-a]").forEach(b => b.onclick = () => act(b.dataset.a));
     const kd = e => { const m = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "rot", ArrowDown: "down", Space: "drop" }[e.code]; if (m) { e.preventDefault(); act(m); } };
     window.addEventListener("keydown", kd);
+    // Control táctil sobre el tablero: arrastrar mueve la ficha columna a columna, tocar la gira,
+    // arrastrar hacia abajo la baja y un deslizamiento rápido hacia abajo la deja caer
+    let tp = null;
+    cv.addEventListener("pointerdown", e => {
+      if (!run || !cur) return; e.preventDefault();
+      try { cv.setPointerCapture(e.pointerId); } catch (er) {}
+      tp = { id: e.pointerId, x0: canvasX(cv, e), y0: canvasY(cv, e), yl: canvasY(cv, e), t0: performance.now(), col0: cur.x, moved: false, piece: cur };
+    });
+    cv.addEventListener("pointermove", e => {
+      if (!tp || e.pointerId !== tp.id || !run || !cur) return;
+      const x = canvasX(cv, e), y = canvasY(cv, e);
+      if (tp.piece !== cur) { tp.piece = cur; tp.col0 = cur.x; tp.x0 = x; }
+      if (Math.abs(x - tp.x0) > CS * .45 || Math.abs(y - tp.y0) > CS * .45) tp.moved = true;
+      const target = tp.col0 + Math.round((x - tp.x0) / CS);
+      while (cur.x < target && !collide(cur.m, cur.x + 1, cur.y)) cur.x++;
+      while (cur.x > target && !collide(cur.m, cur.x - 1, cur.y)) cur.x--;
+      while (y - tp.yl > CS) { tp.yl += CS; down(); if (!run || !cur) return; }
+    });
+    const tEnd = e => {
+      if (!tp || e.pointerId !== tp.id) return;
+      const dt = performance.now() - tp.t0, dy = canvasY(cv, e) - tp.y0, dx = canvasX(cv, e) - tp.x0;
+      if (run && cur) {
+        if (!tp.moved && dt < 350) rotate();
+        else if (dy > CS * 2 && dy / dt > .9 && Math.abs(dy) > Math.abs(dx) * 1.5) drop();
+      }
+      tp = null;
+    };
+    cv.addEventListener("pointerup", tEnd); cv.addEventListener("pointercancel", e => { if (tp && e.pointerId === tp.id) tp = null; });
     function cell(x, y, k, alpha) {
       g.globalAlpha = alpha || 1;
       g.fillStyle = SW[k][1]; g.beginPath(); g.roundRect ? g.roundRect(x * CS + 1, y * CS + 1, CS - 2, CS - 2, 6) : g.rect(x * CS + 1, y * CS + 1, CS - 2, CS - 2); g.fill();
@@ -2649,7 +2679,7 @@ window.addEventListener("error", function (e) {
       overlay(`<div class="talk"><div class="npc-face" aria-hidden="true">🌞</div><div class="bubble"><b>Hada del Día:</b> ¡Cada día te traigo un juego! Si ganas, te llevas <b>30 🍬</b>. Si no sale, no pasa nada.</div></div>
         <div class="mini-head"><span class="cat mini">Reto del día</span><h2>${info.title}</h2></div><p class="story">${info.how(d)}</p>
         <div class="mg-fit" id="mgfit">${msg ? `<div style="text-align:center;padding-top:10px"><div class="feedback bad">${msg}</div><button class="btn primary" id="dRetry">Reintentar</button></div>` : `<div class="mg-stage" id="mgstage"><div id="mgbox"></div><div class="feedback" id="mgfb"></div></div>`}</div>
-        <div class="mini-foot"><span></span><button class="btn ghost" id="dBack">Volver</button></div>`, "mini-mode");
+        <div class="mini-foot"><span></span><button class="btn ghost" id="dBack">Volver</button></div>`, "mini-mode mini-" + mini);
       let mg = null;
       $("dBack").onclick = () => { if (mg) mg.stop(); back(); };
       if (msg) { $("dRetry").onclick = () => play(); return; }
