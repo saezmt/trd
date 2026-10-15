@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <title>El Mundo de Caramelia y Fantasías</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,6 +32,11 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { height: 100%; }
+/* Pantalla quieta en el móvil: sin zoom, sin rebote y sin desplazar la página; solo se desplazan las tarjetas largas */
+html, body { position: fixed; inset: 0; width: 100%; overflow: hidden; overscroll-behavior: none; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+* { touch-action: manipulation; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
+#world, #joy, #knob, #fireBtn, .mg-canvas, .mg-canvas * { touch-action: none; }
+.card { touch-action: pan-y; overscroll-behavior: contain; }
 body { margin: 0; background: var(--sky); color: var(--ink); font-family: var(--body); font-size: 18px; line-height: 1.4; overflow: hidden; -webkit-user-select: none; user-select: none; }
 #world { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 
@@ -291,6 +298,16 @@ window.addEventListener("error", function (e) {
   d.innerHTML = "<div><b style='font-size:24px'>¡Uy! El juego no ha podido arrancar 🍬</b><br><br>Prueba a abrirlo con Chrome, Edge, Firefox o Safari actualizados (no desde la vista previa del correo o de WhatsApp).<br><br><small>Detalle: " + String(e.message || e.error || "").replace(/</g, "&lt;") + "</small></div>";
   (document.body || document.documentElement).appendChild(d);
 });
+</script>
+<script>
+/* Bloqueo de zoom: Safari en iPhone ignora user-scalable=no, así que el pellizco se corta a mano */
+(function () {
+  var stop = function (e) { e.preventDefault(); };
+  ["gesturestart", "gesturechange", "gestureend"].forEach(function (t) { document.addEventListener(t, stop, { passive: false }); });
+  document.addEventListener("touchmove", function (e) { if (e.touches.length > 1 || (e.scale && e.scale !== 1)) e.preventDefault(); }, { passive: false });
+  // El doble toque ya no hace zoom gracias a touch-action: manipulation (así los toques rápidos en los botones siguen funcionando)
+  document.addEventListener("wheel", function (e) { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
+})();
 </script>
 <!-- Three.js r128 incluido dentro del archivo para que funcione sin conexión -->
 <script>
