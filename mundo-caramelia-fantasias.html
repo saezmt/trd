@@ -268,6 +268,17 @@ body.touch #objective { left: 12px; right: 112px; transform: none; max-width: no
 #toast .t-title { font-size: 17px; display: inline; margin-right: 6px; }
 body.touch #toast { left: 12px; right: 112px; transform: none; max-width: none; bottom: calc(env(safe-area-inset-bottom, 0px) + 66px); }
 #objective { font-size: 14px; padding: 4px 12px; }
+.say-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 4px; }
+.say-row select { font: inherit; font-size: 15px; font-weight: 700; color: var(--ink); background: #fff; border: 3px solid var(--edge); border-radius: 12px; padding: 4px 8px; max-width: 220px; }
+.wd-wrap { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 46px; padding: 4px 6px; }
+.wd-col { display: grid; gap: 10px; align-content: start; }
+.wd-word, .wd-pic { font: inherit; font-weight: 800; cursor: pointer; border: 3px solid var(--edge); border-radius: 16px; background: #fff; color: var(--ink); box-shadow: 0 3px 0 var(--edge); position: relative; z-index: 1; }
+.wd-word { font-size: 19px; padding: 10px 6px; }
+.wd-pic { font-size: 38px; line-height: 1; padding: 6px 0; }
+.wd-word.sel, .wd-pic.sel { border-color: var(--berry); background: var(--panel-2); box-shadow: 0 0 0 3px rgba(232,69,124,.3); }
+.wd-word.ok, .wd-pic.ok { border-color: var(--mint); background: #d3f9e3; cursor: default; }
+.wd-word.bad, .wd-pic.bad { animation: shake .4s; border-color: #ff6b81; }
+.wd-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: visible; }
 .diff-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 12px 0 2px; }
 .diff-row .tag { margin-right: 4px; }
 </style>
@@ -687,7 +698,7 @@ window.addEventListener("error", function (e) {
     "Orilla de los nenúfares", "Isla de los cisnes", "Cascada arcoíris", "Jardín de las hadas",
     "Escalera de nubes", "Biblioteca flotante", "Observatorio estelar", "Puerta de la fortaleza", "Fortaleza de Regaliz"];
   const LAST = 21;
-  const MINI_ORDER = ["memory", "catch", "connect", "simon", "whack", "sudoku", "missing", "timing", "tetris", "lights"];
+  const MINI_ORDER = ["memory", "catch", "words", "connect", "simon", "whack", "sudoku", "missing", "timing", "tetris", "lights"];
   const KIND_POOL = ["quiz", "ingles", "adiv", "ciencia", "jero", "logica"];
 
   function rng(seed) { let s = (seed >>> 0) || 1; return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; }; }
@@ -752,6 +763,33 @@ window.addEventListener("error", function (e) {
       g[a[1]][a[0]] = { t: FLOOR, r: "n" }; g[b[1]][b[0]] = { t: FLOOR, r: "n" };
       giants.push({ x: b[0], y: b[1], t: Math.floor(GR() * 4) });
     }
+    // Salas secretas: una puerta que parece pared y, detrás, una salita de 3×3 con caramelos y un cromo
+    const secrets = [], SR = rng(n * 977 + 3), nSec = n === 1 ? 1 : 2;
+    for (let tries = 0; tries < 300 && secrets.length < nSec; tries++) {
+      const ri = 1 + Math.floor(SR() * (rooms.length - 1)), r = rooms[ri], side = Math.floor(SR() * 4);
+      let x, y, dx = 0, dy = 0;
+      if (side === 0) { x = r.x + 1 + Math.floor(SR() * Math.max(1, r.w - 2)); y = r.y; dy = -1; }
+      else if (side === 1) { x = r.x + 1 + Math.floor(SR() * Math.max(1, r.w - 2)); y = r.y + r.h - 1; dy = 1; }
+      else if (side === 2) { x = r.x; y = r.y + 1 + Math.floor(SR() * Math.max(1, r.h - 2)); dx = -1; }
+      else { x = r.x + r.w - 1; y = r.y + 1 + Math.floor(SR() * Math.max(1, r.h - 2)); dx = 1; }
+      const a = [x + dx, y + dy], c = [x + 3 * dx, y + 3 * dy];
+      if (c[0] - 1 < 1 || c[1] - 1 < 1 || c[0] + 1 > W - 2 || c[1] + 1 > H - 2) continue;
+      const cells = []; for (let ey = -1; ey <= 1; ey++) for (let ex = -1; ex <= 1; ex++) cells.push([c[0] + ex, c[1] + ey]);
+      let ok = g[a[1]][a[0]].t === VOID && cells.every(q => g[q[1]][q[0]].t === VOID);
+      for (let ey = -1; ey <= 1 && ok; ey++) for (let ex = -1; ex <= 1 && ok; ex++) {
+        const ca = g[a[1] + ey] && g[a[1] + ey][a[0] + ex];
+        if (ca && ca.t === FLOOR && ca.r !== ri) ok = false;
+      }
+      for (const q of cells) for (let ey = -1; ey <= 1 && ok; ey++) for (let ex = -1; ex <= 1 && ok; ex++) {
+        const cq = g[q[1] + ey] && g[q[1] + ey][q[0] + ex];
+        if (cq && cq.t === FLOOR) ok = false;
+      }
+      if (!ok) continue;
+      const si = secrets.length;
+      g[a[1]][a[0]] = { t: FLOOR, r: "d", s: si };
+      cells.forEach(q => { g[q[1]][q[0]] = { t: FLOOR, r: "x", s: si }; });
+      secrets.push({ door: a, c, cells });
+    }
     addWalls(g, W, H);
     const last = rooms[rooms.length - 1];
     const mid = rooms.slice(1, -1);
@@ -775,9 +813,16 @@ window.addEventListener("error", function (e) {
     const mark = (p, rad) => { for (let dy = -rad; dy <= rad; dy++) for (let dx = -rad; dx <= rad; dx++) block.add((p[0] + dx) + "," + (p[1] + dy)); };
     stations.forEach(s => mark([s.x, s.y], 1)); mark(chest, 1); mark(portal, 0); mark(start, 1); if (heart) mark(heart, 0);
     const spots = [];
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (g[y][x].t === FLOOR && !block.has(x + "," + y)) spots.push([x, y, Math.floor(R() * 4)]);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (g[y][x].t === FLOOR && g[y][x].r !== "x" && g[y][x].r !== "d" && !block.has(x + "," + y)) spots.push([x, y, Math.floor(R() * 4)]);
     for (let i = spots.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [spots[i], spots[j]] = [spots[j], spots[i]]; }
+    // Capa protectora: una por nivel, en una sala (no en la de salida)
+    let capeAt = null;
+    const ci = spots.findIndex(s => typeof g[s[1]][s[0]].r === "number" && g[s[1]][s[0]].r > 0);
+    if (ci >= 0) { capeAt = spots[ci].slice(0, 2); spots.splice(ci, 1); }
     const candyAt = spots.slice(0, 24 + Math.floor(n / 2));
+    // Caramelos de las salas secretas (rodeando el cromo del centro)
+    const secretCandy = {};
+    secrets.forEach((s, si) => s.cells.forEach((q, k) => { if (k === 4) return; secretCandy[candyAt.length] = si; candyAt.push([q[0], q[1], k % 4]); }));
     const nEnemies = Math.min(mid.length, 1 + Math.floor((n - 1) / 6));
     const enemies = [];
     for (let i = 0; i < nEnemies; i++) {
@@ -797,13 +842,13 @@ window.addEventListener("error", function (e) {
       monsters.push({ id: "m" + i, x, y, hp: n <= 5 ? 1 : n <= 12 ? 2 : 3 });
     }
     const miniboss = MB_INFO[n] ? { x: clamp(last.cx - 2, last.x, last.x + last.w - 1), y: last.y + last.h - 1, hp: 14 + (n / 5) * 4, name: MB_INFO[n][0], color: MB_INFO[n][1], room: { x: last.x, y: last.y, w: last.w, h: last.h }, shoots: n >= 15 } : null;
-    return { n, world, W, H, grid: g, rooms, start, stations, chest, portal, heart, candyAt, enemies, decor, seed: n, monsters, miniboss, giants };
+    return { n, world, W, H, grid: g, rooms, start, stations, chest, portal, heart, candyAt, enemies, decor, seed: n, monsters, miniboss, giants, secrets, secretCandy, capeAt };
   }
   function genBoss() {
     const W = 27, H = 23, g = newGrid(W, H);
     carveG(g, 3, 2, 23, 16, 0); carveG(g, 13, 17, 13, 18, "c"); carveG(g, 11, 19, 15, 21, 1);
     addWalls(g, W, H);
-    return { n: LAST, world: 5, W, H, grid: g, rooms: [{ x: 3, y: 2, w: 21, h: 15, cx: 13, cy: 9 }], start: [13, 20], stations: [], chest: null, portal: null, heart: null, candyAt: [], enemies: [], decor: [[3, 2], [23, 2], [3, 16], [23, 16], [11, 21], [15, 21]], boss: { x: 13, y: 6 } };
+    return { n: LAST, world: 5, W, H, grid: g, rooms: [{ x: 3, y: 2, w: 21, h: 15, cx: 13, cy: 9 }], start: [13, 20], stations: [], chest: null, portal: null, heart: null, candyAt: [], enemies: [], decor: [[3, 2], [23, 2], [3, 16], [23, 16], [11, 21], [15, 21]], boss: { x: 13, y: 6 }, secrets: [], secretCandy: {}, capeAt: [6, 13] };
   }
 
   // ================= Perfil y partida guardada =================
@@ -838,7 +883,7 @@ window.addEventListener("error", function (e) {
   const totalStars = () => Object.values(P.levels).reduce((a, l) => a + (l.stars || 0), 0);
   const maxLivesNow = () => 3 + (upgOf(P.skin) >= 2 ? 1 : 0) + (upgOf(P.skin) >= 5 ? 1 : 0);
   function freshRun(n) {
-    return { v: 2, n, lives: maxLivesNow(), maxLives: maxLivesNow(), keys: 0, solved: {}, first: {}, taken: {}, chestOpen: false, px: L.start[0] * TILE, pz: L.start[1] * TILE, face: 0, vis: {}, bossHp: BOSS_HP, bossHits: 0, mode: "play", killed: {}, mbHp: L.miniboss ? L.miniboss.hp : 0, mbDead: false, aim: 0 };
+    return { v: 2, n, lives: maxLivesNow(), maxLives: maxLivesNow(), keys: 0, solved: {}, first: {}, taken: {}, chestOpen: false, px: L.start[0] * TILE, pz: L.start[1] * TILE, face: 0, vis: {}, bossHp: BOSS_HP, bossHits: 0, mode: "play", killed: {}, mbHp: L.miniboss ? L.miniboss.hp : 0, mbDead: false, aim: 0, doors: {}, cape: false };
   }
   let cloud = null, cloudBusy = false, cloudAgain = false, cloudTimer = null, cloudReady = false;
   function runSnapshot() { return S && (S.mode === "play" || S.mode === "modal") ? Object.assign({}, S, { mode: "play", t: Date.now() }) : null; }
@@ -1374,6 +1419,15 @@ window.addEventListener("error", function (e) {
     while (grp.children.length) grp.remove(grp.children[0]);
   }
   let LV = {};
+  const SECRET_TEX = {};
+  function capeMesh() {
+    const g = new THREE.Group();
+    const tex = keepTex(SECRET_TEX.cape || (SECRET_TEX.cape = canvasTex(64, 64, g2 => { g2.fillStyle = "#b9a3ff"; g2.fillRect(0, 0, 64, 64); g2.fillStyle = "#fff3a0"; [[14, 16], [44, 12], [30, 36], [12, 50], [50, 46]].forEach(([x, y]) => { g2.beginPath(); for (let k = 0; k < 10; k++) { const r = k % 2 ? 3 : 7, a = -Math.PI / 2 + k * Math.PI / 5; g2.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); } g2.fill(); }); })));
+    const cl = new THREE.Mesh(new THREE.CylinderGeometry(.22, .62, 1.15, 16, 1, true, Math.PI * .55, Math.PI * .9), lam(0xffffff, { map: tex, side: THREE.DoubleSide, emissive: 0x1a1040 }));
+    g.add(cl);
+    const col = new THREE.Mesh(new THREE.TorusGeometry(.2, .05, 6, 14), lam(0xffd23f)); col.rotation.x = Math.PI / 2; col.position.y = .56; g.add(col);
+    return g;
+  }
   function addL(obj, x, y, yy) { obj.position.set(wx(x), yy || 0, wx(y)); levelGroup.add(obj); return obj; }
   function buildLevelScene() {
     disposeGroup(levelGroup);
@@ -1383,6 +1437,7 @@ window.addEventListener("error", function (e) {
     const floors = [], walls = [], outside = [];
     for (let y = -6; y < L.H + 6; y++) for (let x = -6; x < L.W + 6; x++) {
       const c = (L.grid[y] && L.grid[y][x]) || { t: VOID };
+      if (c.t === FLOOR && (c.r === "x" || c.r === "d")) continue;
       if (c.t === FLOOR) floors.push([x, y, c.r]);
       else if (c.t === WALL) walls.push([x, y]);
       else if (R() < .35) outside.push([x, y, R()]);
@@ -1502,6 +1557,42 @@ window.addEventListener("error", function (e) {
       grp.position.set(wx(q.x), 1.5, wx(q.y)); grp.visible = false; levelGroup.add(grp);
       return { grp, m, i };
     });
+    // Puertas secretas: un bloque de pared con brillitos; detrás, una sala con caramelos y un cromo
+    LV.secrets = (L.secrets || []).map((sc, i) => {
+      const room = new THREE.Group();
+      sc.cells.concat([sc.door]).forEach(q => { const f = new THREE.Mesh(new THREE.BoxGeometry(TILE, .2, TILE), lam((q[0] + q[1]) % 2 ? 0xffe3f3 : 0xfff3c4)); f.position.set(wx(q[0]), -.1, wx(q[1])); room.add(f); });
+      const card = new THREE.Group();
+      const face = keepTex(SECRET_TEX.card || (SECRET_TEX.card = canvasTex(128, 176, (g2, w, hh) => {
+        const gr = g2.createLinearGradient(0, 0, w, hh); gr.addColorStop(0, "#ffd6ec"); gr.addColorStop(.5, "#e5dbff"); gr.addColorStop(1, "#c5f6fa");
+        g2.fillStyle = gr; g2.fillRect(0, 0, w, hh); g2.strokeStyle = "#ffd23f"; g2.lineWidth = 10; g2.strokeRect(5, 5, w - 10, hh - 10);
+        g2.fillStyle = "#b82b5c"; g2.font = "900 92px 'Baloo 2', sans-serif"; g2.textAlign = "center"; g2.textBaseline = "middle"; g2.fillText("?", w / 2, hh / 2 + 6);
+      })));
+      const cm = new THREE.Mesh(new THREE.BoxGeometry(.9, 1.24, .06), [lam(0xffd23f), lam(0xffd23f), lam(0xffd23f), lam(0xffd23f), lam(0xffffff, { map: face, emissive: 0x332233 }), lam(0xffffff, { map: face, emissive: 0x332233 })]);
+      card.add(cm); card.position.set(wx(sc.c[0]), 1.2, wx(sc.c[1])); room.add(card);
+      const glow = new THREE.Mesh(new THREE.SphereGeometry(.9, 12, 8), basic(0xffe9a8, { transparent: true, opacity: .25, depthWrite: false })); card.add(glow);
+      LV.anim.push(t => { card.rotation.y = t * 1.8; card.position.y = 1.2 + Math.sin(t * 2.4 + i) * .15; });
+      const door = new THREE.Group();
+      const blk = new THREE.Mesh(new THREE.BoxGeometry(TILE * .98, 1.5, TILE * .98), lam(0xf3c1f0, { emissive: 0x2a1030 })); blk.position.y = .75; door.add(blk);
+      const tw = new THREE.Mesh(new THREE.OctahedronGeometry(.22), basic(0xfff3a0)); tw.position.y = 1.95; door.add(tw);
+      LV.anim.push(t => { tw.rotation.y = t * 3; const s = .6 + Math.max(0, Math.sin(t * 2.2 + i * 2)) * .7; tw.scale.setScalar(s); blk.material.emissive.setHex(Math.sin(t * 2.2 + i * 2) > .7 ? 0x55305f : 0x2a1030); });
+      door.position.set(wx(sc.door[0]), 0, wx(sc.door[1])); levelGroup.add(door, room);
+      const open = doorOpen(i); door.visible = !open; room.visible = open; card.visible = !S.taken["k" + i];
+      return { door, room, card, i };
+    });
+    // Capa protectora para recoger
+    LV.cape = null;
+    if (L.capeAt && !S.taken.cape) {
+      const cg = new THREE.Group(), cp = capeMesh(); cp.position.y = .9; cg.add(cp);
+      const bub = new THREE.Mesh(new THREE.SphereGeometry(.8, 16, 12), basic(0xa5f3ff, { transparent: true, opacity: .25, depthWrite: false })); bub.position.y = 1; cg.add(bub);
+      const lb = label("Capa protectora", "#1c7ed6"); lb.scale.set(3, .75, 1); lb.position.y = 2.2; cg.add(lb);
+      LV.cape = addL(cg, L.capeAt[0], L.capeAt[1]);
+      LV.anim.push(t => { cp.rotation.y = t * 1.5; cp.position.y = .9 + Math.sin(t * 2.5) * .12; });
+    }
+    // La capa que lleva puesta el personaje (sigue al héroe)
+    LV.capeFx = new THREE.Group();
+    const worn = capeMesh(); worn.scale.setScalar(1.2); worn.position.set(0, .95, -.34); worn.rotation.x = .18; LV.capeFx.add(worn);
+    const shieldB = new THREE.Mesh(new THREE.SphereGeometry(1.05, 18, 12), basic(0xa5f3ff, { transparent: true, opacity: .16, depthWrite: false })); shieldB.position.y = .9; LV.capeFx.add(shieldB);
+    LV.capeFx.userData.bubble = shieldB; LV.capeFx.visible = !!S.cape; levelGroup.add(LV.capeFx);
     // Minimonstruos que acompañan al guardián
     if (L.miniboss && !DF().calm) {
       const r = L.miniboss.room;
@@ -1629,8 +1720,11 @@ window.addEventListener("error", function (e) {
   // ================= Física =================
   const RAD = .42;
   const tileAt = (x, y) => (L && L.grid[y] && L.grid[y][x]) || { t: VOID };
+  // Una puerta secreta cerrada (y la sala que esconde) cuenta como pared
+  const doorOpen = si => !!(S && S.doors && S.doors[si]);
+  const solidAt = (x, y) => { const c = tileAt(x, y); return c.t !== FLOOR || ((c.r === "d" || c.r === "x") && !doorOpen(c.s)); };
   function blockedAt(px, pz) {
-    for (const ox of [-RAD, RAD]) for (const oz of [-RAD, RAD]) if (tileAt(Math.round((px + ox) / TILE), Math.round((pz + oz) / TILE)).t !== FLOOR) return true;
+    for (const ox of [-RAD, RAD]) for (const oz of [-RAD, RAD]) if (solidAt(Math.round((px + ox) / TILE), Math.round((pz + oz) / TILE))) return true;
     return false;
   }
   const tileOf = () => [Math.round(S.px / TILE), Math.round(S.pz / TILE)];
@@ -1651,7 +1745,7 @@ window.addEventListener("error", function (e) {
   let screenNow = "menu";
   function renderStats() {
     const inLevel = S && (S.mode === "play" || S.mode === "modal");
-    $("stats").innerHTML = (inLevel ? `<span class="pill"><span class="lbl">Vidas</span>${"❤️".repeat(Math.max(0, S.lives))}${"🤍".repeat(Math.max(0, S.maxLives - S.lives))}</span>${L && L.boss ? "" : `<span class="pill"><span class="lbl">Llaves</span>🗝️ ${S.keys}/3</span>`}` : "")
+    $("stats").innerHTML = (inLevel ? `<span class="pill"><span class="lbl">Vidas</span>${"❤️".repeat(Math.max(0, S.lives))}${"🤍".repeat(Math.max(0, S.maxLives - S.lives))}</span>${S.cape ? `<span class="pill" title="Capa protectora">🛡️</span>` : ""}${L && L.boss ? "" : `<span class="pill"><span class="lbl">Llaves</span>🗝️ ${S.keys}/3</span>`}` : "")
       + `<span class="pill"><span class="lbl">Caramelos</span>🍬 ${P.candies}</span>`
       + (inLevel ? `<button class="icon-btn" id="saveBtn">💾 Guardar</button><button class="icon-btn" id="mapBtn">🗺️ Mapa</button>` : "")
       + `<button class="icon-btn" id="snd" aria-pressed="${soundOn}" title="Efectos de sonido">${soundOn ? "🔊" : "🔇"}<span class="lbl"> Sonido</span></button><button class="icon-btn" id="mus" aria-pressed="${P.music !== false}" title="Música">${P.music !== false ? "🎵" : "🔕"}<span class="lbl"> Música</span></button><span class="pill" id="saved" hidden></span>`;
@@ -1686,6 +1780,7 @@ window.addEventListener("error", function (e) {
     for (let y = 0; y < L.H; y++) for (let x = 0; x < L.W; x++) {
       if (!S.vis[x + "," + y]) continue;
       const c = L.grid[y][x];
+      if ((c.r === "d" || c.r === "x") && !doorOpen(c.s)) { mctx.fillStyle = "#3d2a6e"; mctx.fillRect(x * sx, y * sy, sx + .5, sy + .5); continue; }
       if (c.t === FLOOR) mctx.fillStyle = hex(c.r === "c" ? Wd.path : Wd.floor);
       else if (c.t === WALL) mctx.fillStyle = "#3d2a6e";
       else continue;
@@ -1725,7 +1820,7 @@ window.addEventListener("error", function (e) {
   function updateCandies(t) {
     LV.candy.forEach(grp => {
       grp.list.forEach((ci, k) => {
-        const p = L.candyAt[ci], hidden = S.taken["c" + ci];
+        const p = L.candyAt[ci], hidden = S.taken["c" + ci] || (L.secretCandy && L.secretCandy[ci] !== undefined && !doorOpen(L.secretCandy[ci]));
         if (!hidden) { CBASE.makeRotationY(t * 1.6 + ci).scale(CSC); CBASE.setPosition(wx(p[0]), .62 + Math.sin(t * 3 + ci) * .1, wx(p[1])); }
         grp.parts.forEach(pt => pt.m.setMatrixAt(k, hidden ? CZERO : CTMP.multiplyMatrices(CBASE, pt.local)));
       });
@@ -1742,7 +1837,8 @@ window.addEventListener("error", function (e) {
       idleT = moving ? 0 : idleT + dt;
       if (S && !moving && playing && idleT > .8) { let d = 0 - S.face; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; S.face += d * Math.min(1, dt * 4); hero.rotation.y = S.face; }
       animateHero(hero, clock, moving, idleT > 1.6);
-      hero.visible = inv <= 0 || Math.floor(clock * 12) % 2 === 0;
+      hero.visible = inv <= 0 || Math.floor(clock * 10) % 3 !== 0;
+      if (LV && LV.capeFx) { LV.capeFx.visible = !!(S && S.cape); if (LV.capeFx.visible) { LV.capeFx.position.copy(hero.position); LV.capeFx.rotation.y = hero.rotation.y; LV.capeFx.userData.bubble.material.opacity = .2 + Math.sin(clock * 4) * .07; } }
       if (S && L) {
         LV.anim.forEach(f => f(clock));
         L.stations.forEach(s => {
@@ -1826,6 +1922,7 @@ window.addEventListener("error", function (e) {
     L.candyAt.forEach((p, i) => {
       if (S.taken["c" + i]) return;
       const cx = wx(p[0]), cz = wx(p[1]);
+      if (L.secretCandy && L.secretCandy[i] !== undefined && !doorOpen(L.secretCandy[i])) return;
       if (Math.hypot(cx - S.px, cz - S.pz) < reach || (pet && Math.hypot(cx - pet.position.x, cz - pet.position.z) < 1)) { S.taken["c" + i] = 1; addCandies(1); got++; }
     });
     if (got) { sfx.pick(); renderStats(); if (P.candies % 10 < got) { express("happy", 900); saveNow(false); } }
@@ -1842,6 +1939,18 @@ window.addEventListener("error", function (e) {
         addCandies(25); updateObjective(); saveNow(false);
       }
     });
+    // Puertas secretas: se abren al empujarlas o con un rayo; dentro, el cromo
+    if (LV.secrets) LV.secrets.forEach(sc => {
+      const q = L.secrets[sc.i];
+      if (!doorOpen(sc.i)) { if (Math.hypot(wx(q.door[0]) - S.px, wx(q.door[1]) - S.pz) < 1.55) openSecret(sc.i); return; }
+      if (!S.taken["k" + sc.i] && Math.hypot(wx(q.c[0]) - S.px, wx(q.c[1]) - S.pz) < 1.3) { S.taken["k" + sc.i] = 1; sc.card.visible = false; giveSecretCard(sc.card.position); }
+    });
+    if (LV.cape && LV.cape.visible && !S.taken.cape && Math.hypot(LV.cape.position.x - S.px, LV.cape.position.z - S.pz) < 1.2) {
+      S.taken.cape = 1; LV.cape.visible = false;
+      if (S.cape) { addCandies(10); toast(`<span class="t-title">🛡️ Ya llevas capa</span>Te la cambio por +10 🍬`, 2200); }
+      else { S.cape = true; toast(`<span class="t-title">🛡️ ¡Capa protectora!</span>Si un monstruo te toca, la capa se rompe y tú no pierdes nada.`, 3200); }
+      sfx.gate(); express("wow", 1200); spawnSparks(S.px, 1.2, S.pz, 18, 0xa5f3ff); renderStats(); saveNow(false);
+    }
     if (LV.heart && !S.taken.h && Math.hypot(LV.heart.position.x - S.px, LV.heart.position.z - S.pz) < 1) {
       if (S.lives < S.maxLives) { S.taken.h = 1; LV.heart.visible = false; S.lives++; sfx.good(); express("happy"); toast("¡Corazón mágico! +1 vida ❤️"); renderStats(); }
       else if (!LV.heart.userData.told) { LV.heart.userData.told = true; toast("Ya tienes todas tus vidas. Este corazón te espera por si lo necesitas."); }
@@ -1887,9 +1996,11 @@ window.addEventListener("error", function (e) {
     LV.bolts.forEach(b => {
       if (b.life <= 0) return;
       b.life -= dt;
-      b.h = (b.h + dt * 1.2) % 1; b.m.material.color.setHSL(b.h, 1, .62);
+      b.h = (b.h + dt * 1.2) % 1; b.m.material.color.setHSL(b.h, .9, .8);
       const nx = b.m.position.x + b.vx * dt, nz = b.m.position.z + b.vz * dt;
-      if (b.life <= 0 || tileAt(Math.round(nx / TILE), Math.round(nz / TILE)).t !== FLOOR) return killBolt(b);
+      const bt = tileAt(Math.round(nx / TILE), Math.round(nz / TILE));
+      if (bt.r === "d" && !doorOpen(bt.s)) { openSecret(bt.s); return killBolt(b); }
+      if (b.life <= 0 || solidAt(Math.round(nx / TILE), Math.round(nz / TILE))) return killBolt(b);
       b.m.position.x = nx; b.m.position.z = nz;
       const near = (o, r) => Math.hypot(o.position.x - nx, o.position.z - nz) < r;
       for (const mo of LV.monsters) if (mo.alive && near(mo.obj.g, 1.1)) { damageMonster(mo, b.pow, b); return killBolt(b); }
@@ -1903,13 +2014,22 @@ window.addEventListener("error", function (e) {
     for (let i = 0; i < Math.min(8, candies + 3); i++) { const m = candyModel(i % 4, CANDY_COLS[i % CANDY_COLS.length]); m.position.set(pos.x, 1, pos.z); levelGroup.add(m); const a = Math.random() * 6.28; LV.burst.push({ m, t: 0, vx: Math.cos(a) * 2, vz: Math.sin(a) * 2, vy: 5 + Math.random() * 2 }); }
     addCandies(candies); renderStats();
   }
+  const SAFE_T = 5;
   function hurt(fx, fz, msg, steal) {
-    if (!S || S.mode !== "play") return;
-    const lost = Math.min(steal || 0, P.candies); P.candies -= lost;
-    if (lost) msg += ` ¡Y te ha robado ${lost} 🍬!`;
-    S.lives--; inv = 1.6; sfx.bad(); express("sad", 1500);
+    if (!S || S.mode !== "play" || inv > 0) return;
     const ang = Math.atan2(S.px - fx, S.pz - fz);
     for (let k = 0; k < 6; k++) { const nx = S.px + Math.sin(ang) * .3, nz = S.pz + Math.cos(ang) * .3; if (!blockedAt(nx, S.pz)) S.px = nx; if (!blockedAt(S.px, nz)) S.pz = nz; }
+    // Con capa: el golpe solo rompe la capa
+    if (S.cape) {
+      S.cape = false; inv = SAFE_T; sfx.hit(); express("wow", 1200); spawnSparks(S.px, 1.2, S.pz, 22, 0xa5f3ff);
+      dmgText(S.px, 2.6, S.pz, "¡Capa rota!", "#4dabf7");
+      toast(`<span class="t-title">🛡️ ¡La capa te ha protegido!</span>Se ha roto, pero no pierdes nada. 5 segundos a salvo.`, 2600);
+      renderStats(); saveNow(false); return;
+    }
+    const lost = Math.min(steal || 0, P.candies); P.candies -= lost;
+    if (lost) msg += ` ¡Y te ha robado ${lost} 🍬!`;
+    S.lives--; inv = SAFE_T; sfx.bad(); express("sad", 1500);
+    msg += " Tienes 5 segundos a salvo.";
     renderStats();
     if (S.lives <= 0) { failLevel(); return; }
     toast(msg, 2000);
@@ -1929,7 +2049,7 @@ window.addEventListener("error", function (e) {
       if (p.life <= 0) continue;
       p.life -= dt; p.m.position.x += p.vx * dt; p.m.position.z += p.vz * dt;
       const tx = Math.round(p.m.position.x / TILE), tz = Math.round(p.m.position.z / TILE);
-      if (p.life <= 0 || tileAt(tx, tz).t !== FLOOR) { p.life = 0; p.m.visible = false; continue; }
+      if (p.life <= 0 || solidAt(tx, tz)) { p.life = 0; p.m.visible = false; continue; }
       if (inv <= 0 && Math.hypot(p.m.position.x - S.px, p.m.position.z - S.pz) < .7) {
         p.life = 0; p.m.visible = false;
         hurt(p.m.position.x, p.m.position.z, "¡Te ha dado una bola! Pierdes un corazón. Tu rayo ⚡ puede romperlas.");
@@ -2099,7 +2219,7 @@ window.addEventListener("error", function (e) {
       $("af").onsubmit = e => { e.preventDefault(); const v = inp.value.trim(); if (v === "") { $("fb").textContent = "Escribe un número primero."; return; } answer(parseInt(v, 10)); };
     }
     $("leave").onclick = leave; tickTimer();
-    if ($("sayBtn")) $("sayBtn").onclick = () => speak(CUR.c.say);
+    if ($("voiceSel")) bindVoiceRow(CUR.c.say);
   }
   function leave() {
     stopMini(); closeOverlay();
@@ -2149,6 +2269,7 @@ window.addEventListener("error", function (e) {
 
   // ---------- Minijuegos ----------
   const MINI_INFO = {
+    words: { title: "Words & Pictures", how: d => `Une cada <b>palabra en inglés</b> con su dibujo: toca la palabra (la oirás) y luego el dibujo. Completa <b>${(2 + (d > .5 ? 1 : 0)) * 4} parejas</b>. Con 5 fallos se acaba.` },
     tetris: { title: "Torre de dulces", how: d => `Completa <b>${2 + Math.round(d * 2)} filas</b>. Con el dedo: <b>desliza</b> la ficha a los lados, <b>toca</b> para girarla y <b>desliza rápido hacia abajo</b> para dejarla caer. También hay botones y teclas (← → ↑ espacio).` },
     catch: { title: "Lluvia de caramelos", how: d => `Mueve la cesta (arrastra o usa ← →) y atrapa <b>${10 + Math.round(d * 6)} caramelos</b> en 30 segundos. ¡Las abejas te quitan 2!` },
     whack: { title: "Ranas traviesas", how: d => `Toca las ranas cuando salgan de las setas. Atrapa <b>${9 + Math.round(d * 5)}</b> en 25 segundos.` },
@@ -2607,14 +2728,109 @@ window.addEventListener("error", function (e) {
     tick();
     return { stop() { run = false; clearTimeout(timer); } };
   }
-  MINI_FN = { tetris: mgTetris, catch: mgCatch, whack: mgWhack, timing: mgTiming, memory: mgMemory, simon: mgSimon, sudoku: mgSudoku, lights: mgLights, connect: mgConnect, missing: mgMissing };
+  const WORDS_EN = [
+    ["apple", "🍎"], ["banana", "🍌"], ["cat", "🐱"], ["dog", "🐶"], ["horse", "🐴"], ["rabbit", "🐰"], ["elephant", "🐘"], ["giraffe", "🦒"], ["monkey", "🐒"], ["lion", "🦁"],
+    ["bear", "🐻"], ["frog", "🐸"], ["fish", "🐟"], ["bird", "🐦"], ["owl", "🦉"], ["penguin", "🐧"], ["cow", "🐮"], ["pig", "🐷"], ["sheep", "🐑"], ["duck", "🦆"],
+    ["bee", "🐝"], ["house", "🏠"], ["car", "🚗"], ["bus", "🚌"], ["train", "🚆"], ["plane", "✈️"], ["bike", "🚲"], ["boat", "⛵"], ["sun", "☀️"], ["moon", "🌙"],
+    ["star", "⭐"], ["rainbow", "🌈"], ["tree", "🌳"], ["flower", "🌸"], ["book", "📖"], ["pencil", "✏️"], ["clock", "⏰"], ["key", "🔑"], ["ball", "⚽"], ["guitar", "🎸"],
+    ["hat", "🎩"], ["shoe", "👟"], ["dress", "👗"], ["cake", "🎂"], ["bread", "🍞"], ["cheese", "🧀"], ["egg", "🥚"], ["milk", "🥛"], ["carrot", "🥕"], ["grapes", "🍇"],
+    ["pizza", "🍕"], ["castle", "🏰"], ["crown", "👑"], ["dragon", "🐉"], ["ghost", "👻"], ["robot", "🤖"], ["rocket", "🚀"], ["drum", "🥁"], ["snowman", "⛄"], ["whale", "🐳"]
+  ];
+  const WORDS_HARD = [
+    ["butterfly", "🦋"], ["spider", "🕷️"], ["snake", "🐍"], ["tiger", "🐯"], ["umbrella", "☂️"], ["scissors", "✂️"], ["glasses", "👓"], ["strawberry", "🍓"], ["mushroom", "🍄"], ["volcano", "🌋"],
+    ["island", "🏝️"], ["mountain", "⛰️"], ["camera", "📷"], ["computer", "💻"], ["telephone", "☎️"], ["bell", "🔔"], ["candle", "🕯️"], ["envelope", "✉️"], ["crab", "🦀"], ["octopus", "🐙"],
+    ["tortoise", "🐢"], ["parrot", "🦜"], ["lemon", "🍋"], ["watermelon", "🍉"], ["cherries", "🍒"], ["sandwich", "🥪"], ["lollipop", "🍭"], ["trophy", "🏆"], ["magnet", "🧲"], ["compass", "🧭"]
+  ];
+  function mgWords(box, done, d) {
+    const ROUNDS = 2 + ((d || 0) > .5 ? 1 : 0), PER = 4, MAXBAD = 5;
+    const pool = shuffle(WORDS_EN.concat((d || 0) > .3 ? WORDS_HARD : WORDS_HARD.slice(0, 8)));
+    let round = 0, okN = 0, bad = 0, run = true, selW = null, selP = null, pairs = [];
+    const wrap = document.createElement("div"); wrap.className = "wd-wrap"; box.appendChild(wrap);
+    const st = document.createElement("div"); st.className = "mg-status"; box.appendChild(st);
+    const status = () => { st.textContent = `Parejas: ${okN} / ${ROUNDS * PER}   ·   Fallos: ${bad} / ${MAXBAD}`; };
+    function drawLines() {
+      const svg = wrap.querySelector(".wd-svg"); if (!svg) return;
+      svg.innerHTML = pairs.map(([w, p]) => {
+        const x1 = w.offsetLeft + w.offsetWidth, y1 = w.offsetTop + w.offsetHeight / 2, x2 = p.offsetLeft, y2 = p.offsetTop + p.offsetHeight / 2;
+        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#2fb98a" stroke-width="5" stroke-linecap="round"/><circle cx="${x1}" cy="${y1}" r="5" fill="#2fb98a"/><circle cx="${x2}" cy="${y2}" r="5" fill="#2fb98a"/>`;
+      }).join("");
+    }
+    function try2() {
+      if (!selW || !selP) return;
+      const w = selW, p = selP; selW = selP = null;
+      w.classList.remove("sel"); p.classList.remove("sel");
+      if (w.dataset.k === p.dataset.k) {
+        w.classList.add("ok"); p.classList.add("ok"); w.disabled = p.disabled = true; pairs.push([w, p]); drawLines();
+        okN++; sfx.pick(); status();
+        if (wrap.querySelectorAll(".wd-word:not(.ok)").length === 0) {
+          round++;
+          if (round >= ROUNDS) { run = false; sfx.good(); setTimeout(() => done(true), 600); }
+          else setTimeout(() => { if (run) deal(); }, 700);
+        }
+      } else {
+        bad++; sfx.bad(); status();
+        [w, p].forEach(b => { b.classList.remove("bad"); void b.offsetWidth; b.classList.add("bad"); });
+        if (bad >= MAXBAD) { run = false; setTimeout(() => done(false), 700); }
+      }
+    }
+    function deal() {
+      const set = pool.slice(round * PER, round * PER + PER);
+      pairs = []; selW = selP = null;
+      wrap.innerHTML = `<svg class="wd-svg" aria-hidden="true"></svg><div class="wd-col">${shuffle(set).map(([w]) => `<button class="wd-word" data-k="${w}">${w}</button>`).join("")}</div><div class="wd-col">${shuffle(set).map(([w, e]) => `<button class="wd-pic" data-k="${w}" aria-label="Dibujo">${e}</button>`).join("")}</div>`;
+      wrap.querySelectorAll(".wd-word").forEach(b => b.onclick = () => { if (!run || b.disabled) return; if (selW) selW.classList.remove("sel"); selW = b; b.classList.add("sel"); speak(b.dataset.k, .85); try2(); });
+      wrap.querySelectorAll(".wd-pic").forEach(b => b.onclick = () => { if (!run || b.disabled) return; if (selP) selP.classList.remove("sel"); selP = b; b.classList.add("sel"); try2(); });
+      status();
+    }
+    deal();
+    return { stop() { run = false; } };
+  }
+  MINI_FN = { words: mgWords, tetris: mgTetris, catch: mgCatch, whack: mgWhack, timing: mgTiming, memory: mgMemory, simon: mgSimon, sudoku: mgSudoku, lights: mgLights, connect: mgConnect, missing: mgMissing };
 
   // ================= Inglés adaptativo, ciencias, cromos, reto diario =================
-  function speak(text) {
+  // Voz en inglés: elige la voz nativa más natural que tenga el dispositivo (las «mejoradas», «premium»
+  // o «natural» si existen) y descarta las voces de broma. Se puede cambiar a mano en las pruebas de inglés.
+  const JOKE_VOICES = /(Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Fred|Junior|Ralph|Kathy|Princess|Grandma|Grandpa|Eddy|Flo|Reed|Rocko|Sandy|Shelley|Deranged|Hysterical|Pipe)/i;
+  function enVoices() {
+    try { return speechSynthesis.getVoices().filter(v => /^en[-_](GB|US|IE|AU|CA|NZ|ZA)/i.test(v.lang) && !JOKE_VOICES.test(v.name)); } catch (e) { return []; }
+  }
+  function voiceScore(v) {
+    let s = 0; const n = v.name;
+    if (/GB/i.test(v.lang)) s += 3; else if (/US/i.test(v.lang)) s += 2;
+    if (/(Premium|Enhanced|Natural|Neural|Online|Mejorad)/i.test(n)) s += 8;
+    if (/Google (UK|US) English/i.test(n)) s += 6;
+    if (/(Serena|Kate|Daniel|Arthur|Martha|Stephanie|Libby|Sonia|Maisie|Ryan|Samantha|Ava|Allison|Susan|Karen|Moira|Tessa|Aria|Jenny|Emma)/.test(n)) s += 4;
+    return s;
+  }
+  function pickVoice() {
+    const vs = enVoices(); if (!vs.length) return null;
+    if (P.voice) { const v = vs.find(x => x.name === P.voice); if (v) return v; }
+    return vs.slice().sort((a, b) => voiceScore(b) - voiceScore(a))[0];
+  }
+  try { if ("speechSynthesis" in window) { speechSynthesis.getVoices(); speechSynthesis.addEventListener && speechSynthesis.addEventListener("voiceschanged", () => { const s = $("voiceSel"); if (s && !s.options.length) fillVoices(s); }); } } catch (e) {}
+  function fillVoices(sel) {
+    const vs = enVoices().sort((a, b) => voiceScore(b) - voiceScore(a)), cur = pickVoice();
+    sel.innerHTML = vs.map(v => `<option value="${esc(v.name)}" ${cur && v.name === cur.name ? "selected" : ""}>${/GB|IE/i.test(v.lang) ? "🇬🇧" : /US|CA/i.test(v.lang) ? "🇺🇸" : "🌍"} ${esc(v.name.replace(/\s*\(.*\)\s*/, " ").trim())}</option>`).join("");
+    sel.hidden = vs.length < 2;
+  }
+  function voiceRow(text) {
+    return `<div class="say-row"><button class="btn" id="sayBtn" type="button">🔊 Escuchar</button><button class="btn" id="saySlow" type="button" title="Más despacio">🐢</button><select id="voiceSel" aria-label="Voz en inglés"></select></div>`;
+  }
+  function bindVoiceRow(text) {
+    const sel = $("voiceSel"); if (!sel) return;
+    fillVoices(sel);
+    sel.onchange = () => { P.voice = sel.value; saveNow(false); speak(text || "Hello! Nice to meet you."); };
+    if ($("sayBtn")) $("sayBtn").onclick = () => speak(text);
+    if ($("saySlow")) $("saySlow").onclick = () => speak(text, .68);
+  }
+  function speak(text, rate) {
+    if (!text) return;
+    if (!("speechSynthesis" in window)) { toast("Este navegador no puede leer en voz alta."); return; }
     try {
-      const u = new SpeechSynthesisUtterance(text); u.lang = "en-GB"; u.rate = .85;
-      const vs = speechSynthesis.getVoices(); const v = vs.find(x => /^en[-_]GB/i.test(x.lang)) || vs.find(x => /^en/i.test(x.lang)); if (v) u.voice = v;
-      speechSynthesis.cancel(); speechSynthesis.speak(u);
+      const u = new SpeechSynthesisUtterance(text), v = pickVoice();
+      if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "en-GB";
+      u.rate = rate || .9; u.pitch = 1; u.volume = 1;
+      music.duck(true); u.onend = u.onerror = () => music.duck(false);
+      speechSynthesis.cancel(); speechSynthesis.resume(); speechSynthesis.speak(u);
     } catch (e) { toast("Este navegador no puede leer en voz alta."); }
   }
   function engPick() {
@@ -2626,12 +2842,45 @@ window.addEventListener("error", function (e) {
     const it = bank[i];
     const isEn = /^(Complete|Choose|What|Which|Read|Plural|Past|How)/.test(it.q);
     const say = isEn ? it.q.replace(/\(.*?\)/g, "").replace(/___/g, "blank").replace(/[«»🕒]/g, "") : null;
-    return { q: it.q, type: "mc", options: shuffle([it.a].concat(it.o)), answer: it.a, hint: it.h, cat: "ingles", label: `Inglés · Nivel ${lv}`, say, html: say ? `<button class="btn" id="sayBtn" type="button">🔊 Escuchar en inglés</button><div style="height:10px"></div>` : "" };
+    return { q: it.q, type: "mc", options: shuffle([it.a].concat(it.o)), answer: it.a, hint: it.h, cat: "ingles", label: `Inglés · Nivel ${lv}`, say, html: say ? voiceRow(say) + `<div style="height:10px"></div>` : "" };
   }
   function engResult(ok) {
     const e = P.eng;
     if (ok) { e.up++; e.down = 0; if (e.up >= 3 && e.lvl < 9) { e.lvl++; e.up = 0; setTimeout(() => toast(`<span class="t-title">🇬🇧 ¡Level up!</span>Tu inglés sube al nivel ${e.lvl}. ¡Las preguntas serán un poco más difíciles!`, 3400), 1700); } }
     else { e.down++; e.up = 0; if (e.down >= 2 && e.lvl > 6) { e.lvl--; e.down = 0; } }
+  }
+  const SECRET_CARDS = [
+    { id: "unicornio", icon: "🦄", name: "Unicornio arcoíris" }, { id: "dragon", icon: "🐉", name: "Dragón dormilón" }, { id: "sirena", icon: "🧜‍♀️", name: "Sirena del lago" },
+    { id: "fenix", icon: "🔥", name: "Fénix de fuego" }, { id: "hada", icon: "🧚", name: "Hada de las flores" }, { id: "genio", icon: "🧞", name: "Genio de la lámpara" },
+    { id: "yeti", icon: "❄️", name: "Yeti amigable" }, { id: "pegaso", icon: "☁️", name: "Pegaso de nube" }, { id: "kraken", icon: "🐙", name: "Pulpo gigante" },
+    { id: "trol", icon: "🍄", name: "Seta parlanchina" }, { id: "elfo", icon: "🧝", name: "Elfo arquero" }, { id: "mago", icon: "🧙", name: "Maga de las estrellas" },
+    { id: "zombi", icon: "🍬", name: "Gominola viviente" }, { id: "robot", icon: "🤖", name: "Robot pastelero" }, { id: "alien", icon: "👽", name: "Marciano goloso" },
+    { id: "fantasma", icon: "👻", name: "Fantasma travieso" }
+  ];
+  function openSecret(si) {
+    if (!S || doorOpen(si)) return;
+    S.doors = S.doors || {}; S.doors[si] = 1; P.stats.doors = (P.stats.doors || 0) + 1;
+    const sc = LV.secrets && LV.secrets[si]; if (sc) { sc.door.visible = false; sc.room.visible = true; }
+    const q = L.secrets[si];
+    spawnSparks(wx(q.door[0]), 1, wx(q.door[1]), 26, 0xffd6ec); sfx.gate(); express("wow", 1500);
+    toast(`<span class="t-title">🚪 ¡Puerta secreta!</span>Dentro hay caramelos y un cromo secreto.`, 2600);
+    checkStickers(); saveNow(false);
+  }
+  function giveSecretCard(pos) {
+    P.cards = P.cards || [];
+    const free = SECRET_CARDS.filter(c => !P.cards.includes(c.id));
+    sfx.win(); express("happy", 1800); spawnSparks(pos.x, 1.4, pos.z, 26, 0xffd23f);
+    if (free.length) {
+      const c = pick(free); P.cards.push(c.id);
+      dmgText(pos.x, 2.8, pos.z, c.icon + " +15 🍬", "#e8457c");
+      toast(`<span class="t-title">🎴 ¡Cromo secreto!</span>${c.icon} ${c.name} · ${P.cards.length} de ${SECRET_CARDS.length} · +15 🍬`, 3200);
+      addCandies(15);
+    } else {
+      dmgText(pos.x, 2.8, pos.z, "+30 🍬", "#e8457c");
+      toast(`<span class="t-title">🎴 ¡Ya tienes todos los cromos secretos!</span>Te lo cambio por +30 🍬`, 2800);
+      addCandies(30);
+    }
+    renderStats(); saveNow(false);
   }
   function addCandies(n) { P.candies += n; P.stats.earned += n; checkStickers(); }
   const wStars = wi => [1, 2, 3, 4].every(k => (P.levels[wi * 4 + k] || {}).stars === 3);
@@ -2665,7 +2914,11 @@ window.addEventListener("error", function (e) {
     { id: "sc25", icon: "🪐", name: "Exploradora del espacio", desc: "Acierta 25 preguntas de ciencias", test: () => P.stats.sciOK >= 25 },
     { id: "giant5", icon: "🍭", name: "Buscadora de golosinas", desc: "Encuentra 5 golosinas gigantes escondidas", test: () => (P.stats.giants || 0) >= 5 },
     { id: "giant20", icon: "🕵️", name: "Detective dulce", desc: "Encuentra 20 golosinas gigantes escondidas", test: () => (P.stats.giants || 0) >= 20 },
-    { id: "minis", icon: "🎮", name: "Jugona", desc: "Gana los 10 minijuegos distintos", test: () => Object.keys(P.stats.minis).length >= 10 }
+    { id: "minis", icon: "🎮", name: "Jugona", desc: "Gana 10 minijuegos distintos", test: () => Object.keys(P.stats.minis).length >= 10 },
+    { id: "door1", icon: "🚪", name: "Pasadizo secreto", desc: "Abre tu primera puerta secreta", test: () => (P.stats.doors || 0) >= 1 },
+    { id: "cards8", icon: "🎴", name: "Coleccionista", desc: "Reúne 8 cromos secretos", test: () => (P.cards || []).length >= 8 },
+    { id: "cards16", icon: "🌟", name: "Álbum secreto completo", desc: "Reúne los 16 cromos secretos", test: () => (P.cards || []).length >= 16 },
+    { id: "words", icon: "🖼️", name: "Picture perfect", desc: "Gana el juego de palabras y dibujos", test: () => !!P.stats.minis.words }
   ];
   function checkStickers(silent) {
     const fresh = STICKERS.filter(s => !P.stickers.includes(s.id) && s.test());
@@ -2680,6 +2933,10 @@ window.addEventListener("error", function (e) {
     overlay(`<div class="tag">Álbum de cromos</div><h2>Mi colección</h2>
       <div class="summary"><span class="pill">📒 ${P.stickers.length} de ${STICKERS.length} cromos</span><span class="pill">🍬 ${P.candies}</span></div>
       <p class="story" style="margin:0 0 8px">Cada cromo nuevo te regala 10 caramelos.</p>
+      <h3>🎴 Cromos secretos · ${(P.cards || []).length} de ${SECRET_CARDS.length}</h3>
+      <p class="story" style="margin:0 0 8px">Están detrás de las <b>puertas secretas</b>: bloques de pared que brillan. Empújalos o lánzales un rayo.</p>
+      <div class="album" style="margin-bottom:10px">${SECRET_CARDS.map(c => { const has = (P.cards || []).includes(c.id); return `<div class="sticker ${has ? "got" : ""}"><div class="st-ic">${has ? c.icon : "❔"}</div><b>${has ? c.name : "¿?"}</b></div>`; }).join("")}</div>
+      <h3>📒 Cromos de logros</h3>
       <div class="album">${STICKERS.map(s => { const has = P.stickers.includes(s.id); return `<div class="sticker ${has ? "got" : ""}"><div class="st-ic">${has ? s.icon : "❔"}</div><b>${has ? s.name : "¿?"}</b><span>${s.desc}</span></div>`; }).join("")}</div>
       <div class="row"><button class="btn primary" id="alBack">Volver</button></div>`);
     $("alBack").onclick = back;
@@ -2766,7 +3023,8 @@ window.addEventListener("error", function (e) {
     function stop() { clearInterval(timer); timer = null; if (out) { try { out.gain.setTargetAtTime(0, audio.currentTime, .1); } catch (e) {} out = null; } }
     return {
       set(name) { if (cur && cur.name === name) return; const t = TR[name] || TR.menu; cur = Object.assign({ name }, t); cur.mel = mel(cur); step = 0; if (timer) { stop(); } this.update(); },
-      update() { if (P.music !== false && audio && audio.state === "running") start(); else if (P.music === false) stop(); }
+      update() { if (P.music !== false && audio && audio.state === "running") start(); else if (P.music === false) stop(); },
+      duck(on) { try { if (out && audio) out.gain.setTargetAtTime(on ? .12 : .55, audio.currentTime, .12); } catch (e) {} }
     };
   })();
   function unlockAudio() {
@@ -2887,8 +3145,8 @@ window.addEventListener("error", function (e) {
     (sup ? [-.2, 0, .2] : [0]).forEach(off => {
       const b = LV.bolts.find(x => x.life <= 0); if (!b) return;
       const aa = a + off; b.vx = Math.sin(aa) * 16; b.vz = Math.cos(aa) * 16; b.life = .8; b.pow = pow;
-      // Cada rayo sale de un color del arcoíris y va cambiando de tono mientras vuela
-      b.h = RAY_HUES[rayIx++ % RAY_HUES.length]; b.m.material.color.setHSL(b.h, 1, .62);
+      // Cada rayo sale de un color pastel distinto y va cambiando de tono mientras vuela
+      b.h = RAY_HUES[rayIx++ % RAY_HUES.length]; b.m.material.color.setHSL(b.h, .9, .8);
       const sc = sup ? 1.7 : u >= 4 ? 1.4 : 1.15; b.m.scale.set(sc, sc, 3);
       b.m.position.set(S.px + Math.sin(aa) * .6, 1.1, S.pz + Math.cos(aa) * .6); b.m.rotation.y = aa; b.m.visible = true;
     });
