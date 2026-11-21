@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#ffd23f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Batalla de Banderas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
+<style>
+/* VOICE: alegre y rápido, un concurso de mesa entre papá/mamá e hija.
+   IDEA: un tablero de duelo; cada mitad es el campo de un jugador y las banderas que aciertas se "capturan".
+   PICTURE: desfile de banderas en el menú; en juego, la bandera gigante de cada ronda.
+   COLOUR and TYPE: sol amarillo, azul para el jugador 1, tomate para el jugador 2; Fredoka redonda.
+   LAYOUT: menú en una columna; juego a pantalla completa partido en dos, la mitad de arriba girada. */
+:root{--sun:#ffd23f;--ink:#1b1740;--p1:#1f6feb;--p1d:#1246a8;--p2:#ff5a4e;--p2d:#c7362c;--ok:#12b76a;--card:#fff;color-scheme:light}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none}
+body{font:500 16px/1.4 Fredoka,"Trebuchet MS",system-ui,sans-serif;color:var(--ink);background:var(--sun);
+  touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.screen{position:fixed;inset:0;display:none}
+.screen.on{display:block}
+.fl-e{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;line-height:1}
+
+/* ---------- Menú ---------- */
+#menu{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:env(safe-area-inset-top) env(safe-area-inset-right) calc(env(safe-area-inset-bottom) + 24px) env(safe-area-inset-left)}
+.hero{text-align:center;padding:22px 16px 6px}
+h1{font-size:clamp(36px,8vw,58px);line-height:1.02;margin:0 0 6px;font-weight:700;text-wrap:balance;letter-spacing:-.5px}
+.hero p{margin:0 auto;max-width:34em;font-size:17px}
+.parade{overflow:hidden;padding:14px 0 6px;display:grid;gap:6px;mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.prow{display:flex;gap:14px;width:max-content;font-size:clamp(40px,9vw,62px);animation:slide 60s linear infinite}
+.prow:nth-child(2){animation-direction:reverse;animation-duration:70s}
+@keyframes slide{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.prow{animation:none}}
+.panel{max-width:780px;margin:0 auto;padding:6px 16px 0;display:grid;gap:16px}
+.grp>span{display:block;font-weight:600;margin:0 0 6px;font-size:15px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{min-height:44px;padding:8px 14px;border-radius:999px;border:2px solid var(--ink);background:#fff8;font-weight:600;font-size:15px}
+.seg button.on{background:var(--ink);color:#fff}
+.seg small{display:block;font-weight:500;font-size:12px;opacity:.8}
+.players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:560px){.players{grid-template-columns:1fr}}
+.pc{border-radius:20px;padding:14px;color:#fff;display:grid;gap:10px;box-shadow:0 6px 0 rgba(0,0,0,.18)}
+.pc.a{background:var(--p1)}.pc.b{background:var(--p2)}
+.pc label{font-weight:600;font-size:14px;display:grid;gap:4px}
+.pc input{font:600 18px Fredoka,sans-serif;border:0;border-radius:12px;padding:10px 12px;min-height:44px;color:var(--ink);width:100%;user-select:text;-webkit-user-select:text}
+.pc .seg button{border-color:#fff;background:transparent;color:#fff}
+.pc .seg button.on{background:#fff;color:var(--ink)}
+.pc .where{font-size:13px;opacity:.9;margin:0}
+.go{min-height:64px;border:0;border-radius:22px;background:var(--ink);color:#fff;font-size:26px;font-weight:700;box-shadow:0 7px 0 #0009;margin:4px 0 8px}
+.go:active{transform:translateY(4px);box-shadow:0 3px 0 #0009}
+.note{font-size:13px;text-align:center;margin:0;opacity:.75}
+
+/* ---------- Juego ---------- */
+#game{display:none;flex-direction:column;height:100vh;height:100dvh;background:var(--ink)}
+#game.on{display:flex}
+#game.row{flex-direction:row}
+.half{flex:1;position:relative;container-type:size;display:flex;flex-direction:column;overflow:hidden;
+  padding:10px max(12px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-bottom))}
+.half.p1{background:var(--p1)}.half.p2{background:var(--p2);padding-top:10px}
+#game.face .half.p2{transform:rotate(180deg);padding-bottom:max(12px,env(safe-area-inset-top))}
+#game.cpu .half.p2{display:none}
+#game.row .half{padding-top:max(10px,env(safe-area-inset-top))}
+.mid{flex:none;height:46px;display:flex;align-items:center;gap:10px;padding:0 10px}
+#game.row .mid{height:auto;width:46px;flex-direction:column;padding:10px 0}
+.tug{flex:1;align-self:center;height:12px;width:100%;border-radius:99px;overflow:hidden;display:flex;background:#fff3}
+#game.row .tug{height:100%;width:12px;flex-direction:column}
+.tug i{flex:1;transition:flex-grow .6s ease}
+.tug i:first-child{background:#7fb0ff}.tug i:last-child{background:#ff9a91}
+.pause{flex:none;width:40px;height:40px;border-radius:50%;border:0;background:#fff;color:var(--ink);font-weight:700;font-size:15px}
+header{display:flex;align-items:center;gap:8px;color:#fff;font-size:clamp(14px,5cqmin,26px);font-weight:600;min-height:34px}
+header .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34%}
+header .cap{flex:1;white-space:nowrap;overflow:hidden;font-size:1.15em;letter-spacing:2px;-webkit-mask-image:linear-gradient(90deg,#000 80%,transparent);mask-image:linear-gradient(90deg,#000 80%,transparent)}
+header .rv{font-size:.8em;opacity:.85;white-space:nowrap}
+header .sc{background:#fff;color:var(--ink);border-radius:99px;padding:2px 12px;white-space:nowrap}
+.body{flex:1;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:3cqmin;padding-top:2cqmin}
+@container (min-aspect-ratio: 8/5){.body{grid-template-rows:minmax(0,1fr);grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);align-items:center}}
+.prompt{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;gap:1cqmin}
+.ask{font-size:clamp(14px,3.8cqmin,22px);opacity:.92}
+.big{font-size:18vmin;font-size:32cqmin;filter:drop-shadow(0 6px 0 rgba(0,0,0,.22))}
+@container (min-aspect-ratio: 8/5){.big{font-size:44cqh}.ask{font-size:clamp(14px,5.5cqh,26px)}.op{font-size:clamp(16px,6.5cqh,32px);min-height:max(52px,19cqh)}.op.fl-e{font-size:clamp(34px,15cqh,90px)}.msg{left:23%;max-width:44%}}
+.big.txt{font-family:Fredoka,sans-serif;font-weight:700;font-size:clamp(26px,9cqmin,64px);line-height:1.05;text-wrap:balance;filter:none;text-shadow:0 4px 0 rgba(0,0,0,.2)}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2.5cqmin}
+.opts.n6{grid-template-columns:repeat(3,minmax(0,1fr))}
+@container (max-width:560px){.opts.n6.names{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.op{background:var(--card);border:0;border-radius:16px;min-height:max(50px,12cqh);padding:6px 8px;
+  font-weight:600;font-size:clamp(15px,4.2cqmin,26px);line-height:1.1;color:var(--ink);box-shadow:0 5px 0 rgba(0,0,0,.25);transition:opacity .2s,background .2s}
+.op.fl-e{font-size:clamp(34px,12cqmin,84px)}
+.op:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.op.good{background:var(--ok);color:#fff;animation:pop .35s}
+.op.bad{background:var(--ink);color:#fff;animation:shake .4s}
+.half.locked .op:not(.good):not(.bad),.half.done .op:not(.good):not(.bad){opacity:.4}
+@keyframes shake{25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-4px)}}
+@keyframes pop{50%{transform:scale(1.08)}}
+.msg{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%) scale(.85);opacity:0;pointer-events:none;z-index:5;
+  background:#fff;color:var(--ink);padding:10px 18px;border-radius:20px;font-weight:700;text-align:center;max-width:92%;
+  font-size:clamp(17px,5cqmin,32px);box-shadow:0 8px 0 rgba(0,0,0,.2);transition:opacity .2s,transform .2s}
+.msg.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.msg.cd{background:none;box-shadow:none;color:#fff;font-size:30cqmin;text-shadow:0 8px 0 rgba(0,0,0,.25);top:45%}
+.msg small{display:block;font-weight:500;font-size:.7em}
+.end{position:absolute;inset:0;z-index:6;display:none;flex-direction:column;align-items:center;justify-content:center;gap:2.5cqmin;
+  background:rgba(27,23,64,.9);color:#fff;text-align:center;padding:16px}
+.end.on{display:flex}
+.end h2{margin:0;font-size:clamp(30px,11cqmin,72px);line-height:1}
+.end p{margin:0;font-size:clamp(15px,4.4cqmin,24px);max-width:30em}
+.end .flags{font-size:clamp(22px,6cqmin,40px);letter-spacing:3px;max-width:100%;overflow:hidden;white-space:nowrap}
+.end .btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.end button{min-height:52px;padding:8px 22px;border-radius:18px;border:0;font-weight:700;font-size:clamp(17px,4.6cqmin,24px);background:var(--sun);color:var(--ink);box-shadow:0 5px 0 #0008}
+.end button.alt{background:#fff}
+#pauseBox{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;gap:16px;background:rgba(27,23,64,.85);flex-wrap:wrap}
+#pauseBox.on{display:flex}
+#pauseBox button{min-height:60px;padding:10px 28px;border-radius:20px;border:0;font-size:22px;font-weight:700;background:var(--sun);color:var(--ink)}
+#pauseBox button+button{background:#fff}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+</style>
+</head>
+<body>
+
+<main id="menu" class="screen on">
+  <div class="hero">
+    <h1>Batalla de Banderas</h1>
+    <p>Sale una bandera: el primero que toque el país correcto se la queda. ¡Gana quien capture más!</p>
+  </div>
+  <div class="parade fl-e" id="parade" aria-hidden="true"></div>
+  <div class="panel">
+    <div class="grp"><span>¿Cómo jugáis?</span><div class="seg" id="sMode"></div></div>
+    <div class="players">
+      <div class="pc a">
+        <label>Jugador azul<input id="n0" maxlength="12" autocomplete="off"></label>
+        <div class="seg" id="sL0"></div>
+        <p class="where" id="w0"></p>
+      </div>
+      <div class="pc b">
+        <label id="lb1">Jugador rojo<input id="n1" maxlength="12" autocomplete="off"></label>
+        <div class="seg" id="sL1"></div>
+        <p class="where" id="w1"></p>
+      </div>
+    </div>
+    <div class="grp"><span>Pregunta</span><div class="seg" id="sQ"></div></div>
+    <div class="grp"><span>Banderas de…</span><div class="seg" id="sR"></div></div>
+    <div class="grp"><span>Gana quien capture</span><div class="seg" id="sG"></div></div>
+    <div class="grp"><span>Decir el nombre en voz alta</span><div class="seg" id="sV"></div></div>
+    <button class="go" id="go">¡A jugar!</button>
+    <p class="note">Cada jugador elige su nivel: con «Fácil» solo hay 2 opciones, así los peques pueden ganar a los mayores.</p>
+  </div>
+</main>
+
+<div id="game" class="screen">
+  <section class="half p2" id="h1"></section>
+  <div class="mid"><div class="tug"><i id="t0"></i><i id="t1"></i></div><button class="pause" id="pz" aria-label="Pausa">❚❚</button></div>
+  <section class="half p1" id="h0"></section>
+</div>
+<div id="pauseBox"><button id="resume">▶ Seguir</button><button id="quit">Salir al menú</button></div>
+<canvas id="fx"></canvas>
+
+<script>
+{
+// ---------- Datos: código ISO : nombre : continente (e Europa, a América, s Asia, f África, o Oceanía) ; * = famosa ----------
+const RAW = "es:España:e*;fr:Francia:e*;it:Italia:e*;de:Alemania:e*;pt:Portugal:e*;gb:Reino Unido:e*;ie:Irlanda:e*;nl:Países Bajos:e*;be:Bélgica:e*;lu:Luxemburgo:e;ch:Suiza:e*;at:Austria:e;dk:Dinamarca:e;no:Noruega:e;se:Suecia:e*;fi:Finlandia:e;is:Islandia:e;pl:Polonia:e;cz:Chequia:e;sk:Eslovaquia:e;hu:Hungría:e;ro:Rumanía:e;bg:Bulgaria:e;gr:Grecia:e*;hr:Croacia:e;si:Eslovenia:e;rs:Serbia:e;ba:Bosnia y Herzegovina:e;me:Montenegro:e;mk:Macedonia del Norte:e;al:Albania:e;xk:Kosovo:e;ua:Ucrania:e*;by:Bielorrusia:e;md:Moldavia:e;ru:Rusia:e*;ee:Estonia:e;lv:Letonia:e;lt:Lituania:e;mt:Malta:e;cy:Chipre:e;ad:Andorra:e;mc:Mónaco:e;sm:San Marino:e;va:Vaticano:e;li:Liechtenstein:e;"+
+"us:Estados Unidos:a*;ca:Canadá:a*;mx:México:a*;gt:Guatemala:a;bz:Belice:a;sv:El Salvador:a;hn:Honduras:a;ni:Nicaragua:a;cr:Costa Rica:a;pa:Panamá:a;cu:Cuba:a;do:República Dominicana:a;ht:Haití:a;jm:Jamaica:a*;pr:Puerto Rico:a;bs:Bahamas:a;bb:Barbados:a;tt:Trinidad y Tobago:a;gd:Granada:a;lc:Santa Lucía:a;vc:San Vicente y las Granadinas:a;ag:Antigua y Barbuda:a;dm:Dominica:a;kn:San Cristóbal y Nieves:a;co:Colombia:a*;ve:Venezuela:a;ec:Ecuador:a;pe:Perú:a*;bo:Bolivia:a;cl:Chile:a*;ar:Argentina:a*;uy:Uruguay:a;py:Paraguay:a;br:Brasil:a*;gy:Guyana:a;sr:Surinam:a;"+
+"cn:China:s*;jp:Japón:s*;kr:Corea del Sur:s*;kp:Corea del Norte:s;in:India:s*;pk:Pakistán:s;bd:Bangladés:s;np:Nepal:s;bt:Bután:s;lk:Sri Lanka:s;mv:Maldivas:s;af:Afganistán:s;ir:Irán:s;iq:Irak:s;sy:Siria:s;lb:Líbano:s;il:Israel:s;jo:Jordania:s;sa:Arabia Saudí:s;ye:Yemen:s;om:Omán:s;ae:Emiratos Árabes Unidos:s;qa:Catar:s;bh:Baréin:s;kw:Kuwait:s;tr:Turquía:s*;ge:Georgia:s;am:Armenia:s;az:Azerbaiyán:s;kz:Kazajistán:s;uz:Uzbekistán:s;tm:Turkmenistán:s;kg:Kirguistán:s;tj:Tayikistán:s;mn:Mongolia:s;th:Tailandia:s;vn:Vietnam:s;la:Laos:s;kh:Camboya:s;mm:Myanmar:s;my:Malasia:s;sg:Singapur:s;id:Indonesia:s;ph:Filipinas:s;bn:Brunéi:s;tl:Timor Oriental:s;"+
+"ma:Marruecos:f*;dz:Argelia:f;tn:Túnez:f;ly:Libia:f;eg:Egipto:f*;sd:Sudán:f;ss:Sudán del Sur:f;et:Etiopía:f;er:Eritrea:f;dj:Yibuti:f;so:Somalia:f;ke:Kenia:f*;ug:Uganda:f;rw:Ruanda:f;bi:Burundi:f;tz:Tanzania:f;mz:Mozambique:f;mw:Malaui:f;zm:Zambia:f;zw:Zimbabue:f;bw:Botsuana:f;na:Namibia:f;za:Sudáfrica:f*;ls:Lesoto:f;sz:Esuatini:f;mg:Madagascar:f;mu:Mauricio:f;sc:Seychelles:f;km:Comoras:f;ao:Angola:f;cd:RD del Congo:f;cg:Congo:f;ga:Gabón:f;gq:Guinea Ecuatorial:f;cm:Camerún:f;cf:República Centroafricana:f;td:Chad:f;ne:Níger:f;ng:Nigeria:f*;bj:Benín:f;tg:Togo:f;gh:Ghana:f;ci:Costa de Marfil:f;bf:Burkina Faso:f;ml:Malí:f;sn:Senegal:f;gm:Gambia:f;gw:Guinea-Bisáu:f;gn:Guinea:f;sl:Sierra Leona:f;lr:Liberia:f;mr:Mauritania:f;cv:Cabo Verde:f;st:Santo Tomé y Príncipe:f;"+
+"au:Australia:o*;nz:Nueva Zelanda:o*;pg:Papúa Nueva Guinea:o;fj:Fiyi:o;sb:Islas Salomón:o;vu:Vanuatu:o;ws:Samoa:o;to:Tonga:o;ki:Kiribati:o;tv:Tuvalu:o;nr:Nauru:o;pw:Palaos:o;fm:Micronesia:o;mh:Islas Marshall:o";
+const flag = c => String.fromCodePoint(...[...c.toUpperCase()].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65));
+const C = RAW.split(";").map(s => { const [c,n,k] = s.split(":"); return {c, n, k:k[0], f:k.includes("*"), e:flag(c)}; });
+const FAM = C.filter(x => x.f);
+// Banderas casi idénticas: nunca salen juntas como opciones
+const SIM = {td:["ro"],ro:["td"],mc:["id"],id:["mc"],nl:["lu"],lu:["nl"]};
+const $ = id => document.getElementById(id);
+const rnd = (a,b) => a + Math.random()*(b-a);
+const shuffle = a => { a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+// ---------- Ajustes ----------
+const DEF = {mode:"face", q:"flag", region:"fam", goal:10, voice:true, names:["Jugador 1","Jugador 2"], lv:[4,2]};
+let S = DEF;
+try { S = Object.assign({}, DEF, JSON.parse(localStorage.getItem("banderas") || "{}")); } catch(e) {}
+const save = () => { try { localStorage.setItem("banderas", JSON.stringify(S)); } catch(e) {} };
+
+const MODES = [["face","Cara a cara","tablet en la mesa"],["side","Lado a lado","juntos, mismo lado"],["cpu","Contra el robot","1 jugador"]];
+const LEVELS = [[2,"Fácil","2 opciones"],[4,"Normal","4 opciones"],[6,"Experto","6 opciones"]];
+const QS = [["flag","Bandera → país"],["name","País → bandera"],["mix","Mezcla"]];
+const REG = [["fam","Las famosas"],["all","Todo el mundo"],["e","Europa"],["a","América"],["s","Asia"],["f","África"],["o","Oceanía"]];
+const GOALS = [[5,"5 banderas"],[10,"10 banderas"],[15,"15 banderas"]];
+const VOICE = [[true,"Sí"],[false,"No"]];
+
+function seg(el, opts, get, set){
+  const draw = () => { el.innerHTML = opts.map(o => `<button type="button" class="${get()===o[0]?"on":""}">${o[1]}${o[2]?`<small>${o[2]}</small>`:""}</button>`).join(""); };
+  el.addEventListener("click", ev => { const b = ev.target.closest("button"); if (!b) return; const i=[...el.children].indexOf(b); set(opts[i][0]); save(); refresh(); });
+  return draw;
+}
+const draws = [
+  seg($("sMode"), MODES, () => S.mode, v => S.mode = v),
+  seg($("sL0"), LEVELS, () => S.lv[0], v => S.lv[0] = v),
+  seg($("sL1"), LEVELS, () => S.lv[1], v => S.lv[1] = v),
+  seg($("sQ"), QS, () => S.q, v => S.q = v),
+  seg($("sR"), REG, () => S.region, v => S.region = v),
+  seg($("sG"), GOALS, () => S.goal, v => S.goal = v),
+  seg($("sV"), VOICE, () => S.voice, v => S.voice = v),
+];
+function refresh(){
+  draws.forEach(d => d());
+  const cpu = S.mode === "cpu";
+  $("n1").disabled = cpu;
+  $("n1").value = cpu ? "Robot" : S.names[1];
+  $("lb1").firstChild.textContent = cpu ? "El robot" : "Jugador rojo";
+  $("w0").textContent = S.mode==="face" ? "Se sienta en el lado de abajo." : S.mode==="side" ? "Juega en la mitad azul." : "Juegas tú solo contra el robot.";
+  $("w1").textContent = S.mode==="face" ? "Se sienta enfrente: su mitad sale girada." : S.mode==="side" ? "Juega en la mitad roja." : "Nivel del robot: ¿qué tan listo es?";
+}
+$("n0").value = S.names[0];
+$("n0").addEventListener("input", e => { S.names[0] = e.target.value; save(); });
+$("n1").addEventListener("input", e => { if (S.mode!=="cpu"){ S.names[1] = e.target.value; save(); } });
+refresh();
+{ // desfile de banderas
+  const sh = shuffle(C), half = Math.ceil(sh.length/2);
+  const row = list => `<div class="prow">${(list.map(x=>`<span>${x.e}</span>`).join("")).repeat(2)}</div>`;
+  $("parade").innerHTML = row(sh.slice(0,half)) + row(sh.slice(half));
+}
+
+// ---------- Sonido y voz ----------
+let AC = null;
+function tone(f, t0, d, type="sine", v=.18){
+  if (!AC) return; const o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime + t0;
+  o.type = type; o.frequency.value = f; g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.001, t + d);
+  o.connect(g).connect(AC.destination); o.start(t); o.stop(t + d + .02);
+}
+const sfx = {
+  good(){ tone(660,0,.12,"triangle"); tone(880,.1,.18,"triangle"); },
+  bad(){ tone(200,0,.25,"square",.08); },
+  tick(){ tone(520,0,.09,"triangle",.12); },
+  go(){ tone(780,0,.2,"triangle"); },
+  win(){ [523,659,784,1046].forEach((f,i)=>tone(f,i*.13,.3,"triangle")); },
+};
+function speak(text){
+  if (!S.voice || !("speechSynthesis" in window)) return;
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = "es-ES"; u.rate = .95; speechSynthesis.speak(u); } catch(e) {}
+}
+
+// ---------- Juego ----------
+const G = $("game"), H = [$("h0"), $("h1")];
+let P = [], deck = [], pool = [], cur = null, qType = "flag", roundOver = true, over = false, paused = false, inCountdown = false;
+let timers = [], cpuT = null;
+const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; };
+const clearAll = () => { timers.forEach(clearTimeout); timers = []; clearTimeout(cpuT); cpuT = null; };
+
+H.forEach((h, i) => {
+  h.innerHTML = `<header><b class="nm"></b><span class="cap fl-e"></span><span class="rv"></span><span class="sc"></span></header>
+    <div class="body"><div class="prompt"><div class="ask"></div><div class="big"></div></div><div class="opts"></div></div>
+    <div class="msg"></div>
+    <div class="end"><h2></h2><p class="t"></p><div class="flags fl-e"></div><div class="btns"><button class="again">Revancha</button><button class="alt home">Menú</button></div></div>`;
+  h.querySelector(".opts").addEventListener("pointerdown", ev => {
+    const b = ev.target.closest(".op"); if (!b) return; ev.preventDefault(); pick(i, b);
+  });
+  h.querySelector(".again").addEventListener("click", start);
+  h.querySelector(".home").addEventListener("click", toMenu);
+});
+const q = (i, sel) => H[i].querySelector(sel);
+
+function msg(i, html, cls="", ms=0){
+  if (P[i] && P[i].cpu) return;
+  const m = q(i, ".msg"); m.className = "msg on " + cls; m.innerHTML = html;
+  if (ms) later(() => m.classList.remove("on"), ms);
+}
+const hideMsg = i => q(i, ".msg").classList.remove("on");
+const humans = () => P.map((p,i)=>i).filter(i => !P[i].cpu);
+
+function start(){
+  clearAll(); try { window.speechSynthesis && speechSynthesis.cancel(); } catch(e) {}
+  const cpu = S.mode === "cpu";
+  P = [0,1].map(i => ({ name: (i===1 && cpu) ? "Robot" : ((S.names[i]||"").trim() || `Jugador ${i+1}`), lv: S.lv[i], cpu: i===1 && cpu, score:0, got:[], locked:false }));
+  pool = S.region==="all" ? C : S.region==="fam" ? FAM : C.filter(x => x.k === S.region);
+  deck = shuffle(pool);
+  over = false; paused = false;
+  G.className = "screen on " + (cpu ? "cpu" : S.mode==="face" ? "face" : "side");
+  layout();
+  $("menu").classList.remove("on");
+  H.forEach((h,i) => { h.classList.remove("locked","done"); q(i,".end").classList.remove("on"); q(i,".opts").innerHTML=""; q(i,".big").textContent=""; q(i,".ask").textContent=""; hideMsg(i); });
+  score();
+  countdown(3);
+}
+function layout(){
+  // "Lado a lado" en horizontal: mitades una junto a otra
+  G.classList.toggle("row", S.mode==="side" && innerWidth > innerHeight);
+}
+addEventListener("resize", () => { if (G.classList.contains("on")) layout(); });
+
+function countdown(n){
+  inCountdown = true; roundOver = true;
+  if (n === 0){ humans().forEach(i => msg(i, "¡Ya!", "cd", 500)); sfx.go(); later(() => { inCountdown = false; newRound(); }, 450); return; }
+  humans().forEach(i => msg(i, n, "cd")); sfx.tick();
+  later(() => countdown(n-1), 750);
+}
+
+function nextCountry(){ if (!deck.length) deck = shuffle(pool.filter(x => !cur || x.c !== cur.c)); return deck.pop(); }
+
+function options(c, n){
+  const bad = x => x.c === c.c || (SIM[c.c]||[]).includes(x.c);
+  const src = S.region==="fam" ? FAM : n >= 6 ? C.filter(x => x.k === c.k) : pool;
+  const out = [c];
+  for (const list of [shuffle(src), shuffle(C)])
+    for (const x of list){
+      if (out.length >= n) break;
+      if (bad(x) || out.includes(x) || out.some(o => (SIM[o.c]||[]).includes(x.c))) continue;
+      out.push(x);
+    }
+  return shuffle(out);
+}
+
+function newRound(){
+  if (over || paused) return;
+  cur = nextCountry(); roundOver = false;
+  qType = S.q === "mix" ? (Math.random() < .5 ? "flag" : "name") : S.q;
+  P.forEach((p, i) => {
+    p.locked = false;
+    if (p.cpu) return;
+    const h = H[i]; h.classList.remove("locked","done"); hideMsg(i);
+    const opts = options(cur, p.lv);
+    q(i,".ask").textContent = qType === "flag" ? "¿De qué país es esta bandera?" : "¿Cuál es la bandera de…";
+    const big = q(i,".big");
+    big.className = "big " + (qType === "flag" ? "fl-e" : "txt");
+    big.textContent = qType === "flag" ? cur.e : cur.n;
+    const box = q(i,".opts");
+    box.className = `opts n${p.lv} ${qType === "flag" ? "names" : "flags"}`;
+    box.innerHTML = opts.map(o => `<button type="button" class="op ${qType==="flag"?"":"fl-e"}" data-c="${o.c}" aria-label="${o.n}">${qType==="flag" ? o.n : o.e}</button>`).join("");
+  });
+  if (P[1].cpu) cpuPlan();
+}
+
+function cpuPlan(fast){
+  clearTimeout(cpuT);
+  const lv = P[1].lv;
+  const [a, b, acc] = lv === 2 ? [3.5, 6.5, .55] : lv === 4 ? [2.2, 4.5, .72] : [1.4, 3, .88];
+  const ms = fast ? rnd(500, 1000) : rnd(a, b) * 1000 + (qType === "name" ? 500 : 0);
+  cpuT = setTimeout(() => {
+    if (roundOver || over || paused) return;
+    if (Math.random() < acc) return win(1);
+    P[1].locked = true; msg(0, "El robot ha fallado", "", 900); checkAll();
+  }, ms);
+}
+
+function pick(i, b){
+  const p = P[i];
+  if (roundOver || over || paused || p.locked) return;
+  if (b.dataset.c === cur.c) return win(i);
+  p.locked = true; b.classList.add("bad"); H[i].classList.add("locked"); sfx.bad();
+  try { navigator.vibrate && navigator.vibrate(120); } catch(e) {}
+  msg(i, "¡Uy! Espera a la siguiente");
+  if (P[1].cpu && !P[1].locked) cpuPlan(true);
+  checkAll();
+}
+
+function reveal(){
+  humans().forEach(i => { H[i].classList.add("done"); const g = q(i, `.op[data-c="${cur.c}"]`); if (g) g.classList.add("good"); });
+}
+function checkAll(){
+  if (roundOver || !P.every(p => p.locked)) return;
+  roundOver = true; reveal(); speak(cur.n);
+  humans().forEach(i => msg(i, `Era ${cur.n}<small class="fl-e">${cur.e}</small>`));
+  later(newRound, 2300);
+}
+
+function win(i){
+  roundOver = true; clearTimeout(cpuT);
+  const p = P[i]; p.score++; p.got.unshift(cur.e);
+  sfx.good(); speak(cur.n); reveal();
+  humans().forEach(j => {
+    if (j === i) msg(j, `¡Bien! +1<small>${cur.n} ${cur.e}</small>`);
+    else msg(j, `¡${p.name} fue más rápido!<small>Era ${cur.n} ${cur.e}</small>`);
+  });
+  score();
+  if (p.score >= S.goal) later(end, 1500); else later(newRound, 2000);
+}
+
+function score(){
+  P.forEach((p, i) => {
+    const o = P[1-i];
+    q(i,".nm").textContent = p.name;
+    q(i,".cap").textContent = p.got.join("");
+    q(i,".sc").textContent = `${p.score}/${S.goal}`;
+    q(i,".rv").textContent = `${o.name}: ${o.score}`;
+  });
+  $("t0").style.flexGrow = P[0].score + 1;
+  $("t1").style.flexGrow = P[1].score + 1;
+}
+
+function end(){
+  over = true; clearAll(); sfx.win();
+  const w = P[0].score >= P[1].score ? 0 : 1;
+  speak(`¡Ha ganado ${P[w].name}!`);
+  humans().forEach(i => {
+    hideMsg(i);
+    const e = q(i, ".end"), me = P[i];
+    e.querySelector("h2").textContent = i === w ? "¡Has ganado!" : "¡Casi!";
+    e.querySelector(".t").textContent = i === w
+      ? `Capturaste ${me.score} banderas. ${P[1-i].name} se quedó con ${P[1-i].score}.`
+      : `Esta vez ganó ${P[w].name}, ${P[w].score} a ${me.score}. ¿Revancha?`;
+    e.querySelector(".flags").textContent = me.got.slice().reverse().join("");
+    e.classList.add("on");
+  });
+  confetti();
+}
+
+function toMenu(){
+  clearAll(); over = true; paused = false; $("pauseBox").classList.remove("on");
+  G.classList.remove("on"); $("menu").classList.add("on"); refresh();
+}
+
+$("pz").addEventListener("click", () => { if (over) return; paused = true; clearAll(); $("pauseBox").classList.add("on"); });
+$("resume").addEventListener("click", () => {
+  paused = false; $("pauseBox").classList.remove("on");
+  if (inCountdown || roundOver){ inCountdown = false; humans().forEach(hideMsg); newRound(); }
+  else if (P[1].cpu && !P[1].locked) cpuPlan();
+});
+$("quit").addEventListener("click", toMenu);
+
+$("go").addEventListener("click", () => {
+  try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume && AC.resume(); } catch(e) {}
+  try { if (matchMedia("(pointer:coarse)").matches && document.documentElement.requestFullscreen && !document.fullscreenElement)
+    document.documentElement.requestFullscreen().catch(() => {}); } catch(e) {}
+  speak(" ");
+  start();
+});
+
+// ---------- Confeti ----------
+const cv = $("fx"), cx = cv.getContext("2d");
+function confetti(){
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const W = cv.width = innerWidth, Hh = cv.height = innerHeight;
+  const cols = ["#ffd23f","#1f6feb","#ff5a4e","#12b76a","#ffffff"];
+  const ps = Array.from({length:140}, () => ({x:rnd(0,W), y:rnd(-Hh,0), vx:rnd(-1.5,1.5), vy:rnd(2,5), r:rnd(4,9), a:rnd(0,6), c:cols[Math.random()*5|0]}));
+  const t0 = performance.now();
+  (function f(t){
+    cx.clearRect(0,0,W,Hh);
+    if (t - t0 > 3500) return;
+    ps.forEach(p => { p.x += p.vx; p.y += p.vy; p.a += .1; cx.fillStyle = p.c; cx.save(); cx.translate(p.x,p.y); cx.rotate(p.a); cx.fillRect(-p.r/2,-p.r/4,p.r,p.r/2); cx.restore(); });
+    requestAnimationFrame(f);
+  })(t0);
+}
+}
+</script>
+</body>
+</html>
