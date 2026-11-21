@@ -1,0 +1,1730 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#6c4cf5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lumi Mates">
+<title>Lumi · Tu tutora de mates</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap">
+<style>
+/* Layout: pantallas a pantalla completa. En la lección: cabecera, tutora (Lumi + bocadillo), zona de trabajo táctil y zona de respuesta.
+   En tablet horizontal, la tutora y la respuesta van a la izquierda y la zona de trabajo a la derecha. */
+:root{
+  --bg:#f4f0ff; --card:#ffffff; --ink:#2b2350; --muted:#7a72a0; --line:#e3dcff;
+  --primary:#6c4cf5; --primary-d:#5235d6; --accent:#ffb020; --ok:#22b573; --bad:#ff6b6b;
+  --font:"Baloo 2","Trebuchet MS","Segoe UI",Roboto,system-ui,sans-serif;
+  --r:18px; --cw:42px; --key:52px;
+  color-scheme:light;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
+body{font-family:var(--font);color:var(--ink);background:var(--bg);font-size:18px;line-height:1.35;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation}
+button{font-family:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+input{font-family:inherit}
+.hidden{display:none!important}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;height:100vh;height:100dvh;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.btn{border:0;border-radius:14px;padding:12px 18px;font-size:19px;font-weight:700;background:var(--primary);color:#fff;
+  box-shadow:0 4px 0 var(--primary-d);transition:transform .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--primary-d)}
+.btn.ghost{background:#fff;color:var(--primary);box-shadow:0 3px 0 var(--line)}
+.btn.big{font-size:22px;padding:14px 26px}
+.btn.ok{background:var(--ok);box-shadow:0 4px 0 #178a56}
+
+/* ---------- Lumi ---------- */
+.lumi{width:72px;height:72px;flex:0 0 auto}
+.lumi .eye{animation:blink 4.5s infinite;transform-origin:center;transform-box:fill-box}
+.lumi .mouth{transform-origin:center;transform-box:fill-box}
+.lumi.talking .mouth{animation:talk .22s infinite alternate}
+.lumi.happy{animation:hop .5s 2}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+@keyframes talk{from{transform:scaleY(.4)}to{transform:scaleY(1.3)}}
+@keyframes hop{50%{transform:translateY(-10px) rotate(-6deg)}}
+
+/* ---------- Inicio ---------- */
+#home{overflow-y:auto}
+.home-wrap{max-width:900px;width:100%;margin:0 auto;padding:16px 16px 40px}
+.home-top{display:flex;align-items:center;gap:12px}
+.home-top h1{margin:0;font-size:26px;line-height:1.1}
+.home-top p{margin:2px 0 0;color:var(--muted);font-size:16px}
+.home-top .spacer{flex:1}
+.pill{background:#fff;border-radius:999px;padding:6px 12px;font-weight:800;font-size:17px;box-shadow:0 2px 0 var(--line);white-space:nowrap}
+.iconbtn{border:0;background:#fff;border-radius:12px;width:44px;height:44px;font-size:22px;box-shadow:0 2px 0 var(--line)}
+.daily{margin:16px 0;border:0;width:100%;text-align:left;border-radius:22px;padding:18px;color:#fff;
+  background:linear-gradient(135deg,#6c4cf5,#a855f7);box-shadow:0 5px 0 #4a2fc0;display:flex;align-items:center;gap:14px}
+.daily b{font-size:23px;display:block}
+.daily span{opacity:.9;font-size:16px}
+.daily .em{font-size:44px}
+.topics{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.topic{border:0;border-radius:20px;background:#fff;padding:14px 12px;text-align:left;box-shadow:0 4px 0 var(--line);
+  display:flex;flex-direction:column;gap:4px;min-height:128px;position:relative;overflow:hidden}
+.topic:active{transform:translateY(3px)}
+.topic .em{font-size:36px;width:56px;height:56px;border-radius:16px;display:grid;place-items:center}
+.topic b{font-size:19px;line-height:1.1}
+.topic .lv{display:flex;gap:4px;align-items:center;font-size:14px;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.dot.on{background:var(--accent)}
+.topic .st{position:absolute;top:10px;right:12px;font-size:14px;font-weight:800;color:var(--muted)}
+.home-foot{margin-top:18px;color:var(--muted);font-size:14px;text-align:center}
+
+/* ---------- Lección ---------- */
+#lesson{background:var(--bg)}
+.lesson-grid{flex:1;min-height:0;min-width:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto 1fr auto;
+  grid-template-areas:"head" "tutor" "ws" "ans";max-width:1200px;width:100%;margin:0 auto}
+.lhead{grid-area:head;display:flex;align-items:center;gap:8px;padding:8px 10px}
+.lhead .title{font-weight:800;font-size:18px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.progress{display:flex;gap:4px}
+.progress i{width:12px;height:12px;border-radius:50%;background:var(--line)}
+.progress i.done{background:var(--ok)}
+.progress i.cur{background:var(--primary)}
+.tutor{grid-area:tutor;min-width:0;display:flex;gap:8px;padding:0 10px;align-items:flex-start}
+.bubble-wrap{flex:1;min-width:0}
+.bubble{background:#fff;border-radius:18px 18px 18px 4px;padding:10px 14px;font-size:19px;box-shadow:0 3px 0 var(--line);
+  max-height:150px;overflow-y:auto;-webkit-user-select:text;user-select:text}
+.bubble b{color:var(--primary)}
+.tools{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.tool{border:0;background:#fff;border-radius:999px;padding:6px 12px;font-size:16px;font-weight:700;box-shadow:0 2px 0 var(--line);color:var(--primary)}
+.workspace{grid-area:ws;min-height:0;overflow:auto;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.answer{grid-area:ans;min-width:0;padding:8px 10px calc(10px + env(safe-area-inset-bottom));background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -3px 12px rgba(80,50,200,.08)}
+.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+
+/* teclado */
+.kp-display{height:52px;border-radius:14px;background:var(--bg);display:flex;align-items:center;justify-content:center;
+  font-size:34px;font-weight:800;letter-spacing:2px;margin-bottom:8px;border:3px solid var(--line)}
+.kp-display.empty{color:#bbb}
+.kp{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.kp button{height:var(--key);border:0;border-radius:12px;font-size:26px;font-weight:800;background:#f1edff;box-shadow:0 3px 0 var(--line)}
+.kp button:active{transform:translateY(2px);box-shadow:none}
+.kp .del{background:#ffe9e9;color:#d43d3d}
+.kp .go{background:var(--ok);color:#fff;box-shadow:0 3px 0 #178a56}
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.choices.one{grid-template-columns:1fr}
+.choice{border:0;border-radius:14px;min-height:58px;padding:8px;font-size:21px;font-weight:800;background:#f1edff;box-shadow:0 3px 0 var(--line)}
+.choice.wrong{background:#ffe3e3;color:#c33;opacity:.6}
+.choice.reveal{background:#d9f7e8;outline:3px solid var(--ok)}
+.choice.right{background:var(--ok);color:#fff}
+.checkrow{display:flex;gap:8px}
+.checkrow .btn{flex:1}
+.result{display:flex;align-items:center;gap:12px;justify-content:space-between}
+.result .stars{font-size:34px;letter-spacing:2px}
+.result .btn{flex:0 0 auto}
+
+/* fracción */
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1;margin:0 2px;font-weight:800}
+.frac span:first-child{border-bottom:2px solid currentColor;padding:0 3px 1px}
+.frac span:last-child{padding:1px 3px 0}
+
+/* bloques de valor posicional */
+.pv{display:flex;gap:6px;width:100%;max-width:560px;justify-content:center}
+.pv-col{flex:1;background:#fff;border-radius:16px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 3px 0 var(--line);min-width:0;transition:outline .2s}
+.pv-col.hl{outline:4px solid var(--accent)}
+.pv-head{font-size:14px;font-weight:800;color:var(--muted)}
+.pv-pile{height:150px;width:100%;display:flex;flex-wrap:wrap;align-content:flex-start;justify-content:center;gap:3px;overflow:hidden}
+.pv-count{font-size:15px;font-weight:800;white-space:nowrap}
+.pv-ctrl{display:flex;gap:6px;width:100%}
+.pv-btn{flex:1;border:0;border-radius:10px;height:44px;font-size:28px;font-weight:800;background:#f1edff;box-shadow:0 3px 0 var(--line)}
+.pv-btn.plus{background:var(--primary);color:#fff;box-shadow:0 3px 0 var(--primary-d)}
+.pv-group{border:0;border-radius:10px;font-size:13px;font-weight:800;padding:4px 6px;background:var(--accent);color:#fff;width:100%}
+.blk-u{width:13px;height:13px;background:#ffb020;border:1px solid #c98200;border-radius:2px}
+.blk-d{width:13px;height:60px;border:1px solid #2a8a5a;border-radius:2px;
+  background:repeating-linear-gradient(#3dd68c 0 5px,#2a8a5a 5px 6px)}
+.blk-c{width:46px;height:46px;border:1px solid #2f63c9;border-radius:3px;
+  background:#5b8dff;background-image:linear-gradient(#2f63c9 1px,transparent 1px),linear-gradient(90deg,#2f63c9 1px,transparent 1px);background-size:4.6px 4.6px}
+.blk-m{width:46px;height:46px;border-radius:4px;background:#c06bff;box-shadow:5px -5px 0 #9a3fe0,inset 0 0 0 2px #7d2cc4;
+  background-image:linear-gradient(#7d2cc4 1px,transparent 1px),linear-gradient(90deg,#7d2cc4 1px,transparent 1px);background-size:4.6px 4.6px;margin:6px 6px 0 0}
+
+/* números grandes con casillas */
+.digits{display:flex;gap:6px}
+.digit{display:flex;flex-direction:column;align-items:center;gap:2px}
+.digit b{width:54px;height:66px;border-radius:12px;background:#fff;display:grid;place-items:center;font-size:42px;box-shadow:0 3px 0 var(--line);transition:all .2s}
+.digit small{font-size:12px;color:var(--muted);font-weight:700}
+.digit.hl b{background:var(--accent);color:#fff}
+
+/* cuentas en columna */
+.colm{display:grid;gap:2px 4px;background:#fff;border-radius:18px;padding:10px 14px;box-shadow:0 3px 0 var(--line)}
+.cm-cell{width:var(--cw);height:calc(var(--cw) * 1.15);display:grid;place-items:center;font-size:calc(var(--cw) * .8);font-weight:800;border-radius:8px;transition:background .2s;position:relative}
+.cm-cell.carry{height:calc(var(--cw) * .6);font-size:calc(var(--cw) * .45);color:#e8590c}
+.cm-cell.res{background:#f1edff}
+.cm-cell.hl{background:#fff1c9}
+.cm-cell.res.hl{background:#ffe08a}
+.cm-cell.struck::after{content:"";position:absolute;left:18%;right:18%;top:50%;height:3px;background:#e8590c;transform:rotate(-20deg)}
+.cm-line{grid-column:1/-1;height:4px;background:var(--ink);border-radius:2px}
+
+/* matriz de puntos */
+.arr{display:flex;flex-direction:column;gap:5px;background:#fff;border-radius:18px;padding:12px;box-shadow:0 3px 0 var(--line)}
+.arr-row{display:flex;gap:5px;align-items:center;border-radius:999px;padding:2px 4px;transition:background .2s}
+.arr-row.lit{background:#fff1c9}
+.arr-dot{border-radius:50%;background:#b9a8ff}
+.arr-row.lit .arr-dot{background:var(--primary)}
+.arr-lab{min-width:40px;font-weight:800;color:var(--primary);font-size:18px;text-align:right}
+.area{display:flex;gap:4px;align-items:stretch}
+.area-box{border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:24px;min-height:120px;padding:6px}
+.area-top{display:flex;gap:4px;font-weight:800;color:var(--muted)}
+.eq{font-size:40px;font-weight:800;background:#fff;border-radius:18px;padding:8px 20px;box-shadow:0 3px 0 var(--line);text-align:center}
+.eq .q{color:var(--primary)}
+
+/* saltos */
+.skip{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:520px}
+.chip{background:#fff;border-radius:999px;padding:4px 12px;font-weight:800;font-size:20px;box-shadow:0 2px 0 var(--line)}
+.chip.goal{background:var(--accent);color:#fff}
+
+/* repartir */
+.share{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:620px}
+.pile{min-height:40px;display:flex;flex-wrap:wrap;justify-content:center;gap:2px;font-size:22px;background:#fff;border-radius:16px;padding:6px 10px;width:100%;box-shadow:0 3px 0 var(--line)}
+.plates{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.plate{border:0;width:92px;min-height:92px;border-radius:50%;background:radial-gradient(#fff 55%,#e7e1ff 56%);box-shadow:0 3px 0 var(--line);
+  display:flex;flex-wrap:wrap;align-content:center;justify-content:center;font-size:14px;padding:12px;position:relative}
+.plate .n{position:absolute;bottom:-6px;right:-2px;background:var(--primary);color:#fff;border-radius:999px;font-size:15px;font-weight:800;padding:0 8px}
+.plate.hl{outline:4px solid var(--accent)}
+.plate .who{position:absolute;top:-8px;font-size:20px}
+.share-ctrl{display:flex;gap:8px}
+.share-ctrl .btn{font-size:16px;padding:9px 14px}
+
+/* fracciones */
+.fbar{display:flex;width:100%;max-width:440px;height:62px;border:3px solid var(--ink);border-radius:10px;overflow:hidden;background:#fff}
+.fbar .pc{flex:1;border-right:3px solid var(--ink);transition:background .15s}
+.fbar .pc:last-child{border-right:0}
+.fbar .pc.on{background:var(--fc,#ff922b)}
+.fpizza{width:190px;height:190px}
+.fpizza path{stroke:#7a4a1c;stroke-width:3;fill:#ffe8b0;transition:fill .15s}
+.fpizza path.on{fill:var(--fc,#ff922b)}
+.fwrap{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%}
+.fwrap.hl .fbar{outline:4px solid var(--accent)}
+.flab{font-size:26px;font-weight:800}
+.frow{display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap}
+
+/* recta numérica */
+.nl{width:100%;max-width:640px;touch-action:none;background:#fff;border-radius:18px;box-shadow:0 3px 0 var(--line)}
+.target{font-size:22px;font-weight:800;background:var(--accent);color:#fff;border-radius:999px;padding:4px 18px}
+
+/* historias */
+.story{background:#fff;border-radius:20px;padding:14px 16px;box-shadow:0 3px 0 var(--line);max-width:620px;font-size:20px;display:flex;gap:12px;align-items:flex-start}
+.story .em{font-size:44px;line-height:1}
+.story b{color:var(--primary);font-size:22px}
+
+/* hojas superpuestas */
+.overlay{position:fixed;inset:0;background:rgba(30,20,70,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{background:#fff;width:100%;max-width:640px;max-height:92vh;max-height:92dvh;border-radius:24px 24px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));overflow-y:auto;-webkit-user-select:text;user-select:text}
+.sheet h2{margin:0 0 8px;font-size:24px}
+.sheet label{display:block;font-weight:700;margin:12px 0 4px}
+.sheet input[type=text],.sheet input[type=password],.sheet input[type=number],.sheet select{width:100%;font-size:18px;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:#faf8ff}
+.sheet .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sheet .note{font-size:14px;color:var(--muted)}
+.lvgrid{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center}
+@media (min-width:700px){.overlay{align-items:center}.sheet{border-radius:24px}}
+
+/* chat */
+.chat{display:flex;flex-direction:column;height:78vh;height:78dvh}
+.msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px}
+.msg{max-width:85%;padding:8px 12px;border-radius:16px;font-size:18px;white-space:pre-wrap}
+.msg.me{align-self:flex-end;background:var(--primary);color:#fff;border-bottom-right-radius:4px}
+.msg.lumi{align-self:flex-start;background:#f1edff;border-bottom-left-radius:4px}
+.chat-in{display:flex;gap:6px;margin-top:8px}
+.chat-in input{flex:1;font-size:18px;padding:10px 12px;border-radius:14px;border:2px solid var(--line)}
+
+/* resumen */
+#summary{align-items:center;justify-content:center;text-align:center;padding:20px;overflow-y:auto}
+#summary h1{margin:8px 0;font-size:32px}
+.sum-stars{font-size:46px}
+#summary .lumi{width:120px;height:120px}
+
+/* confeti */
+.confetti{position:fixed;top:-30px;font-size:26px;pointer-events:none;z-index:40;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+.toast{position:fixed;left:50%;top:18%;transform:translateX(-50%);background:var(--accent);color:#fff;font-weight:800;font-size:24px;padding:12px 24px;border-radius:999px;z-index:41;box-shadow:0 6px 20px rgba(0,0,0,.2);animation:pop .4s}
+@keyframes pop{from{transform:translateX(-50%) scale(.5)}}
+
+/* ---------- Tablet ---------- */
+@media (min-width:700px){
+  body{font-size:20px}
+  :root{--cw:56px;--key:64px}
+  .lumi{width:96px;height:96px}
+  .bubble{font-size:23px;max-height:220px}
+  .tool{font-size:18px;padding:8px 16px}
+  .kp-display{height:62px;font-size:40px}
+  .kp button{font-size:30px}
+  .choice{font-size:25px;min-height:70px}
+  .topics{grid-template-columns:repeat(3,1fr);gap:16px}
+  .topic{min-height:150px}
+  .home-top h1{font-size:32px}
+  .pv-pile{height:200px}
+  .blk-u{width:17px;height:17px}.blk-d{width:17px;height:80px;background:repeating-linear-gradient(#3dd68c 0 7px,#2a8a5a 7px 8px)}
+  .blk-c,.blk-m{width:62px;height:62px;background-size:6.2px 6.2px}
+  .pv-btn{height:54px}
+  .pv-head{font-size:16px}.pv-count{font-size:18px}
+  .fbar{height:80px;max-width:560px}
+  .fpizza{width:min(340px,42vmin);height:min(340px,42vmin)}
+  .plate{width:116px;min-height:116px;font-size:17px}
+  .pile{font-size:28px}
+  .eq{font-size:52px}
+  .story{font-size:24px}.story b{font-size:26px}
+  .digit b{width:68px;height:82px;font-size:52px}
+}
+@media (min-width:860px) and (orientation:landscape){
+  .lesson-grid{grid-template-columns:minmax(340px,42%) minmax(0,1fr);grid-template-rows:auto 1fr auto;
+    grid-template-areas:"head head" "tutor ws" "ans ws"}
+  .tutor{flex-direction:column;align-items:flex-start;padding:4px 16px;overflow:auto}
+  .bubble{max-height:none}
+  .answer{border-radius:22px;margin:0 0 12px 12px}
+  .workspace{padding:16px}
+  .topics{grid-template-columns:repeat(4,1fr)}
+}
+@media (max-height:640px) and (max-width:699px){
+  :root{--key:44px;--cw:36px}
+  .lumi{width:56px;height:56px}
+  .bubble{font-size:17px;max-height:110px}
+  .kp-display{height:44px;font-size:28px;margin-bottom:6px}
+  .pv-pile{height:110px}
+}
+</style>
+</head>
+<body>
+
+<!-- Lumi (personaje original) -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8f7bff"/><stop offset="1" stop-color="#5b3df0"/></linearGradient>
+    <symbol id="lumi" viewBox="0 0 100 100">
+      <path d="M50 4 L55 14 L66 15 L58 22 L60 33 L50 27 L40 33 L42 22 L34 15 L45 14 Z" fill="#ffc83d" stroke="#e09b00" stroke-width="2"/>
+      <ellipse cx="50" cy="62" rx="38" ry="34" fill="url(#lg)"/>
+      <ellipse cx="50" cy="70" rx="24" ry="20" fill="#b7a9ff" opacity=".55"/>
+      <g class="eye"><ellipse cx="37" cy="56" rx="9" ry="10" fill="#fff"/><circle cx="39" cy="57" r="5" fill="#2b2350"/><circle cx="41" cy="54" r="1.8" fill="#fff"/></g>
+      <g class="eye"><ellipse cx="63" cy="56" rx="9" ry="10" fill="#fff"/><circle cx="65" cy="57" r="5" fill="#2b2350"/><circle cx="67" cy="54" r="1.8" fill="#fff"/></g>
+      <circle cx="27" cy="70" r="5" fill="#ff8fb8" opacity=".8"/><circle cx="73" cy="70" r="5" fill="#ff8fb8" opacity=".8"/>
+      <ellipse class="mouth" cx="50" cy="74" rx="7" ry="4.5" fill="#2b2350"/>
+      <path d="M14 66 q-10 -4 -8 -16 q8 4 12 10z M86 66 q10 -4 8 -16 q-8 4 -12 10z" fill="#5b3df0"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- INICIO -->
+<section id="home" class="screen hidden">
+  <div class="home-wrap">
+    <div class="home-top">
+      <svg class="lumi" id="homeLumi"><use href="#lumi"/></svg>
+      <div><h1 id="hello">¡Hola!</h1><p id="helloSub">¿Qué aprendemos hoy?</p></div>
+      <div class="spacer"></div>
+      <span class="pill" id="starPill">⭐ 0</span>
+      <button class="iconbtn" id="parentsBtn" aria-label="Zona de padres">⚙️</button>
+    </div>
+    <button class="daily" id="dailyBtn"><span class="em">🚀</span><div><b>Reto del día</b><span id="dailySub">8 ejercicios variados</span></div></button>
+    <div class="topics" id="topics"></div>
+    <div class="home-foot" id="homeFoot"></div>
+  </div>
+</section>
+
+<!-- LECCIÓN -->
+<section id="lesson" class="screen hidden">
+  <div class="lesson-grid">
+    <div class="lhead">
+      <button class="iconbtn" id="backBtn" aria-label="Volver">🏠</button>
+      <div class="title" id="lTitle"></div>
+      <div class="progress" id="lProg"></div>
+      <span class="pill" id="lStars">⭐ 0</span>
+    </div>
+    <div class="tutor">
+      <svg class="lumi" id="lumiFace"><use href="#lumi"/></svg>
+      <div class="bubble-wrap">
+        <div class="bubble" id="bubble"></div>
+        <div class="tools">
+          <button class="tool" id="sayAgain">🔊 Repetir</button>
+          <button class="tool" id="hintBtn">💡 Pista</button>
+          <button class="tool" id="askBtn">💬 Pregúntale a Lumi</button>
+          <button class="tool" id="introBtn">📖 Explicación</button>
+        </div>
+      </div>
+    </div>
+    <div class="workspace" id="ws"></div>
+    <div class="answer" id="ans"></div>
+  </div>
+</section>
+
+<!-- RESUMEN -->
+<section id="summary" class="screen hidden">
+  <svg class="lumi happy" style="margin:0 auto"><use href="#lumi"/></svg>
+  <h1 id="sumTitle">¡Muy bien!</h1>
+  <div class="sum-stars" id="sumStars"></div>
+  <p id="sumText" style="font-size:20px;max-width:520px;margin:10px auto"></p>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px">
+    <button class="btn big" id="againBtn">Otra vez 🔁</button>
+    <button class="btn big ghost" id="homeBtn">Inicio 🏠</button>
+  </div>
+</section>
+
+<!-- BIENVENIDA -->
+<div class="overlay hidden" id="onboard">
+  <div class="sheet" style="text-align:center">
+    <svg class="lumi happy" style="width:110px;height:110px"><use href="#lumi"/></svg>
+    <h2>¡Hola! Soy Lumi ✨</h2>
+    <p>Soy tu tutora de matemáticas. Vamos a aprender jugando, paso a paso. Si te equivocas, ¡no pasa nada! Así se aprende.</p>
+    <label for="nameIn">¿Cómo te llamas?</label>
+    <input type="text" id="nameIn" maxlength="20" placeholder="Tu nombre" autocomplete="off">
+    <div style="margin-top:16px"><button class="btn big" id="startBtn">¡Empezamos! 🚀</button></div>
+  </div>
+</div>
+
+<!-- ZONA DE PADRES -->
+<div class="overlay hidden" id="parents">
+  <div class="sheet">
+    <div id="gate">
+      <h2>Zona de padres 🔒</h2>
+      <p>Para entrar, resuelve: <b id="gateQ"></b></p>
+      <input type="number" id="gateIn" inputmode="numeric">
+      <div class="row" style="margin-top:12px"><button class="btn" id="gateOk">Entrar</button><button class="btn ghost" data-close>Cerrar</button></div>
+    </div>
+    <div id="pzone" class="hidden">
+      <h2>Zona de padres ⚙️</h2>
+      <label for="pName">Nombre</label>
+      <input type="text" id="pName" maxlength="20">
+      <label>Voz de Lumi</label>
+      <div class="row"><label style="margin:0;font-weight:500"><input type="checkbox" id="pVoice"> Leer en voz alta</label>
+        <span>Velocidad</span><input type="range" id="pRate" min="0.6" max="1.3" step="0.05" style="flex:1"></div>
+      <p class="note" id="voiceNote"></p>
+      <label>Nivel de cada tema (1 = fácil · 5 = difícil). Se ajusta solo según cómo le vaya.</label>
+      <div class="lvgrid" id="pLevels"></div>
+      <label for="pKey">Charla libre con IA (opcional)</label>
+      <p class="note">Con una clave de la API de Claude (console.anthropic.com), el botón «Pregúntale a Lumi» responde a cualquier duda con preguntas guía, sin dar la solución. La clave se guarda solo en este dispositivo y cada pregunta tiene un pequeño coste en tu cuenta. Sin clave, todo lo demás funciona igual y sin internet.</p>
+      <input type="password" id="pKey" placeholder="sk-ant-..." autocomplete="off">
+      <div class="row" style="margin-top:8px"><button class="btn ghost" id="pTest">Probar clave</button><span class="note" id="pTestOut"></span></div>
+      <label>Progreso</label>
+      <div id="pStats" class="note"></div>
+      <div class="row" style="margin-top:16px;justify-content:space-between">
+        <button class="btn ghost" id="pReset" style="color:#d43d3d">Borrar progreso</button>
+        <button class="btn" id="pSave">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div class="overlay hidden" id="chatBox">
+  <div class="sheet chat">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">💬 Pregúntale a Lumi</h2><button class="iconbtn" data-close>✖</button></div>
+    <div class="msgs" id="msgs"></div>
+    <div class="chat-in">
+      <button class="iconbtn" id="micBtn" aria-label="Hablar">🎤</button>
+      <input type="text" id="chatIn" placeholder="Escribe tu pregunta…" autocomplete="off">
+      <button class="btn" id="chatSend">➤</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   Utilidades
+   ===================================================================== */
+var $ = function(s){ return document.querySelector(s); };
+function el(tag, props){
+  var e = document.createElement(tag);
+  props = props || {};
+  Object.keys(props).forEach(function(k){
+    var v = props[k];
+    if (k === 'class') e.className = v;
+    else if (k === 'style') e.style.cssText = v;
+    else if (k === 'html') e.innerHTML = v;
+    else if (k.slice(0,2) === 'on') e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v);
+  });
+  for (var i = 2; i < arguments.length; i++) {
+    var kids = [].concat(arguments[i]);
+    kids.forEach(function(c){
+      if (c == null || c === false) return;
+      e.append(c.nodeType ? c : document.createTextNode(String(c)));
+    });
+  }
+  return e;
+}
+function rnd(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function shuffle(a){ a = a.slice(); for (var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function digitsR(n){ return String(n).split('').reverse().map(Number); }
+var OK = {ok:true};
+function no(msg){ return {ok:false, msg:msg}; }
+function plural(n, s, p){ return n === 1 ? s : p; }
+function listY(arr){ return arr.length < 2 ? arr.join('') : arr.slice(0,-1).join(', ') + ' y ' + arr[arr.length-1]; }
+
+/* fracciones en el texto: [[3/4]] */
+var NUMW = ['cero','un','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','once','doce'];
+var DEN = {2:['medio','medios'],3:['tercio','tercios'],4:['cuarto','cuartos'],5:['quinto','quintos'],6:['sexto','sextos'],
+  7:['séptimo','séptimos'],8:['octavo','octavos'],9:['noveno','novenos'],10:['décimo','décimos'],12:['doceavo','doceavos']};
+function denName(b, pl){ var d = DEN[b] || [b+'avo', b+'avos']; return pl ? d[1] : d[0]; }
+function fracName(a,b){ return (NUMW[a]||a) + ' ' + denName(b, a !== 1); }
+function toHTML(t){ return t.replace(/\[\[(\d+)\/(\d+)\]\]/g, '<span class="frac"><span>$1</span><span>$2</span></span>'); }
+function toSpeech(t){
+  return t.replace(/\[\[(\d+)\/(\d+)\]\]/g, function(_,a,b){ return fracName(+a,+b); })
+    .replace(/<[^>]+>/g,' ')
+    .replace(/×\s*\?/g,'por cuánto').replace(/\?\s*=/g,'cuánto es igual a')
+    .replace(/\s×\s/g,' por ').replace(/\s÷\s/g,' entre ').replace(/\s[−-]\s/g,' menos ').replace(/\s\+\s/g,' más ').replace(/\s=\s/g,' es igual a ')
+    .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}️]/gu,'')
+    .replace(/\s+/g,' ').trim();
+}
+
+/* =====================================================================
+   Datos guardados
+   ===================================================================== */
+var STORE = 'lumi-mates-v1';
+var TOPICS = [
+  {id:'posicional', name:'Valor posicional', em:'🧱', color:'#ffe3c4'},
+  {id:'sumas',      name:'Sumas y restas',   em:'➕', color:'#d0ebff'},
+  {id:'multi',      name:'Multiplicar',      em:'✖️', color:'#e5dbff'},
+  {id:'division',   name:'Dividir y repartir', em:'🍬', color:'#ffdeeb'},
+  {id:'fracciones', name:'Fracciones',       em:'🍕', color:'#fff3bf'},
+  {id:'recta',      name:'Recta numérica',   em:'📏', color:'#c3fae8'},
+  {id:'problemas',  name:'Problemas',        em:'🧩', color:'#ffe3e3'}
+];
+var TOPIC = {}; TOPICS.forEach(function(t){ TOPIC[t.id] = t; });
+/* Niveles iniciales pensados para 9 años (4º de primaria) */
+var START = {posicional:3, sumas:2, multi:2, division:1, fracciones:1, recta:2, problemas:1};
+var DB;
+function load(){
+  try { DB = JSON.parse(localStorage.getItem(STORE)) || null; } catch(e){ DB = null; }
+  if (!DB) DB = {name:'', voice:true, rate:0.95, apiKey:'', stars:0, days:[], prog:{}};
+  TOPICS.forEach(function(t){
+    if (!DB.prog[t.id]) DB.prog[t.id] = {level:START[t.id], stars:0, solved:0, streak:0, struggle:0, seen:false};
+  });
+}
+function save(){ try { localStorage.setItem(STORE, JSON.stringify(DB)); } catch(e){} }
+function today(){ var d = new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+function dayStreak(){
+  var set = {}; DB.days.forEach(function(d){ set[d] = 1; });
+  var n = 0, d = new Date();
+  if (!set[today()]) d.setDate(d.getDate()-1);
+  while (true){ var k = d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); if (!set[k]) break; n++; d.setDate(d.getDate()-1); }
+  return n;
+}
+
+/* =====================================================================
+   Voz y sonidos
+   ===================================================================== */
+var voices = [];
+function loadVoices(){ try { voices = speechSynthesis.getVoices() || []; } catch(e){ voices = []; } }
+if ('speechSynthesis' in window){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+function pickVoice(){
+  var es = voices.filter(function(v){ return /^es/i.test(v.lang); });
+  return es.find(function(v){ return /es[-_]ES/i.test(v.lang) && /female|mujer|m[oó]nica|helena|laura|elvira|lucia|luc[ií]a/i.test(v.name); })
+      || es.find(function(v){ return /es[-_]ES/i.test(v.lang); }) || es[0] || null;
+}
+var lastSaid = '';
+function speak(text){
+  lastSaid = text;
+  if (!DB.voice || !('speechSynthesis' in window)) return;
+  try {
+    speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(toSpeech(text));
+    u.lang = 'es-ES'; var v = pickVoice(); if (v) u.voice = v;
+    u.rate = DB.rate || 0.95; u.pitch = 1.15;
+    var L = $('#lumiFace');
+    u.onstart = function(){ L.classList.add('talking'); };
+    u.onend = u.onerror = function(){ L.classList.remove('talking'); };
+    speechSynthesis.speak(u);
+  } catch(e){}
+}
+var actx = null;
+function beep(freqs, dur, type, vol){
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    var t = actx.currentTime;
+    freqs.forEach(function(f,i){
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = type || 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(vol || .12, t + i*dur);
+      g.gain.exponentialRampToValueAtTime(0.001, t + i*dur + dur*1.6);
+      o.connect(g); g.connect(actx.destination);
+      o.start(t + i*dur); o.stop(t + i*dur + dur*1.7);
+    });
+  } catch(e){}
+}
+var sfx = {
+  ok: function(){ beep([660,880,1320], .09); },
+  no: function(){ beep([330,247], .14, 'triangle', .09); },
+  tap: function(){ beep([560], .035, 'sine', .05); },
+  level: function(){ beep([523,659,784,1046], .11); }
+};
+
+/* =====================================================================
+   Manipulativos (piezas táctiles)
+   ===================================================================== */
+var PV = {
+  m:{v:1000, s:'millar',  p:'millares', lab:'Millares'},
+  c:{v:100,  s:'centena', p:'centenas', lab:'Centenas'},
+  d:{v:10,   s:'decena',  p:'decenas',  lab:'Decenas'},
+  u:{v:1,    s:'unidad',  p:'unidades', lab:'Unidades'}
+};
+function describePV(cols, counts){
+  return listY(cols.map(function(k){ return counts[k] + ' ' + plural(counts[k], PV[k].s, PV[k].p); }));
+}
+function blocksManip(ws, o){
+  var cols = o.cols, st = {}; cols.forEach(function(k){ st[k] = (o.counts && o.counts[k]) || 0; });
+  var wrap = el('div', {class:'pv'}), E = {};
+  cols.forEach(function(k, i){
+    var pile = el('div', {class:'pv-pile'}), cnt = el('div', {class:'pv-count'});
+    var col = el('div', {class:'pv-col'}, el('div', {class:'pv-head'}, PV[k].lab), pile, cnt);
+    var grp = null;
+    if (o.editable && i > 0){
+      grp = el('button', {class:'pv-group hidden', onclick:function(){ group(k, cols[i-1]); }}, '10 → 1 ' + PV[cols[i-1]].s);
+      col.append(grp);
+    }
+    if (o.editable) col.append(el('div', {class:'pv-ctrl'},
+      el('button', {class:'pv-btn', 'aria-label':'quitar', onclick:function(){ add(k,-1); }}, '−'),
+      el('button', {class:'pv-btn plus', 'aria-label':'añadir', onclick:function(){ add(k,1); }}, '+')));
+    E[k] = {col:col, pile:pile, cnt:cnt, grp:grp};
+    wrap.append(col);
+  });
+  ws.append(wrap);
+  function draw(){
+    cols.forEach(function(k){
+      var e = E[k]; e.pile.innerHTML = '';
+      for (var n = 0; n < Math.min(st[k], 20); n++) e.pile.append(el('div', {class:'blk-'+k}));
+      e.cnt.textContent = st[k] + ' ' + plural(st[k], PV[k].s, PV[k].p);
+      if (e.grp) e.grp.classList.toggle('hidden', st[k] < 10);
+    });
+  }
+  function add(k, d){ st[k] = Math.max(0, Math.min(19, st[k] + d)); sfx.tap(); draw(); }
+  function group(k, up){ if (st[k] >= 10){ st[k] -= 10; st[up]++; sfx.level(); draw(); } }
+  draw();
+  return {
+    getValue: function(){ return cols.reduce(function(s,k){ return s + st[k]*PV[k].v; }, 0); },
+    set: function(c){ Object.keys(c).forEach(function(k){ st[k] = c[k]; }); draw(); },
+    highlight: function(k){ cols.forEach(function(c){ E[c].col.classList.toggle('hl', c === k); }); },
+    state: st
+  };
+}
+
+var POSN = ['U','D','C','UM','DM'];
+var POSL = ['unidades','decenas','centenas','unidades de millar','decenas de millar'];
+function digitsBox(ws, n){
+  var s = String(n), box = el('div', {class:'digits'}), cells = [];
+  s.split('').forEach(function(ch, i){
+    var pos = s.length - 1 - i;
+    var d = el('div', {class:'digit'}, el('b', {}, ch), el('small', {}, POSN[pos]));
+    cells[pos] = d; box.append(d);
+  });
+  ws.append(box);
+  return { highlight: function(p){ cells.forEach(function(c,i){ c.classList.toggle('hl', i === p); }); } };
+}
+
+function columnManip(ws, o){
+  var a = o.a, b = o.b, op = o.op, A = digitsR(a), B = digitsR(b);
+  var res = op === '+' ? a + b : a - b;
+  var n = Math.max(A.length, B.length, String(res).length);
+  var box = el('div', {class:'colm'});
+  box.style.gridTemplateColumns = 'repeat(' + (n+1) + ', var(--cw))';
+  var C = [], AC = [], BC = [], R = [];
+  function row(arr, cls, sign, fill){
+    box.append(el('div', {class:'cm-cell ' + cls}, sign || ''));
+    for (var i = n-1; i >= 0; i--){ var c = el('div', {class:'cm-cell ' + cls}, fill ? (fill[i] !== undefined ? fill[i] : '') : ''); arr[i] = c; box.append(c); }
+  }
+  row(C, 'carry'); row(AC, '', '', A); row(BC, '', op === '+' ? '+' : '−', B);
+  box.append(el('div', {class:'cm-line'}));
+  row(R, 'res');
+  ws.append(box);
+  return {
+    highlightCol: function(k){ [C,AC,BC,R].forEach(function(arr){ arr.forEach(function(c,i){ c.classList.toggle('hl', i === k); }); }); },
+    showCarries: function(){
+      if (op === '+'){ var cr = 0; for (var i = 0; i < n; i++){ var s = (A[i]||0) + (B[i]||0) + cr; cr = s >= 10 ? 1 : 0; if (cr && i+1 < n) C[i+1].textContent = '1'; } }
+      else { var t = subTop(a, b); for (var j = 0; j < A.length; j++){ if (t[j] !== A[j]){ C[j].textContent = t[j]; AC[j].classList.add('struck'); } } }
+    },
+    setAnswer: function(str){ str = String(str || ''); for (var i = 0; i < n; i++) R[i].textContent = str[str.length-1-i] || ''; }
+  };
+}
+function subTop(a, b){
+  var T = digitsR(a), B = digitsR(b);
+  for (var i = 0; i < T.length; i++){ if (T[i] < (B[i]||0)){ T[i] += 10; T[i+1] -= 1; } }
+  return T;
+}
+function hasCarry(a,b){ var A=digitsR(a),B=digitsR(b); for (var i=0;i<Math.max(A.length,B.length);i++) if ((A[i]||0)+(B[i]||0) >= 10) return true; return false; }
+function hasBorrow(a,b){ var A=digitsR(a),B=digitsR(b); for (var i=0;i<B.length;i++) if (A[i] < B[i]) return true; return false; }
+function noCarrySum(a,b){ var A=digitsR(a),B=digitsR(b),s=''; for (var i=0;i<Math.max(A.length,B.length);i++) s = (((A[i]||0)+(B[i]||0))%10) + s; return +s; }
+function naiveSub(a,b){ var A=digitsR(a),B=digitsR(b),s=''; for (var i=0;i<A.length;i++) s = Math.abs(A[i]-(B[i]||0)) + s; return +s; }
+
+function arrayManip(ws, o){
+  var rows = o.rows, cols = o.cols, lit = 0;
+  var w = Math.min(ws.clientWidth || 320, 640) - 90, h = (ws.clientHeight || 300) - 40;
+  var size = Math.max(12, Math.min(34, Math.floor(w/cols) - 5, Math.floor(h/rows) - 5));
+  var box = el('div', {class:'arr', onclick:function(){ if (lit < rows){ light(lit+1); sfx.tap(); } }});
+  var R = [];
+  for (var r = 0; r < rows; r++){
+    var rowEl = el('div', {class:'arr-row'}), lab = el('span', {class:'arr-lab'});
+    for (var c = 0; c < cols; c++) rowEl.append(el('i', {class:'arr-dot', style:'width:'+size+'px;height:'+size+'px'}));
+    rowEl.append(lab); R.push({el:rowEl, lab:lab}); box.append(rowEl);
+  }
+  ws.append(box);
+  function light(n){ lit = n; R.forEach(function(x, i){ x.el.classList.toggle('lit', i < n); x.lab.textContent = i < n ? (i+1)*cols : ''; }); }
+  return { light: light, lightAll: function(){ light(rows); } };
+}
+
+function areaManip(ws, o){
+  var T = o.T, U = o.U, b = o.b;
+  var wrap = el('div', {style:'display:flex;flex-direction:column;align-items:center;gap:4px'});
+  var wT = Math.round(70 * T / (T + U)) + 10;
+  var top = el('div', {class:'area-top', style:'width:100%;max-width:520px'},
+    el('div', {style:'width:'+wT+'%;text-align:center'}, T), el('div', {style:'flex:1;text-align:center'}, U));
+  var bT = el('div', {class:'area-box', style:'background:#7c5cff;width:'+wT+'%'}, T+' × '+b), bU = el('div', {class:'area-box', style:'background:#ff922b;flex:1'}, U+' × '+b);
+  var area = el('div', {class:'area', style:'width:100%;max-width:520px'}, bT, bU);
+  var row = el('div', {style:'display:flex;align-items:center;gap:8px;width:100%;max-width:560px'}, el('b', {style:'font-size:24px;color:var(--muted)'}, b), area);
+  wrap.append(top, row); ws.append(wrap);
+  return { fill: function(i, v){ var x = i === 0 ? bT : bU; x.innerHTML = (i===0?T:U)+' × '+b+'<br><span style="font-size:34px">'+v+'</span>'; } };
+}
+
+function skipManip(ws, o){
+  var step = o.step, jumps = 0;
+  var chips = el('div', {class:'skip'});
+  var cnt = el('div', {style:'font-weight:800;font-size:20px'});
+  var btns = el('div', {class:'share-ctrl'},
+    el('button', {class:'btn', onclick:function(){ if (jumps < 12){ jumps++; sfx.tap(); draw(); } }}, 'Saltar +' + step),
+    el('button', {class:'btn ghost', onclick:function(){ jumps = 0; draw(); }}, '↺'));
+  ws.append(cnt, chips, btns);
+  function draw(){
+    chips.innerHTML = '';
+    chips.append(el('span', {class:'chip'}, '0'));
+    for (var i = 1; i <= jumps; i++) chips.append(el('span', {class:'chip' + (i*step === o.goal ? ' goal' : '')}, i*step));
+    cnt.textContent = 'Saltos: ' + jumps;
+  }
+  draw();
+  return { set: function(n){ jumps = n; draw(); } };
+}
+
+function shareManip(ws, o){
+  var N = o.N, k = o.k, em = o.em || '🍬', pile = N, plates = [];
+  for (var i = 0; i < k; i++) plates.push(0);
+  var pileEl = el('div', {class:'pile'}), platesEl = el('div', {class:'plates'}), P = [];
+  plates.forEach(function(_, i){
+    var p = el('button', {class:'plate', 'aria-label':'plato '+(i+1), onclick:function(){ if (pile > 0){ pile--; plates[i]++; sfx.tap(); draw(); } }});
+    P.push(p); platesEl.append(p);
+  });
+  var ctrl = el('div', {class:'share-ctrl'},
+    el('button', {class:'btn', onclick:function(){ deal(); }}, 'Dar 1 a cada ' + (o.unit || 'uno')),
+    el('button', {class:'btn ghost', onclick:function(){ reset(); }}, '↺ Recoger'));
+  var wrap = el('div', {class:'share'}, pileEl, platesEl, ctrl);
+  ws.append(wrap);
+  function draw(){
+    pileEl.textContent = pile ? em.repeat(pile) : 'Ya no quedan para repartir';
+    pileEl.style.fontSize = pile ? '' : '16px';
+    P.forEach(function(p, i){
+      p.innerHTML = (o.who ? '<span class="who">' + o.who + '</span>' : '') + em.repeat(plates[i]) + '<span class="n">' + plates[i] + '</span>';
+    });
+  }
+  function deal(){ if (pile >= k){ pile -= k; for (var i = 0; i < k; i++) plates[i]++; sfx.tap(); draw(); return true; } return false; }
+  function reset(){ pile = N; for (var i = 0; i < k; i++) plates[i] = 0; draw(); }
+  draw();
+  return {
+    deal: deal,
+    dealAll: function(){ reset(); var t = setInterval(function(){ if (!deal()) clearInterval(t); }, 260); },
+    highlight: function(n){ P.forEach(function(p, i){ p.classList.toggle('hl', i < n); }); }
+  };
+}
+
+function fracManip(ws, o){
+  var n = o.parts, on = []; for (var i = 0; i < n; i++) on.push(i < (o.shaded || 0));
+  var wrap = el('div', {class:'fwrap'}), pcs = [];
+  if (o.color) wrap.style.setProperty('--fc', o.color);
+  if (o.label) wrap.append(el('div', {class:'flab', html:toHTML(o.label)}));
+  if (o.shape === 'pizza'){
+    var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 200 200'); svg.setAttribute('class', 'fpizza');
+    for (var j = 0; j < n; j++){
+      var a0 = (-90 + j*360/n) * Math.PI/180, a1 = (-90 + (j+1)*360/n) * Math.PI/180;
+      var x0 = 100 + 92*Math.cos(a0), y0 = 100 + 92*Math.sin(a0), x1 = 100 + 92*Math.cos(a1), y1 = 100 + 92*Math.sin(a1);
+      var p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', 'M100,100 L'+x0.toFixed(2)+','+y0.toFixed(2)+' A92,92 0 '+(360/n > 180 ? 1 : 0)+' 1 '+x1.toFixed(2)+','+y1.toFixed(2)+' Z');
+      (function(idx){ p.addEventListener('click', function(){ toggle(idx); }); })(j);
+      pcs.push(p); svg.append(p);
+    }
+    wrap.append(svg);
+  } else {
+    var bar = el('div', {class:'fbar'});
+    for (var m = 0; m < n; m++){ (function(idx){ var d = el('div', {class:'pc', onclick:function(){ toggle(idx); }}); pcs.push(d); bar.append(d); })(m); }
+    wrap.append(bar);
+  }
+  ws.append(wrap);
+  function toggle(i){ if (!o.editable) return; on[i] = !on[i]; sfx.tap(); draw(); }
+  function draw(){ pcs.forEach(function(p, i){ p.classList.toggle('on', on[i]); }); }
+  draw();
+  return {
+    getValue: function(){ return on.filter(Boolean).length; },
+    set: function(k){ for (var i = 0; i < n; i++) on[i] = i < k; draw(); },
+    highlight: function(b){ wrap.classList.toggle('hl', b !== false); }
+  };
+}
+
+function lineManip(ws, o){
+  var NS = 'http://www.w3.org/2000/svg', W = 340, H = 120, x0 = 24, x1 = 316, y = 64;
+  var min = o.min, max = o.max, value = null;
+  function X(v){ return x0 + (v - min) / (max - min) * (x1 - x0); }
+  var svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('class', 'nl');
+  function add(tag, attrs, txt){ var e = document.createElementNS(NS, tag); Object.keys(attrs).forEach(function(k){ e.setAttribute(k, attrs[k]); }); if (txt != null) e.textContent = txt; svg.append(e); return e; }
+  var hl = add('rect', {x:0, y:y-9, width:0, height:18, rx:6, fill:'#ffe08a'});
+  add('line', {x1:x0-8, y1:y, x2:x1+8, y2:y, stroke:'#2b2350', 'stroke-width':4, 'stroke-linecap':'round'});
+  var nT = Math.round((max - min) / o.step);
+  for (var i = 0; i <= nT; i++){
+    var v = min + i * o.step, big = i === 0 || i === nT || (o.labels || []).some(function(l){ return Math.abs(l.v - v) < 1e-9; });
+    add('line', {x1:X(v), y1:y-(big?13:8), x2:X(v), y2:y+(big?13:8), stroke:'#2b2350', 'stroke-width':big?3:2});
+  }
+  (o.labels || []).forEach(function(l){ add('text', {x:X(l.v), y:y+38, 'text-anchor':'middle', 'font-size':19, 'font-weight':800, fill:'#2b2350', 'font-family':'inherit'}, l.t); });
+  if (o.arrow != null){
+    add('path', {d:'M'+X(o.arrow)+','+(y-14)+' l-9,-16 h18 z', fill:'#ff6b6b'});
+  }
+  var mk = document.createElementNS(NS, 'g'); mk.setAttribute('visibility', 'hidden');
+  mk.innerHTML = '<circle cx="0" cy="'+(y-30)+'" r="13" fill="#6c4cf5"/><path d="M-8,'+(y-24)+' L0,'+(y-6)+' L8,'+(y-24)+' z" fill="#6c4cf5"/><text x="0" y="'+(y-25)+'" text-anchor="middle" font-size="14" fill="#fff" font-weight="800">★</text>';
+  svg.append(mk);
+  var lab = add('text', {x:0, y:16, 'text-anchor':'middle', 'font-size':17, 'font-weight':800, fill:'#22b573'}, '');
+  ws.append(svg);
+  function setV(v){ value = v; mk.setAttribute('visibility', 'visible'); mk.setAttribute('transform', 'translate(' + X(v) + ',0)'); }
+  if (o.interactive){
+    var drag = false;
+    var place = function(e){
+      var r = svg.getBoundingClientRect(), sx = (e.clientX - r.left) / r.width * W;
+      var v = min + (sx - x0) / (x1 - x0) * (max - min);
+      v = Math.max(min, Math.min(max, v));
+      v = o.den ? Math.round(v * o.den) / o.den : Math.round(v / o.snap) * o.snap;
+      setV(v);
+    };
+    svg.addEventListener('pointerdown', function(e){ drag = true; try { svg.setPointerCapture(e.pointerId); } catch(_){} place(e); sfx.tap(); });
+    svg.addEventListener('pointermove', function(e){ if (drag) place(e); });
+    svg.addEventListener('pointerup', function(){ drag = false; });
+    svg.addEventListener('pointercancel', function(){ drag = false; });
+  }
+  return {
+    getValue: function(){ return value; },
+    setMarker: setV,
+    highlightSeg: function(a, b){ hl.setAttribute('x', X(a)); hl.setAttribute('width', X(b) - X(a)); },
+    showLabel: function(v, t){ lab.setAttribute('x', X(v)); lab.textContent = t; }
+  };
+}
+
+function storyCard(ws, d){
+  var txt = d.text.replace(/(\d+)/g, '<b>$1</b>');
+  ws.append(el('div', {class:'story'}, el('span', {class:'em'}, d.emoji || '📖'), el('div', {html:txt})));
+  var calc = el('div', {style:'display:flex;justify-content:center;width:100%'}); ws.append(calc);
+  var cur = null;
+  return {
+    showCalc: function(op, a, b){
+      calc.innerHTML = '';
+      if (op === '+' || op === '-'){ cur = columnManip(calc, {a:a, b:b, op:op}); cur.kind = 'col'; }
+      else { var q = el('span', {class:'q'}, '?'); calc.append(el('div', {class:'eq'}, a + ' ' + op + ' ' + b + ' = ', q)); cur = {kind:'eq', q:q}; }
+    },
+    setAnswer: function(v){ if (!cur) return; if (cur.kind === 'col') cur.setAnswer(v); else cur.q.textContent = v || '?'; },
+    highlightCol: function(i){ if (cur && cur.highlightCol) cur.highlightCol(i); },
+    showCarries: function(){ if (cur && cur.showCarries) cur.showCarries(); }
+  };
+}
+
+/* =====================================================================
+   Generadores de ejercicios por tema y nivel (1-5)
+   Cada ejercicio: { render(ws) -> api, steps:[{say, input, check, hints, reveal, solve, done, enter, onInput, options}], explain }
+   ===================================================================== */
+
+/* ---------- Valor posicional ---------- */
+function genPlace(L){
+  if (L === 1) return placeBuild(['d','u'], rnd(11, 99));
+  if (L === 2) return placeBuild(['c','d','u'], rnd(101, 999));
+  if (L === 3) return Math.random() < .5 ? placeBuild(['c','d','u'], rnd(101, 999)) : placeRead(['c','d','u'], {c:rnd(1,9), d:rnd(0,9), u:rnd(0,9)});
+  if (L === 4){ var r = Math.random();
+    if (r < .34) return placeBuild(['m','c','d','u'], rnd(1001, 9999));
+    if (r < .67) return placeValue(rnd(1000, 9999));
+    return placeRead(['m','c','d','u'], {m:rnd(1,9), c:rnd(0,9), d:rnd(0,9), u:rnd(0,9)}); }
+  return Math.random() < .5 ? placeRegroup() : placeValue(rnd(10000, 99999));
+}
+function countsOf(cols, n){ var c = {}, s = String(n); cols.forEach(function(k, i){ c[k] = +(s[s.length - cols.length + i] || 0); }); return c; }
+function expand(cols, c){ return cols.filter(function(k){ return c[k]; }).map(function(k){ return c[k] * PV[k].v; }).join(' + '); }
+function placeBuild(cols, target){
+  var c = countsOf(cols, target), zero = {}; cols.forEach(function(k){ zero[k] = 0; });
+  var big = cols[0];
+  return {
+    render: function(ws){ return blocksManip(ws, {cols:cols, counts:zero, editable:true}); },
+    steps: [{
+      say: 'Construye el número <b>' + target + '</b> con los bloques. Usa los botones + y −, y luego pulsa Comprobar.',
+      input: 'manip',
+      check: function(v){ if (v === target) return OK;
+        return no(v > target ? 'Ahora tus bloques valen ' + v + '. ¡Te has pasado! Queremos ' + target + '.' : 'Ahora tus bloques valen ' + v + '. Te faltan ' + (target - v) + ' para llegar a ' + target + '.'); },
+      hints: [
+        {say:'Fíjate en cada cifra de ' + target + '. La primera cifra, el ' + c[big] + ', está en las ' + PV[big].p + '.', act:function(api){ api.highlight(big); }},
+        {say: target + ' tiene ' + describePV(cols, c) + '.'},
+        {say:'Cada columna necesita tantos bloques como dice su cifra. Revisa columna a columna.', act:function(api){ api.highlight(cols[1]); }}
+      ],
+      reveal: target + ' son ' + describePV(cols, c) + '. Te lo he montado yo: pulsa Comprobar.',
+      solve: function(api){ api.set(c); }
+    }],
+    explain: target + ' = ' + expand(cols, c) + '.'
+  };
+}
+function placeRead(cols, c){
+  var val = cols.reduce(function(s, k){ return s + c[k] * PV[k].v; }, 0);
+  var nblocks = cols.reduce(function(s, k){ return s + c[k]; }, 0);
+  return {
+    render: function(ws){ return blocksManip(ws, {cols:cols, counts:c, editable:false}); },
+    steps: [{
+      say: '¿Qué número forman estos bloques?', input: 'keypad',
+      check: function(v){ if (v === val) return OK;
+        if (v === nblocks) return no('Has contado bloques, pero cada bloque vale distinto: una barra vale 10, una placa 100…');
+        return no(v + ' no es. Mira bien cada columna.'); },
+      hints: [
+        {say:'Empieza por los bloques más grandes, a la izquierda. ¿Cuántos ' + PV[cols[0]].p + ' hay?', act:function(api){ api.highlight(cols[0]); }},
+        {say:'Hay ' + describePV(cols, c) + '.'},
+        {say:'Súmalo: ' + expand(cols, c) + '.'}
+      ],
+      reveal: 'Es el ' + val + '. Escríbelo.'
+    }],
+    explain: describePV(cols, c) + ' forman el ' + val + '.'
+  };
+}
+function placeValue(n){
+  var s = String(n), D = digitsR(n), pos;
+  var cand = []; D.forEach(function(d, i){ if (d && D.filter(function(x){ return x === d; }).length === 1) cand.push(i); });
+  if (!cand.length) return placeValue(n + 1 > 99999 ? 12345 : n + 1);
+  pos = pick(cand);
+  var dg = D[pos], val = dg * Math.pow(10, pos);
+  var opts = []; for (var i = 0; i < Math.min(s.length, 5); i++) opts.push(dg * Math.pow(10, i));
+  return {
+    render: function(ws){ return digitsBox(ws, n); },
+    steps: [{
+      say: '¿Cuánto vale el <b>' + dg + '</b> en el número ' + n + '?', input: 'choice',
+      options: shuffle(opts).map(function(v){ return {label:String(v), value:v}; }),
+      check: function(v){ return v === val ? OK : no('Mmm, ' + v + ' no. Depende de la columna en la que esté el ' + dg + '.'); },
+      hints: [
+        {say:'¿En qué columna está el ' + dg + '? Mira las letras de abajo.', act:function(api){ api.highlight(pos); }},
+        {say:'El ' + dg + ' está en las ' + POSL[pos] + '. Cada una vale ' + Math.pow(10, pos) + '.'}
+      ],
+      reveal: 'Está en las ' + POSL[pos] + ', así que vale ' + val + '.', answer: val
+    }],
+    explain: 'El ' + dg + ' está en las ' + POSL[pos] + ': vale ' + val + '.'
+  };
+}
+function placeRegroup(){
+  var cols = ['c','d','u'], c = {c:rnd(1,7), d:rnd(10,15), u:rnd(0,9)};
+  var val = c.c*100 + c.d*10 + c.u;
+  return {
+    render: function(ws){ return blocksManip(ws, {cols:cols, counts:c, editable:true}); },
+    steps: [{
+      say: 'Tengo ' + describePV(cols, c) + '. ¿Qué número es? ¡Puedes agrupar bloques!', input: 'keypad',
+      check: function(v){ if (v === val) return OK;
+        if (String(v) === '' + c.c + c.d + c.u) return no('¡Ojo! No caben ' + c.d + ' decenas en una sola columna. Agrupa 10 decenas en 1 centena.');
+        return no(v + ' no es. ¡Prueba a agrupar!'); },
+      hints: [
+        {say: c.d + ' decenas son 1 centena y ' + (c.d - 10) + ' decenas. Pulsa el botón naranja para agrupar.', act:function(api){ api.highlight('d'); }},
+        {say:'Entonces tienes ' + (c.c + 1) + ' centenas, ' + (c.d - 10) + ' decenas y ' + c.u + ' unidades.'}
+      ],
+      reveal: 'Es el ' + val + '. Escríbelo.', solve: function(api){ api.set({c:c.c+1, d:c.d-10, u:c.u}); }
+    }],
+    explain: c.c*100 + ' + ' + c.d*10 + ' + ' + c.u + ' = ' + val + '.'
+  };
+}
+
+/* ---------- Sumas y restas ---------- */
+function genAddSub(L){
+  var a, b, op, g = 0;
+  function gen(f){ do { f(); g++; } while (g < 300 && !ok()); }
+  var ok;
+  if (L === 1){ op = '+'; ok = function(){ return !hasCarry(a,b) && a+b < 100; }; gen(function(){ a = rnd(10,79); b = rnd(10,79); }); }
+  else if (L === 2){ op = pick(['+','+','-']);
+    if (op === '+'){ ok = function(){ return hasCarry(a,b); }; gen(function(){ a = rnd(15,89); b = rnd(15,79); }); }
+    else { ok = function(){ return !hasBorrow(a,b); }; gen(function(){ a = rnd(40,99); b = rnd(11,a-10); }); } }
+  else if (L === 3){ op = pick(['+','-']);
+    if (op === '+'){ ok = function(){ return hasCarry(a,b); }; gen(function(){ a = rnd(120,599); b = rnd(110,399); }); }
+    else { ok = function(){ return hasBorrow(a,b); }; gen(function(){ a = rnd(31,99); b = rnd(12,a-5); }); } }
+  else if (L === 4){ op = pick(['+','-','-']);
+    if (op === '+'){ ok = function(){ return hasCarry(a,b); }; gen(function(){ a = rnd(250,799); b = rnd(150,699); }); }
+    else { ok = function(){ return hasBorrow(a,b); }; gen(function(){ a = rnd(300,999); b = rnd(101,a-40); }); } }
+  else { op = pick(['+','-']);
+    if (op === '+'){ ok = function(){ return hasCarry(a,b); }; gen(function(){ a = rnd(1200,5999); b = rnd(1100,3999); }); }
+    else { ok = function(){ return hasBorrow(a,b); }; gen(function(){ a = rnd(3000,9999); b = rnd(1001,a-200); }); } }
+  return arithProblem(op, a, b);
+}
+function colStepHints(op, a, b){
+  var A = digitsR(a), B = digitsR(b), hs = [];
+  var opS = op === '+' ? '+' : '−';
+  hs.push({say:'Empezamos por la derecha, por las unidades: ¿cuánto es ' + A[0] + ' ' + opS + ' ' + (B[0]||0) + '?', act:function(api){ api.highlightCol(0); }});
+  if (op === '+'){
+    var cr = 0, first = -1, sAt = 0, crIn = 0;
+    for (var i = 0; i < Math.max(A.length, B.length); i++){ var s = (A[i]||0) + (B[i]||0) + cr; if (s >= 10 && first < 0){ first = i; sAt = s; crIn = cr; } cr = s >= 10 ? 1 : 0; }
+    if (first >= 0) hs.push({say:'En las ' + POSL[first] + ': ' + (A[first]||0) + ' + ' + (B[first]||0) + (crIn ? ' + 1' : '') + ' = ' + sAt + '. Escribo el ' + (sAt % 10) + ' y me llevo 1. Te pongo las llevadas arriba en naranja.', act:function(api){ api.showCarries(); api.highlightCol(first); }});
+    else hs.push({say:'Suma cada columna: unidades con unidades, decenas con decenas…', act:function(api){ api.highlightCol(1); }});
+  } else {
+    var T = subTop(a, b), fb = -1;
+    for (var j = 0; j < B.length; j++) if (A[j] < B[j] && fb < 0) fb = j;
+    if (fb < 0) for (var k = 0; k < A.length; k++) if (T[k] !== A[k] && fb < 0) fb = k;
+    if (fb >= 0) hs.push({say:'En las ' + POSL[fb] + ' arriba hay menos que abajo. Pedimos 1 prestado a la columna de la izquierda. Te lo marco arriba en naranja.', act:function(api){ api.showCarries(); api.highlightCol(fb); }});
+    else hs.push({say:'Resta cada columna: unidades con unidades, decenas con decenas…', act:function(api){ api.highlightCol(1); }});
+  }
+  var res = op === '+' ? a + b : a - b;
+  hs.push({say:'Ve columna a columna con las ayudas naranjas. Las unidades del resultado son un ' + (res % 10) + '.', act:function(api){ api.showCarries(); }});
+  return hs;
+}
+function arithCheck(op, a, b){
+  var res = op === '+' ? a + b : a - b;
+  return function(v){
+    if (v === res) return OK;
+    if (op === '+' && hasCarry(a,b) && v === noCarrySum(a,b)) return no('¡Casi! Has sumado cada columna, pero… ¿te has acordado de llevarte 1?');
+    if (op === '-' && hasBorrow(a,b) && v === naiveSub(a,b)) return no('¡Ojo! En alguna columna has restado al revés. Si arriba hay menos, hay que pedir prestado.');
+    if (v % 10 === res % 10) return no('¡Las unidades están bien! Revisa las otras columnas.');
+    return no(v + ' no es. Revisa primero las unidades.');
+  };
+}
+function arithProblem(op, a, b){
+  var res = op === '+' ? a + b : a - b, opS = op === '+' ? '+' : '−';
+  return {
+    render: function(ws){ return columnManip(ws, {a:a, b:b, op:op}); },
+    steps: [{
+      say: 'Calcula ' + a + ' ' + opS + ' ' + b + '. Escribe el resultado con el teclado.', input: 'keypad',
+      onInput: function(v, api){ api.setAnswer(v); },
+      check: arithCheck(op, a, b), hints: colStepHints(op, a, b),
+      reveal: 'El resultado es ' + res + '. Escríbelo.', solve: function(api){ api.showCarries(); }
+    }],
+    explain: a + ' ' + opS + ' ' + b + ' = ' + res + '. ' + (op === '+' ? 'Truco: puedes comprobarlo restando: ' + res + ' − ' + b + ' = ' + a + '.' : 'Truco: compruébalo sumando: ' + res + ' + ' + b + ' = ' + a + '.')
+  };
+}
+
+/* ---------- Multiplicar ---------- */
+function genMult(L){
+  if (L <= 3 || (L === 5 && Math.random() < .35)){
+    var t = L === 1 ? pick([2,5,10]) : L === 2 ? pick([3,4,6]) : pick([6,7,8,9]);
+    var n = rnd(2, 10);
+    return Math.random() < .5 ? multFact(t, n) : multFact(n, t);
+  }
+  if (L === 4) return Math.random() < .6 ? multArea() : multFact(pick([6,7,8,9]), rnd(3,9));
+  return Math.random() < .5 ? multMissing() : multArea();
+}
+function multCheck(r, c){
+  var p = r * c;
+  return function(v){
+    if (v === p) return OK;
+    if (v === r + c) return no('¡Ojo! Has sumado ' + r + ' + ' + c + '. Multiplicar es sumar ' + r + ' veces el ' + c + '.');
+    if (v === p + c || v === p - c) return no('¡Casi! Te ' + (v > p ? 'sobra' : 'falta') + ' un grupo de ' + c + '.');
+    if (v === p + r || v === p - r) return no('¡Casi! Te ' + (v > p ? 'sobra' : 'falta') + ' un grupo de ' + r + '.');
+    return no(v + ' no es. ¡Puedes contar con los puntos!');
+  };
+}
+function multFact(r, c){
+  var p = r * c, half = Math.floor(r / 2) || 1, seq = [];
+  for (var i = 1; i <= Math.min(r, 4); i++) seq.push(i * c);
+  return {
+    render: function(ws){ return arrayManip(ws, {rows:r, cols:c}); },
+    steps: [{
+      say: '¿Cuánto es <b>' + r + ' × ' + c + '</b>? Son ' + r + ' filas de ' + c + ' puntos. Toca los puntos para contar fila a fila.', input: 'keypad',
+      check: multCheck(r, c),
+      hints: [
+        {say:'Cuenta de ' + c + ' en ' + c + ': ' + seq.join(', ') + (r > 4 ? '…' : '') + ' Toca los puntos y verás.'},
+        {say:'Ya tienes ' + half + ' ' + plural(half,'fila','filas') + ': ' + half*c + '. ¿Cuánto suman las ' + (r - half) + ' que faltan?', act:function(api){ api.light(half); }},
+        {say: r + ' × ' + c + ' es lo mismo que ' + c + ' × ' + r + '. ¿Te sabes alguna de las dos?'}
+      ],
+      reveal: r + ' × ' + c + ' = ' + p + '. Escríbelo.', solve: function(api){ api.lightAll(); }
+    }],
+    explain: r + ' × ' + c + ' = ' + p + '. ¡Y también ' + c + ' × ' + r + ' = ' + p + '!'
+  };
+}
+function multArea(){
+  var T = pick([10,20,30,40]), U = rnd(1,9), b = rnd(2, T >= 30 ? 5 : 7), a = T + U;
+  return {
+    render: function(ws){ return areaManip(ws, {T:T, U:U, b:b}); },
+    steps: [
+      { say: 'Vamos a calcular <b>' + a + ' × ' + b + '</b> partiéndolo en dos trozos: ' + a + ' = ' + T + ' + ' + U + '. Primero: ¿cuánto es ' + T + ' × ' + b + '?', input: 'keypad',
+        check: function(v){ return v === T*b ? OK : no(v === (T/10)*b ? '¡Casi! ' + (T/10) + ' × ' + b + ' = ' + v + ', pero son decenas: añade un cero.' : 'Mmm, no es ' + v + '.'); },
+        hints: [{say: T + ' son ' + (T/10) + ' decenas. ¿Cuánto es ' + (T/10) + ' × ' + b + '? Luego añade un 0.'}],
+        reveal: T + ' × ' + b + ' = ' + T*b + '. Escríbelo.', done: function(api){ api.fill(0, T*b); } },
+      { say: 'Ahora el trozo pequeño: ¿cuánto es ' + U + ' × ' + b + '?', input: 'keypad', check: multCheck(U, b),
+        hints: [{say:'Cuenta de ' + b + ' en ' + b + ', ' + U + ' ' + plural(U,'vez','veces') + '.'}],
+        reveal: U + ' × ' + b + ' = ' + U*b + '. Escríbelo.', done: function(api){ api.fill(1, U*b); } },
+      { say: '¡Ya casi! Junta los dos trozos: ' + T*b + ' + ' + U*b + ' = ?', input: 'keypad',
+        check: function(v){ return v === a*b ? OK : no('Suma con cuidado ' + T*b + ' + ' + U*b + '.'); },
+        hints: [{say:'Suma primero las unidades y luego las decenas.'}], reveal: 'Es ' + a*b + '. Escríbelo.' }
+    ],
+    explain: a + ' × ' + b + ' = ' + T*b + ' + ' + U*b + ' = ' + a*b + '. ¡Partir en trozos hace fácil lo difícil!'
+  };
+}
+function multMissing(){
+  var a = rnd(3,9), n = rnd(2,10), p = a * n;
+  return {
+    render: function(ws){ ws.append(el('div', {class:'eq'}, a + ' × ', el('span', {class:'q'}, '?'), ' = ' + p)); return skipManip(ws, {step:a, goal:p}); },
+    steps: [{
+      say: '¿Qué número falta? <b>' + a + ' × ? = ' + p + '</b>', input: 'keypad',
+      check: function(v){ return v === n ? OK : no(a + ' × ' + v + ' = ' + a*v + '. ' + (a*v > p ? 'Te pasas de ' + p + '.' : 'Te quedas corto.')); },
+      hints: [
+        {say:'Pulsa «Saltar +' + a + '» hasta llegar a ' + p + '. ¿Cuántos saltos das?'},
+        {say:'Pista: ' + a + ' × 5 = ' + a*5 + '. ¿' + p + ' es más o menos que eso?'}
+      ],
+      reveal: 'Faltaba el ' + n + ', porque ' + a + ' × ' + n + ' = ' + p + '. Escríbelo.', solve: function(api){ api.set(n); }
+    }],
+    explain: a + ' × ' + n + ' = ' + p + '. Y eso significa que ' + p + ' ÷ ' + a + ' = ' + n + '.'
+  };
+}
+
+/* ---------- Dividir ---------- */
+var THINGS = [
+  {s:'caramelo', p:'caramelos', em:'🍬', f:false}, {s:'galleta', p:'galletas', em:'🍪', f:true},
+  {s:'fresa', p:'fresas', em:'🍓', f:true}, {s:'pegatina', p:'pegatinas', em:'⭐', f:true}, {s:'canica', p:'canicas', em:'🔵', f:true}
+];
+function genDiv(L){
+  var k, q, r = 0;
+  if (L === 1){ k = rnd(2,4); q = rnd(2,5); }
+  else if (L === 2){ k = rnd(2,6); q = rnd(3,8); }
+  else if (L === 3){ k = rnd(2,5); q = rnd(2,6); r = rnd(1,k-1); }
+  else if (L === 4){ k = rnd(2,9); q = rnd(2,10); }
+  else { k = rnd(3,9); q = rnd(3,9); r = rnd(1,k-1); }
+  return divProblem(k*q + r, k, q, r, L === 4);
+}
+function divProblem(N, k, q, r, bare){
+  var t = pick(THINGS), useShare = N <= 42;
+  var cu = t.f ? 'Cuántas' : 'Cuántos';
+  var sayQ = bare ? '¿Cuánto es <b>' + N + ' ÷ ' + k + '</b>?' : 'Tenemos <b>' + N + ' ' + t.p + '</b> para repartir entre <b>' + k + ' amigos</b> a partes iguales. ¿' + cu + ' le tocan a cada uno?';
+  var steps = [{
+    say: sayQ + (useShare ? ' Puedes repartir tocando los platos.' : ''), input: 'keypad',
+    check: function(v){
+      if (v === q) return OK;
+      if (v * k > N) return no('Si das ' + v + ' a cada uno, necesitas ' + v*k + ', ¡y solo hay ' + N + '!');
+      if (N - v*k >= k) return no('Si das ' + v + ' a cada uno, repartes ' + v*k + ' y sobran ' + (N - v*k) + ': ¡todavía puedes dar más!');
+      return no('Mmm, ' + v + ' no es.');
+    },
+    hints: useShare ? [
+      {say:'Pulsa «Dar 1 a cada uno» varias veces y mira cuántos tiene cada plato.'},
+      {say:'Dividir es lo contrario de multiplicar: ¿' + k + ' × cuánto da ' + (N - r) + '?'},
+      {say:'Lo he repartido yo. Cuenta lo que hay en un plato.', act:function(api){ api.dealAll(); }}
+    ] : [
+      {say:'Piensa en la tabla del ' + k + ': ¿' + k + ' × cuánto da ' + (N - r) + (r ? ' (o un poco menos de ' + N + ')' : '') + '?'},
+      {say:'Pulsa «Saltar +' + k + '» hasta acercarte a ' + N + ' sin pasarte. ¿Cuántos saltos?'}
+    ],
+    reveal: 'A cada uno le tocan ' + q + ', porque ' + k + ' × ' + q + ' = ' + k*q + '. Escríbelo.',
+    solve: function(api){ if (api.dealAll) api.dealAll(); else api.set(q); }
+  }];
+  if (r) steps.push({
+    say: '¡Bien! Cada uno recibe ' + q + '. ¿Cuántos sobran?', input: 'keypad',
+    check: function(v){ if (v === r) return OK; if (v >= k) return no('Si sobran ' + v + ', ¡aún podríamos dar 1 más a cada uno!'); return no('Mmm, no. Mira cuántos quedan sin repartir.'); },
+    hints: [{say:'Has repartido ' + k + ' × ' + q + ' = ' + k*q + '. ¿Cuánto falta para llegar a ' + N + '?', act:function(api){ if (api.dealAll) api.dealAll(); }}],
+    reveal: 'Sobran ' + r + ', porque ' + N + ' − ' + k*q + ' = ' + r + '. Escríbelo.'
+  });
+  return {
+    render: function(ws){ return useShare ? shareManip(ws, {N:N, k:k, em:t.em, unit:'uno', who:'🧒'}) : skipManip(ws, {step:k, goal:N - r}); },
+    steps: steps,
+    explain: r ? N + ' ÷ ' + k + ' = ' + q + ' y sobran ' + r + '. Comprobación: ' + k + ' × ' + q + ' + ' + r + ' = ' + N + '.'
+               : N + ' ÷ ' + k + ' = ' + q + ', porque ' + k + ' × ' + q + ' = ' + N + '.'
+  };
+}
+
+/* ---------- Fracciones ---------- */
+var FCOL = ['#ff922b','#7c5cff','#20c997','#f06595','#339af0'];
+function genFrac(L){
+  if (L === 1) return fracShade(pick([2,3,4,5,6,8]));
+  if (L === 2) return Math.random() < .6 ? fracIdentify() : fracShade(pick([3,4,5,6,8,10]));
+  if (L === 3) return Math.random() < .7 ? fracCompare(false) : fracIdentify();
+  if (L === 4) return Math.random() < .6 ? fracEquiv() : fracCompare(false);
+  var r = Math.random(); return r < .45 ? fracOf() : r < .75 ? fracEquiv() : fracCompare(true);
+}
+function fracShade(b){
+  var a = rnd(1, b-1), shape = b <= 8 && Math.random() < .5 ? 'pizza' : 'bar';
+  return {
+    render: function(ws){ return fracManip(ws, {parts:b, editable:true, shape:shape, color:pick(FCOL)}); },
+    steps: [{
+      say: 'Colorea <b>[[' + a + '/' + b + ']]</b> ' + (shape === 'pizza' ? 'de la pizza' : 'de la barra') + '. Toca los trozos.', input: 'manip',
+      check: function(v){ if (v === a) return OK; if (v === b - a) return no('Has coloreado ' + v + ' trozos: esos son los que NO tienen que estar coloreados.'); return no('Has coloreado ' + v + ' ' + plural(v,'trozo','trozos') + '. Necesitamos ' + a + '.'); },
+      hints: [
+        {say:'El número de abajo, ' + b + ', dice en cuántas partes iguales está partido. El de arriba, ' + a + ', cuántas coloreamos.'},
+        {say:'Toca exactamente ' + a + ' ' + plural(a,'trozo','trozos') + '.'}
+      ],
+      reveal: '[[' + a + '/' + b + ']] son ' + a + ' de ' + b + ' trozos. Te lo he coloreado: pulsa Comprobar.', solve: function(api){ api.set(a); }
+    }],
+    explain: '[[' + a + '/' + b + ']]: partimos en ' + b + ' y cogemos ' + a + '. ¡Eso es ' + fracName(a, b) + '!'
+  };
+}
+function fracIdentify(){
+  var b = pick([3,4,5,6,8,10]), a = rnd(1, b-1), right = a + '/' + b;
+  var cand = [(b-a) + '/' + b, a + '/' + (b-a), (a+1) + '/' + b, a + '/' + (b+1), b + '/' + a].filter(function(s){ var p = s.split('/'); return +p[0] > 0 && +p[1] > 1 && s !== right; });
+  var opts = [right]; shuffle(cand).forEach(function(s){ if (opts.length < 4 && opts.indexOf(s) < 0) opts.push(s); });
+  return {
+    render: function(ws){ return fracManip(ws, {parts:b, shaded:a, editable:false, shape:b <= 8 && Math.random() < .5 ? 'pizza' : 'bar', color:pick(FCOL)}); },
+    steps: [{
+      say: '¿Qué fracción está coloreada?', input: 'choice',
+      options: shuffle(opts).map(function(s){ return {label:'[[' + s + ']]', value:s}; }),
+      check: function(v){
+        if (v === right) return OK;
+        if (v === (b-a) + '/' + b) return no('Esa es la parte SIN colorear. ¿Y la coloreada?');
+        if (v === a + '/' + (b-a)) return no('El número de abajo es el TOTAL de trozos, no solo los blancos.');
+        return no('Mmm, no. Cuenta los trozos.'); },
+      hints: [
+        {say:'¿En cuántos trozos iguales está partida en total? Ese número va abajo.'},
+        {say:'Hay ' + b + ' trozos en total y ' + a + ' coloreados.'}
+      ],
+      reveal: 'Es [[' + right + ']]: ' + a + ' coloreados de ' + b + '.', answer: right
+    }],
+    explain: 'Hay ' + a + ' de ' + b + ' trozos coloreados: [[' + right + ']].'
+  };
+}
+function fracCompare(allowEq){
+  var a1, b1, a2, b2, kind;
+  if (allowEq && Math.random() < .35){ kind = 'eq'; var base = pick([[1,2],[1,3],[2,3],[1,4],[3,4]]), m = base[1] <= 3 ? pick([2,3]) : 2; a1 = base[0]; b1 = base[1]; a2 = a1*m; b2 = b1*m; }
+  else if (Math.random() < .5){ kind = 'den'; b1 = b2 = pick([4,5,6,8]); a1 = rnd(1,b1-1); do { a2 = rnd(1,b1-1); } while (a2 === a1); }
+  else { kind = 'num'; a1 = a2 = rnd(1,3); b1 = rnd(a1+1, 8); do { b2 = rnd(a1+1, 8); } while (b2 === b1); }
+  var v1 = a1/b1, v2 = a2/b2, F1 = a1 + '/' + b1, F2 = a2 + '/' + b2;
+  var right = Math.abs(v1 - v2) < 1e-9 ? 'eq' : v1 > v2 ? F1 : F2;
+  var hint1 = kind === 'den' ? 'Los trozos de las dos barras son del mismo tamaño. ¿Cuál tiene más trozos coloreados?'
+            : kind === 'num' ? 'Coloreamos el mismo número de trozos. Pero ¿qué trozos son más grandes: si partimos en ' + b1 + ' o en ' + b2 + '?'
+            : 'Mira hasta dónde llega el color en cada barra.';
+  var c1 = pick(FCOL), c2 = pick(FCOL);
+  return {
+    render: function(ws){ fracManip(ws, {parts:b1, shaded:a1, label:'[[' + F1 + ']]', color:c1}); return fracManip(ws, {parts:b2, shaded:a2, label:'[[' + F2 + ']]', color:c2}); },
+    steps: [{
+      say: '¿Qué fracción es mayor: [[' + F1 + ']] o [[' + F2 + ']]?', input: 'choice',
+      options: [{label:'[[' + F1 + ']]', value:F1}, {label:'[[' + F2 + ']]', value:F2}, {label:'Son iguales', value:'eq'}],
+      check: function(v){ return v === right ? OK : no(v === 'eq' ? 'Mira las barras: ¿llega el color al mismo sitio?' : '¿Seguro? Mira hasta dónde llega el color en cada barra.'); },
+      hints: [{say:hint1}, {say:'Compara: ¿qué barra tiene más parte coloreada?'}],
+      reveal: right === 'eq' ? 'Son iguales: el color llega al mismo sitio.' : 'Es mayor [[' + right + ']]: tiene más parte coloreada.', answer: right
+    }],
+    explain: right === 'eq' ? '[[' + F1 + ']] y [[' + F2 + ']] son iguales: ¡fracciones equivalentes!'
+           : kind === 'num' ? 'Con el mismo número de trozos, gana la que tiene trozos más grandes: la que se parte en menos partes.'
+           : '[[' + right + ']] es mayor.'
+  };
+}
+function fracEquiv(){
+  var base = pick([[1,2,2],[1,2,3],[1,2,4],[1,3,2],[2,3,2],[1,4,2],[3,4,2],[1,2,5],[2,5,2],[1,6,2]]);
+  var a = base[0], b = base[1], m = base[2], B = b*m, need = a*m;
+  return {
+    render: function(ws){ fracManip(ws, {parts:b, shaded:a, label:'[[' + a + '/' + b + ']]', color:'#7c5cff'}); return fracManip(ws, {parts:B, editable:true, label:'¿?', color:'#ff922b'}); },
+    steps: [{
+      say: 'Colorea la barra de abajo para que tenga la misma cantidad que [[' + a + '/' + b + ']]. Fíjate: está partida en ' + B + ' trozos.', input: 'manip',
+      check: function(v){ if (v === need) return OK; return no(v < need ? 'Todavía hay menos coloreado que arriba.' : 'Ahora hay más coloreado que arriba.'); },
+      hints: [
+        {say:'Mira dónde termina el color de arriba. Colorea abajo hasta el mismo sitio.'},
+        {say:'Cada trozo de arriba se ha partido en ' + m + '. Así que ' + a + ' ' + plural(a,'trozo','trozos') + ' de arriba son ' + a + ' × ' + m + ' de abajo.'}
+      ],
+      reveal: 'Hacen falta ' + need + ' trozos. Te los he coloreado: pulsa Comprobar.', solve: function(api){ api.set(need); }
+    }],
+    explain: '[[' + a + '/' + b + ']] = [[' + need + '/' + B + ']]. ¡Son fracciones equivalentes: la misma cantidad con trozos distintos!'
+  };
+}
+function fracOf(){
+  var b = rnd(2,5), k = rnd(2,5), a = rnd(1, b-1), N = b*k, t = pick(THINGS);
+  var steps = [{
+    say: '¿Cuánto es <b>[[' + a + '/' + b + ']] de ' + N + '</b> ' + t.p + '? Primero partimos los ' + N + ' en ' + b + ' grupos iguales. ¿Cuántos hay en cada grupo?', input: 'keypad',
+    check: function(v){ if (v === k) return OK; return no(v*b > N ? 'Con ' + v + ' en cada grupo necesitarías ' + v*b + '.' : 'Si pones ' + v + ' en cada grupo, aún sobran. ¡Reparte más!'); },
+    hints: [{say:'Usa «Dar 1 a cada grupo» hasta repartirlos todos.'}, {say:'Es lo mismo que ' + N + ' ÷ ' + b + '.', act:function(api){ api.dealAll(); }}],
+    reveal: 'En cada grupo hay ' + k + ', porque ' + N + ' ÷ ' + b + ' = ' + k + '. Escríbelo.', solve: function(api){ api.dealAll(); }
+  }];
+  if (a > 1) steps.push({
+    say: '¡Eso es! [[' + a + '/' + b + ']] son ' + a + ' de esos grupos. ¿Cuántos ' + t.p + ' son?', input: 'keypad', enter: function(api){ api.highlight(a); },
+    check: function(v){ return v === a*k ? OK : no('Suma los ' + a + ' grupos marcados: cada uno tiene ' + k + '.'); },
+    hints: [{say:'Cada grupo tiene ' + k + '. ¿Cuánto es ' + a + ' × ' + k + '?'}],
+    reveal: 'Son ' + a*k + '. Escríbelo.'
+  });
+  return {
+    render: function(ws){ return shareManip(ws, {N:N, k:b, em:t.em, unit:'grupo'}); },
+    steps: steps,
+    explain: '[[' + a + '/' + b + ']] de ' + N + ' = ' + a*k + '. Dividimos entre ' + b + ' (' + k + ') y cogemos ' + a + ' ' + plural(a,'grupo','grupos') + '.'
+  };
+}
+
+/* ---------- Recta numérica ---------- */
+function genLine(L){
+  if (L === 1){ var t1; do { t1 = rnd(1,9); } while (t1 === 5);
+    return linePlace({min:0, max:10, step:1, snap:1, labels:[{v:0,t:'0'},{v:5,t:'5'},{v:10,t:'10'}]}, t1, 0, String(t1)); }
+  if (L === 2){ var t2; do { t2 = rnd(3,97); } while (t2 % 10 === 0);
+    return linePlace({min:0, max:100, step:10, snap:1, labels:[{v:0,t:'0'},{v:50,t:'50'},{v:100,t:'100'}]}, t2, 3, String(t2)); }
+  if (L === 3){ var t3 = rnd(2,98) * 10; if (t3 % 100 === 0) t3 += 50;
+    return linePlace({min:0, max:1000, step:100, snap:10, labels:[{v:0,t:'0'},{v:500,t:'500'},{v:1000,t:'1000'}]}, t3, 30, String(t3)); }
+  if (L === 4 || Math.random() < .4){ var b = rnd(2,8), a = rnd(1,b-1);
+    return linePlace({min:0, max:1, step:1/b, den:b, labels:[{v:0,t:'0'},{v:1,t:'1'}]}, a/b, 1e-6, '[[' + a + '/' + b + ']]', {a:a, b:b}); }
+  return lineRead();
+}
+function linePlace(cfg, target, tol, tLabel, fr){
+  var mid = (cfg.min + cfg.max) / 2, hints;
+  function fmt(v){ return fr ? '[[' + Math.round(v*fr.b) + '/' + fr.b + ']]' : String(Math.round(v)); }
+  if (fr) hints = [
+    {say:'La recta del 0 al 1 está partida en ' + fr.b + ' trozos iguales: cada trozo es [[1/' + fr.b + ']].'},
+    {say:'Cuenta ' + fr.a + ' ' + plural(fr.a,'trozo','trozos') + ' desde el 0.', act:function(api){ api.highlightSeg(0, target); }}];
+  else if (cfg.max === 10) hints = [
+    {say:'Cada rayita es un salto de 1. Empieza en el 0 y cuenta ' + target + ' saltos.'},
+    {say:'El 5 está en el medio. ¿El ' + target + ' va antes o después del 5?', act:function(api){ api.highlightSeg(target < 5 ? 0 : 5, target < 5 ? 5 : 10); }}];
+  else { var lo = Math.floor(target / cfg.step) * cfg.step, hi = lo + cfg.step;
+    hints = [
+      {say:'El ' + mid + ' está justo en el medio. ¿El ' + target + ' es mayor o menor que ' + mid + '?'},
+      {say:'El ' + target + ' está entre el ' + lo + ' y el ' + hi + '.', act:function(api){ api.highlightSeg(lo, hi); }},
+      {say:'Está ' + (target - lo < cfg.step / 2 ? 'más cerca del ' + lo : target - lo > cfg.step / 2 ? 'más cerca del ' + hi : 'justo en el medio entre ' + lo + ' y ' + hi) + '.', act:function(api){ api.highlightSeg(lo, hi); }}]; }
+  return {
+    render: function(ws){ ws.append(el('div', {class:'target', html:'Busca el ' + toHTML(tLabel)})); return lineManip(ws, Object.assign({interactive:true}, cfg)); },
+    steps: [{
+      say: 'Toca la recta para poner la estrella donde está el <b>' + tLabel + '</b>. Puedes arrastrarla. Luego pulsa Comprobar.', input: 'manip',
+      check: function(v){
+        if (v == null) return no('Primero toca la recta para poner la estrella.');
+        if (Math.abs(v - target) <= tol + 1e-9) return OK;
+        return no('Tu estrella está en el ' + fmt(v) + '. El ' + tLabel + ' está un poco más a la ' + (v < target ? 'derecha' : 'izquierda') + '.'); },
+      hints: hints,
+      reveal: 'Mira, el ' + tLabel + ' está aquí. Pulsa Comprobar.', solve: function(api){ api.setMarker(target); },
+      done: function(api){ api.setMarker(target); api.showLabel(target, fr ? fr.a + '/' + fr.b : String(target)); }
+    }],
+    explain: fr ? '[[' + fr.a + '/' + fr.b + ']] está a ' + fr.a + ' ' + plural(fr.a,'trozo','trozos') + ' del 0.' : '¡Ahí está el ' + target + '!'
+  };
+}
+function lineRead(){
+  var base = rnd(1,8) * 100, v; do { v = base + rnd(1,9) * 10; } while (v === base + 50);
+  return {
+    render: function(ws){ return lineManip(ws, {min:base, max:base+100, step:10, labels:[{v:base,t:String(base)},{v:base+50,t:String(base+50)},{v:base+100,t:String(base+100)}], arrow:v}); },
+    steps: [{
+      say: '¿Qué número señala la flecha roja?', input: 'keypad',
+      check: function(x){ return x === v ? OK : no(x < base || x > base + 100 ? 'La recta va del ' + base + ' al ' + (base+100) + '. El número tiene que estar entre esos dos.' : 'Casi. Cuenta las rayitas con cuidado.'); },
+      hints: [
+        {say:'Cada rayita vale 10. Empieza en el ' + base + ' y cuenta: ' + (base+10) + ', ' + (base+20) + '…'},
+        {say:'La flecha está ' + (v < base + 50 ? 'antes' : 'después') + ' del ' + (base+50) + '.', act:function(api){ api.highlightSeg(v < base+50 ? base : base+50, v < base+50 ? base+50 : base+100); }}
+      ],
+      reveal: 'La flecha señala el ' + v + '. Escríbelo.'
+    }],
+    explain: 'Contando de 10 en 10 desde el ' + base + ', llegamos al ' + v + '.'
+  };
+}
+
+/* ---------- Problemas ---------- */
+var NAMES = ['Lucía','Martina','Sofía','Pablo','Hugo','Daniela','Leo','Valeria','Mateo','Alba','Carla','Marco'];
+var OPS = [{label:'➕ Sumar', value:'+'}, {label:'➖ Restar', value:'-'}, {label:'✖️ Multiplicar', value:'×'}, {label:'➗ Dividir', value:'÷'}];
+var OPVERB = {'+':'sumar', '-':'restar', '×':'multiplicar', '÷':'dividir'};
+var OPHINT = {'+':'Aquí juntamos o añadimos cosas: el total crece.', '-':'Aquí se quitan o se van cosas, o buscamos cuánto falta.',
+  '×':'Aquí hay grupos iguales que se repiten.', '÷':'Aquí repartimos a partes iguales o hacemos grupos.'};
+var OPWRONG = {'+':'Si sumamos, el número se hace más grande. ¿Es eso lo que pasa en la historia?',
+  '-':'Restar es quitar o buscar cuánto falta. ¿Pasa eso aquí?',
+  '×':'Multiplicar sirve cuando hay grupos iguales que se repiten. ¿Hay grupos así?',
+  '÷':'Dividir es repartir a partes iguales. ¿Estamos repartiendo?'};
+var WP1 = [
+  {lv:1, f:function(){ var n=pick(NAMES), a=rnd(12,60), b=rnd(5,35); return {op:'+',a:a,b:b,emoji:'🃏',text:n+' tiene '+a+' cromos y su abuela le regala '+b+' más. ¿Cuántos cromos tiene ahora?'}; }},
+  {lv:1, f:function(){ var a=rnd(25,60), b=rnd(5,a-8); return {op:'-',a:a,b:b,emoji:'🚌',text:'En el autobús van '+a+' niños. En una parada se bajan '+b+'. ¿Cuántos niños quedan en el autobús?'}; }},
+  {lv:1, f:function(){ var n=pick(NAMES), a=rnd(40,95), b=rnd(10,a-10); return {op:'-',a:a,b:b,emoji:'📚',text:n+' está leyendo un libro de '+a+' páginas. Ya ha leído '+b+'. ¿Cuántas páginas le faltan?'}; }},
+  {lv:1, f:function(){ var a=rnd(15,48), b=rnd(12,40); return {op:'+',a:a,b:b,emoji:'🐟',text:'En un acuario hay '+a+' peces rojos y '+b+' peces azules. ¿Cuántos peces hay en total?'}; }},
+  {lv:2, f:function(){ var a=rnd(3,9), b=rnd(3,9); return {op:'×',a:a,b:b,emoji:'✏️',text:'Hay '+a+' cajas y en cada caja hay '+b+' lápices. ¿Cuántos lápices hay en total?'}; }},
+  {lv:2, f:function(){ var k=rnd(2,6), q=rnd(2,9), n=pick(NAMES); return {op:'÷',a:k*q,b:k,emoji:'⭐',text:n+' tiene '+k*q+' pegatinas y las reparte a partes iguales entre '+k+' amigas. ¿Cuántas pegatinas le da a cada una?'}; }},
+  {lv:2, f:function(){ var a=rnd(3,9); return {op:'×',a:a,b:8,emoji:'🕷️',text:'Una araña tiene 8 patas. ¿Cuántas patas tienen '+a+' arañas juntas?'}; }},
+  {lv:2, f:function(){ var q=rnd(2,8); return {op:'÷',a:6*q,b:6,emoji:'🥚',text:'Tenemos '+6*q+' huevos y los ponemos en hueveras de 6. ¿Cuántas hueveras llenamos?'}; }},
+  {lv:3, f:function(){ var a=rnd(120,450), b=rnd(80,350); return {op:'+',a:a,b:b,emoji:'🍎',text:'Una frutería vende '+a+' manzanas por la mañana y '+b+' por la tarde. ¿Cuántas manzanas vende en todo el día?'}; }},
+  {lv:3, f:function(){ var a=rnd(300,900), b=rnd(120,a-50); return {op:'-',a:a,b:b,emoji:'🎟️',text:'Para el concierto del cole hay '+a+' entradas. Ya se han vendido '+b+'. ¿Cuántas quedan por vender?'}; }},
+  {lv:3, f:function(){ var a=rnd(4,9), b=rnd(12,25); return {op:'×',a:a,b:b,emoji:'🪑',text:'En el salón de actos hay '+a+' filas con '+b+' sillas cada una. ¿Cuántas sillas hay?'}; }},
+  {lv:3, f:function(){ var k=rnd(3,8), q=rnd(4,9), n=pick(NAMES); return {op:'÷',a:k*q,b:k,emoji:'🧁',text:n+' ha hecho '+k*q+' magdalenas y las pone en '+k+' bandejas con las mismas en cada una. ¿Cuántas pone en cada bandeja?'}; }}
+];
+var WP2 = [
+  function(){ var n=pick(NAMES), a=rnd(3,6), b=rnd(4,8), c=rnd(3,a*b-5); return {emoji:'🃏', text:n+' compra '+a+' sobres con '+b+' cromos cada uno. Después regala '+c+' cromos a su hermano. ¿Cuántos cromos le quedan?',
+    parts:[{q:'¿Cuántos cromos compra en total?', op:'×', a:a, b:b}, {q:'Si regala '+c+', ¿cuántos le quedan?', op:'-', a:a*b, b:c}]}; },
+  function(){ var k=pick([3,4,5]), q=rnd(4,7), tot=k*q, g=rnd(Math.ceil(tot/3), tot-5); return {emoji:'⚽', text:'En clase hay '+g+' niñas y '+(tot-g)+' niños. Hacen equipos de '+k+'. ¿Cuántos equipos salen?',
+    parts:[{q:'¿Cuántos niños y niñas hay en total?', op:'+', a:g, b:tot-g}, {q:'Si hacen equipos de '+k+', ¿cuántos equipos salen?', op:'÷', a:tot, b:k}]}; },
+  function(){ var n=pick(NAMES), b=rnd(4,9), c=rnd(3,7), P=b*c+rnd(10,60); return {emoji:'📖', text:'Un libro tiene '+P+' páginas. '+n+' lee '+b+' páginas cada día durante '+c+' días. ¿Cuántas páginas le faltan por leer?',
+    parts:[{q:'¿Cuántas páginas lee en esos '+c+' días?', op:'×', a:b, b:c}, {q:'¿Cuántas le faltan para terminar las '+P+'?', op:'-', a:P, b:b*c}]}; },
+  function(){ var n=pick(NAMES), a=rnd(2,5), b=rnd(2,6), M=a*b+rnd(3,20); return {emoji:'💶', text:n+' tiene '+M+' euros. Compra '+a+' cuadernos que cuestan '+b+' euros cada uno. ¿Cuánto dinero le queda?',
+    parts:[{q:'¿Cuánto cuestan los '+a+' cuadernos?', op:'×', a:a, b:b}, {q:'¿Cuánto le queda de los '+M+' euros?', op:'-', a:M, b:a*b}]}; },
+  function(){ var k=pick([2,3,4,5]), q=rnd(6,12), tot=k*q, a=rnd(5,tot-5), b=tot-a;
+    return {emoji:'🍓', text:'Por la mañana recogemos '+a+' fresas y por la tarde '+b+'. Las repartimos en '+k+' cestas iguales. ¿Cuántas fresas van en cada cesta?',
+    parts:[{q:'¿Cuántas fresas recogemos en total?', op:'+', a:a, b:b}, {q:'Si las repartimos en '+k+' cestas, ¿cuántas van en cada una?', op:'÷', a:tot, b:k}]}; }
+];
+function calcRes(op, a, b){ return op === '+' ? a + b : op === '-' ? a - b : op === '×' ? a * b : a / b; }
+function opStep(op, say){
+  return { say: say, input: 'choice', options: OPS,
+    check: function(v){ return v === op ? OK : no(OPWRONG[v]); },
+    hints: [{say:'Imagina la historia. Al final, ¿hay más cosas, menos cosas, grupos iguales o un reparto?'}, {say:OPHINT[op]}],
+    reveal: 'Aquí hay que ' + OPVERB[op] + '. ' + OPHINT[op], answer: op };
+}
+function calcStep(op, a, b){
+  var res = calcRes(op, a, b), opS = op === '-' ? '−' : op;
+  var hints = op === '+' || op === '-' ? colStepHints(op, a, b).slice(0, 2)
+    : op === '×' ? [{say:'Cuenta de ' + b + ' en ' + b + ', ' + a + ' veces. O piensa en la tabla del ' + b + '.'}, {say: a + ' × ' + b + ' es lo mismo que ' + b + ' × ' + a + '.'}]
+    : [{say:'¿' + b + ' × cuánto da ' + a + '?'}, {say:'Cuenta de ' + b + ' en ' + b + ' hasta llegar a ' + a + '. ¿Cuántos saltos?'}];
+  var chk = op === '+' || op === '-' ? arithCheck(op, a, b) : op === '×' ? multCheck(a, b) : function(v){ return v === res ? OK : no(b + ' × ' + v + ' = ' + b*v + ', no ' + a + '.'); };
+  return { say: '¡Bien pensado! Ahora calcula: ' + a + ' ' + opS + ' ' + b + ' = ?', input: 'keypad',
+    enter: function(api){ api.showCalc(op, a, b); }, onInput: function(v, api){ api.setAnswer(v); },
+    check: chk, hints: hints, reveal: a + ' ' + opS + ' ' + b + ' = ' + res + '. Escríbelo.', solve: function(api){ api.showCarries(); } };
+}
+function genWord(L){
+  if (L >= 4 && (L === 5 || Math.random() < .6)){
+    var d = pick(WP2)(), p1 = d.parts[0], p2 = d.parts[1];
+    return { render: function(ws){ return storyCard(ws, d); },
+      steps: [opStep(p1.op, 'Este problema tiene dos pasos. Primero: ' + p1.q + ' ¿Qué operación hacemos?'), calcStep(p1.op, p1.a, p1.b),
+              opStep(p2.op, '¡Primer paso hecho! Ahora: ' + p2.q + ' ¿Qué operación?'), calcStep(p2.op, p2.a, p2.b)],
+      explain: 'Primero ' + p1.a + ' ' + (p1.op === '-' ? '−' : p1.op) + ' ' + p1.b + ' = ' + calcRes(p1.op, p1.a, p1.b) + ', y después ' + p2.a + ' ' + (p2.op === '-' ? '−' : p2.op) + ' ' + p2.b + ' = ' + calcRes(p2.op, p2.a, p2.b) + '. ¡Problema resuelto!' };
+  }
+  var pool = WP1.filter(function(t){ return t.lv <= Math.min(L, 3); });
+  if (L >= 3) pool = pool.filter(function(t){ return t.lv >= 2; });
+  var w = pick(pool).f(), res = calcRes(w.op, w.a, w.b);
+  return { render: function(ws){ return storyCard(ws, w); },
+    steps: [opStep(w.op, 'Lee el problema con calma. ¿Qué operación tenemos que hacer?'), calcStep(w.op, w.a, w.b)],
+    explain: 'La respuesta es ' + res + '. ¿Tiene sentido? ¡Sí!' };
+}
+
+var GEN = {posicional:genPlace, sumas:genAddSub, multi:genMult, division:genDiv, fracciones:genFrac, recta:genLine, problemas:genWord};
+
+/* ---------- Mini lecciones (la primera vez que se entra en cada tema) ---------- */
+var INTROS = {
+  posicional: { setup:function(ws){ return blocksManip(ws, {cols:['c','d','u'], counts:{c:0,d:0,u:1}}); }, lines:[
+    {say:'Te presento los bloques. Este cubito es <b>1 unidad</b>.'},
+    {say:'Si juntamos 10 cubitos, formamos una barra: <b>1 decena = 10</b>.', act:function(a){ a.set({u:0,d:1}); a.highlight('d'); }},
+    {say:'Y 10 barras forman una placa: <b>1 centena = 100</b>.', act:function(a){ a.set({d:0,c:1}); a.highlight('c'); }},
+    {say:'Así, el número 243 son 2 centenas, 4 decenas y 3 unidades. ¡Ahora te toca a ti!', act:function(a){ a.set({c:2,d:4,u:3}); a.highlight(''); }}]},
+  sumas: { setup:function(ws){ return columnManip(ws, {a:47, b:25, op:'+'}); }, lines:[
+    {say:'Para sumar números grandes los ponemos en columnas: unidades debajo de unidades y decenas debajo de decenas.'},
+    {say:'Empezamos SIEMPRE por la derecha: 7 + 5 = 12. Escribo el 2 y me llevo 1 a las decenas.', act:function(a){ a.highlightCol(0); a.showCarries(); a.setAnswer('2'); }},
+    {say:'Ahora las decenas: 4 + 2 + 1 que me llevaba = 7. ¡Resultado: 72!', act:function(a){ a.highlightCol(1); a.setAnswer('72'); }},
+    {say:'Para restar es parecido, pero si arriba hay menos que abajo, pedimos 1 prestado a la columna de la izquierda. ¡Vamos a practicar!'}]},
+  multi: { setup:function(ws){ return arrayManip(ws, {rows:3, cols:4}); }, lines:[
+    {say:'Multiplicar es sumar grupos iguales. Aquí hay 3 filas de 4 puntos.'},
+    {say:'Contamos de 4 en 4: 4, 8, 12. Así que 3 × 4 = 12.', act:function(a){ a.lightAll(); }},
+    {say:'Si giras el dibujo son 4 filas de 3, ¡y siguen siendo 12! Por eso 3 × 4 = 4 × 3.'}]},
+  division: { setup:function(ws){ return shareManip(ws, {N:12, k:3, em:'🍬', unit:'uno', who:'🧒'}); }, lines:[
+    {say:'Dividir es repartir a partes iguales. Tenemos 12 caramelos para 3 amigos.'},
+    {say:'Damos uno a cada uno, y otra vez, y otra… hasta que no queden.', act:function(a){ a.dealAll(); }},
+    {say:'¡A cada uno le tocan 4! 12 ÷ 3 = 4. Fíjate: 3 × 4 = 12. Dividir es lo contrario de multiplicar.'}]},
+  fracciones: { setup:function(ws){ return fracManip(ws, {parts:4, shape:'pizza', color:'#ff922b'}); }, lines:[
+    {say:'Una fracción es un trozo de algo partido en partes IGUALES. Esta pizza está partida en 4 trozos.'},
+    {say:'Si me como 3 trozos, me he comido [[3/4]], tres cuartos.', act:function(a){ a.set(3); }},
+    {say:'El número de abajo dice en cuántas partes partimos. El de arriba, cuántas cogemos. ¡A practicar!'}]},
+  recta: { setup:function(ws){ var l=[]; for (var i=0;i<=10;i++) l.push({v:i,t:String(i)}); return lineManip(ws, {min:0, max:10, step:1, snap:1, labels:l}); }, lines:[
+    {say:'La recta numérica es como una regla: los números van en orden, de menor a mayor.'},
+    {say:'Cuanto más a la derecha, más grande es el número. Mira, aquí está el 7.', act:function(a){ a.setMarker(7); }},
+    {say:'Para encontrar un número, piensa entre qué dos números está. ¡A jugar!', act:function(a){ a.highlightSeg(5, 10); }}]},
+  problemas: { setup:function(ws){ return storyCard(ws, {emoji:'🧩', text:'Lee, imagina, decide y calcula.'}); }, lines:[
+    {say:'Para resolver un problema, primero lee despacio e imagina la historia, como una peli.'},
+    {say:'Después piensa: ¿juntamos cosas (sumar), quitamos (restar), hay grupos iguales (multiplicar) o repartimos (dividir)?'},
+    {say:'Calcula y, al final, pregúntate: ¿tiene sentido mi respuesta? ¡Vamos!'}]}
+};
+
+/* =====================================================================
+   Motor de la lección
+   ===================================================================== */
+var S = null, P = null, api = null, step = null, stepIdx = 0, hintIdx = 0, stepWrongs = 0, stepRevealed = false, busy = false;
+var PRAISE = ['¡Genial!','¡Muy bien!','¡Eso es!','¡Fantástico!','¡Lo has clavado!','¡Bravo!','¡Qué crack!','¡Perfecto!','¡Increíble!'];
+var SHORT = ['¡Bien!','¡Correcto!','¡Eso es!','¡Muy bien!'];
+var TRYAGAIN = ['¡Inténtalo otra vez!','¡Tú puedes!','Piénsalo un poquito más.'];
+
+function show(id){ ['home','lesson','summary'].forEach(function(s){ $('#'+s).classList.toggle('hidden', s !== id); }); }
+function say(text){ $('#bubble').innerHTML = toHTML(text); $('#bubble').scrollTop = 0; speak(text); }
+
+function startSession(ids, total, daily){
+  var queue = [];
+  if (daily){ var all = shuffle(ids); for (var i = 0; i < total; i++) queue.push(all[i % all.length]); }
+  else for (var j = 0; j < total; j++) queue.push(ids[0]);
+  S = {ids:ids, queue:queue, idx:0, total:total, stars:0, perfect:0, daily:daily, ups:[]};
+  show('lesson');
+  drawProgress();
+  var first = queue[0];
+  if (!daily && !DB.prog[first].seen) runIntro(first, nextProblem); else nextProblem();
+}
+function drawProgress(){
+  var p = $('#lProg'); p.innerHTML = '';
+  for (var i = 0; i < S.total; i++) p.append(el('i', {class: i < S.idx ? 'done' : i === S.idx ? 'cur' : ''}));
+  $('#lStars').textContent = '⭐ ' + S.stars;
+}
+function setTitle(tid){ var t = TOPIC[tid]; $('#lTitle').textContent = t.em + ' ' + t.name + ' · Nivel ' + DB.prog[tid].level; }
+
+function runIntro(tid, cb){
+  var I = INTROS[tid], ws = $('#ws'); P = null; step = null;
+  setTitle(tid); ws.innerHTML = '';
+  var a = I.setup(ws), i = 0, ans = $('#ans');
+  function line(){
+    var L = I.lines[i]; if (L.act) L.act(a); say(L.say);
+    ans.innerHTML = '';
+    var last = i === I.lines.length - 1;
+    ans.append(el('div', {class:'checkrow'}, el('button', {class:'btn big' + (last ? ' ok' : ''), onclick:function(){ sfx.tap(); if (last){ DB.prog[tid].seen = true; save(); cb(); } else { i++; line(); } }}, last ? '¡A practicar! 🚀' : 'Siguiente ▶')));
+  }
+  line();
+}
+
+function nextProblem(){
+  if (S.idx >= S.total) return endSession();
+  var tid = S.queue[S.idx];
+  setTitle(tid); drawProgress();
+  var ws = $('#ws'); ws.innerHTML = '';
+  P = GEN[tid](DB.prog[tid].level); P.tid = tid; P.hints = 0; P.wrongs = 0; P.revealed = false;
+  api = P.render(ws) || {};
+  stepIdx = 0;
+  showStep('');
+}
+function showStep(prefix){
+  step = P.steps[stepIdx]; hintIdx = 0; stepWrongs = 0; stepRevealed = false; busy = false;
+  if (step.enter) step.enter(api);
+  say((prefix ? prefix + ' ' : '') + step.say);
+  renderInput();
+}
+function renderInput(){
+  var ans = $('#ans'); ans.innerHTML = '';
+  if (step.input === 'keypad'){
+    var val = '';
+    var disp = el('div', {class:'kp-display empty'}, '?');
+    var upd = function(){ disp.textContent = val || '?'; disp.classList.toggle('empty', !val); if (step.onInput) step.onInput(val, api); };
+    var kp = el('div', {class:'kp'});
+    '1234567890'.split('').forEach(function(d){ kp.append(el('button', {onclick:function(){ if (val.length < 6){ val = (val === '0' ? '' : val) + d; sfx.tap(); upd(); } }}, d)); });
+    kp.append(el('button', {class:'del', 'aria-label':'borrar', onclick:function(){ val = val.slice(0,-1); upd(); }}, '⌫'));
+    kp.append(el('button', {class:'go', 'aria-label':'comprobar', onclick:function(){ if (!val){ say('Escribe un número con el teclado.'); return; } var v = +val; var r = submit(v); if (r === false){ val = ''; upd(); } }}, '✓'));
+    ans.append(disp, kp);
+    ans._clear = function(){ val = ''; upd(); };
+  } else if (step.input === 'choice'){
+    var box = el('div', {class:'choices' + (step.options.length > 4 ? '' : '')});
+    step.options.forEach(function(o){
+      var b = el('button', {class:'choice', html:toHTML(o.label), onclick:function(){
+        if (busy || b.classList.contains('wrong')) return;
+        var r = submit(o.value);
+        if (r === false) b.classList.add('wrong'); else if (r === true) b.classList.add('right');
+      }});
+      b._v = o.value; box.append(b);
+    });
+    ans.append(box);
+  } else {
+    ans.append(el('div', {class:'checkrow'}, el('button', {class:'btn big ok', onclick:function(){ submit(api.getValue()); }}, 'Comprobar ✓')));
+  }
+}
+function shakeAns(){ var a = $('#ans'); a.classList.remove('shake'); void a.offsetWidth; a.classList.add('shake'); }
+
+/* devuelve true si es correcto, false si no */
+function submit(v){
+  if (busy || !step) return null;
+  var r = step.check(v);
+  if (r.ok){
+    sfx.ok(); busy = true;
+    var LF = $('#lumiFace'); LF.classList.remove('happy'); void LF.offsetWidth; LF.classList.add('happy');
+    if (step.done) step.done(api);
+    if (stepIdx < P.steps.length - 1){
+      stepIdx++;
+      setTimeout(function(){ showStep(pick(SHORT)); }, 700);
+    } else setTimeout(finishProblem, 300);
+    return true;
+  }
+  sfx.no(); shakeAns(); P.wrongs++; stepWrongs++;
+  if (stepRevealed){ say('Fíjate bien: ' + step.reveal); return false; }
+  var msg = r.msg || pick(['Mmm, no exactamente.','¡Buen intento!','Casi…']);
+  if (stepWrongs === 1 && r.msg){ say(msg + ' ' + pick(TRYAGAIN)); return false; }
+  if (hintIdx < step.hints.length) giveHint(msg); else reveal();
+  return false;
+}
+function giveHint(prefix){
+  var h = step.hints[hintIdx++]; P.hints++;
+  if (h.act) h.act(api);
+  say((prefix ? prefix + ' ' : '') + '💡 ' + h.say);
+}
+function reveal(){
+  stepRevealed = true; P.revealed = true;
+  if (step.solve) step.solve(api);
+  if (step.input === 'choice'){ [].forEach.call($('#ans').querySelectorAll('.choice'), function(b){ if (b._v === step.answer) b.classList.add('reveal'); }); }
+  say(pick(['No pasa nada, ¡lo vemos juntas!','Tranquila, así se aprende.']) + ' ' + step.reveal);
+}
+function onHintBtn(){
+  if (!step || busy) return;
+  if (stepRevealed){ say(step.reveal); return; }
+  if (hintIdx < step.hints.length) giveHint(''); else reveal();
+}
+function finishProblem(){
+  var pr = DB.prog[P.tid];
+  var stars = P.revealed ? 0 : (P.hints === 0 && P.wrongs === 0) ? 3 : (P.hints + P.wrongs <= 2) ? 2 : 1;
+  pr.solved++; pr.stars += stars; DB.stars += stars; S.stars += stars; if (stars === 3) S.perfect++;
+  var lvMsg = '';
+  if (stars === 3){ pr.streak++; pr.struggle = 0; }
+  else if (stars === 0 || P.wrongs >= 3){ pr.struggle++; pr.streak = 0; }
+  else pr.streak = 0;
+  if (pr.streak >= 3 && pr.level < 5){ pr.level++; pr.streak = 0; lvMsg = ' 🎉 ¡Subes al nivel ' + pr.level + ' de ' + TOPIC[P.tid].name + '!'; S.ups.push(TOPIC[P.tid].name + ' → nivel ' + pr.level); toast('¡Nivel ' + pr.level + '! 🚀'); sfx.level(); }
+  else if (pr.struggle >= 2 && pr.level > 1){ pr.level--; pr.struggle = 0; lvMsg = ' Vamos a practicar un poquito más fácil para coger fuerza. 💪'; }
+  save();
+  S.idx++; drawProgress();
+  if (stars === 3) confetti();
+  say((stars ? pick(PRAISE) + ' ' : '¡Ya lo tienes! ') + P.explain + lvMsg);
+  var ans = $('#ans'); ans.innerHTML = '';
+  ans.append(el('div', {class:'result'}, el('span', {class:'stars'}, '⭐'.repeat(stars) + '☆'.repeat(3 - stars)),
+    el('button', {class:'btn big', onclick:function(){ sfx.tap(); nextProblem(); }}, S.idx >= S.total ? 'Terminar 🏁' : 'Siguiente ▶')));
+  step = null; busy = false;
+}
+function endSession(){
+  if (DB.days.indexOf(today()) < 0){ DB.days.push(today()); if (DB.days.length > 400) DB.days = DB.days.slice(-400); }
+  save();
+  show('summary');
+  var max = S.total * 3;
+  $('#sumTitle').textContent = S.stars >= max * .8 ? '¡Espectacular, ' + (DB.name || 'campeona') + '!' : S.stars >= max * .5 ? '¡Muy buen trabajo!' : '¡Bien hecho por no rendirte!';
+  $('#sumStars').textContent = '⭐ ' + S.stars + ' / ' + max;
+  var t = 'Has hecho ' + S.total + ' ejercicios y ' + S.perfect + ' a la primera.';
+  if (S.ups.length) t += ' Has subido de nivel: ' + S.ups.join(', ') + '.';
+  t += ' Racha: ' + dayStreak() + ' ' + plural(dayStreak(), 'día', 'días') + ' seguidos 🔥';
+  $('#sumText').textContent = t;
+  speak($('#sumTitle').textContent + ' ' + t);
+  confetti();
+}
+
+function confetti(){
+  var em = ['⭐','✨','🎉','💜','🌟','🍬'];
+  for (var i = 0; i < 28; i++){
+    var c = el('span', {class:'confetti', style:'left:' + Math.random()*100 + 'vw;animation-duration:' + (1.6 + Math.random()*1.6) + 's;animation-delay:' + Math.random()*.4 + 's'}, pick(em));
+    document.body.append(c);
+    (function(x){ setTimeout(function(){ x.remove(); }, 3800); })(c);
+  }
+}
+function toast(t){ var e = el('div', {class:'toast'}, t); document.body.append(e); setTimeout(function(){ e.remove(); }, 1800); }
+
+/* =====================================================================
+   Inicio
+   ===================================================================== */
+function drawHome(){
+  $('#hello').textContent = '¡Hola' + (DB.name ? ', ' + DB.name : '') + '!';
+  var ds = dayStreak();
+  $('#helloSub').textContent = ds ? 'Llevas ' + ds + ' ' + plural(ds,'día','días') + ' seguidos 🔥' : '¿Qué aprendemos hoy?';
+  $('#starPill').textContent = '⭐ ' + DB.stars;
+  var g = $('#topics'); g.innerHTML = '';
+  TOPICS.forEach(function(t){
+    var pr = DB.prog[t.id], dots = el('span', {style:'display:flex;gap:3px'});
+    for (var i = 1; i <= 5; i++) dots.append(el('i', {class:'dot' + (i <= pr.level ? ' on' : '')}));
+    g.append(el('button', {class:'topic', onclick:function(){ sfx.tap(); startSession([t.id], 6, false); }},
+      el('span', {class:'em', style:'background:' + t.color}, t.em), el('b', {}, t.name),
+      el('span', {class:'lv'}, 'Nivel ', dots), el('span', {class:'st'}, '⭐ ' + pr.stars)));
+  });
+  $('#dailySub').textContent = (DB.days.indexOf(today()) >= 0 ? '¡Hecho hoy! ¿Otro? · ' : '') + '8 ejercicios variados';
+  $('#homeFoot').textContent = 'Consejo: unos 15 minutos al día valen más que una hora una vez a la semana.';
+  show('home');
+}
+
+/* =====================================================================
+   Zona de padres
+   ===================================================================== */
+var gateAns = 0;
+function openParents(){
+  var a = rnd(12,19), b = rnd(12,19); gateAns = a*b;
+  $('#gateQ').textContent = a + ' × ' + b;
+  $('#gateIn').value = ''; $('#gate').classList.remove('hidden'); $('#pzone').classList.add('hidden');
+  $('#parents').classList.remove('hidden');
+}
+function fillParents(){
+  $('#pName').value = DB.name; $('#pVoice').checked = DB.voice; $('#pRate').value = DB.rate; $('#pKey').value = DB.apiKey || '';
+  $('#pTestOut').textContent = '';
+  loadVoices();
+  var v = pickVoice();
+  $('#voiceNote').textContent = !('speechSynthesis' in window) ? 'Este navegador no puede leer en voz alta. El texto se ve igualmente.'
+    : v ? 'Voz: ' + v.name + '.' : 'No se ha encontrado una voz en español. En tablets Huawei: Ajustes → Accesibilidad → Texto a voz y elige un motor con español (o instala uno desde AppGallery). El texto se ve igualmente.';
+  var g = $('#pLevels'); g.innerHTML = '';
+  TOPICS.forEach(function(t){
+    var s = el('select', {id:'lv-' + t.id});
+    for (var i = 1; i <= 5; i++){ var o = el('option', {value:i}, 'Nivel ' + i); if (i === DB.prog[t.id].level) o.selected = true; s.append(o); }
+    g.append(el('span', {}, t.em + ' ' + t.name), s);
+  });
+  $('#pStats').innerHTML = TOPICS.map(function(t){ var p = DB.prog[t.id]; return t.em + ' ' + t.name + ': ' + p.solved + ' ejercicios, ⭐ ' + p.stars; }).join('<br>') + '<br>Días practicados: ' + DB.days.length + ' · Racha actual: ' + dayStreak();
+}
+
+/* =====================================================================
+   Pregúntale a Lumi (IA opcional con Claude)
+   ===================================================================== */
+var chatLog = [], AnthropicLib = null;
+var LUMI_SYSTEM = [
+  'Eres Lumi, una tutora de matemáticas cariñosa y paciente para una niña de 9 años (4º de primaria, España).',
+  'Habla en español de España, con frases cortas y sencillas (máximo 3 frases por respuesta), cálidas y alegres. Puedes usar algún emoji.',
+  'Método socrático: NUNCA des la solución final del ejercicio que está haciendo. Haz una pregunta que la ayude a dar el siguiente pasito, o propón una forma de verlo (dibujar, contar, repartir, partir en trozos).',
+  'Si pregunta por un concepto (qué es una fracción, para qué sirve multiplicar…), explícalo con un ejemplo cotidiano y concreto.',
+  'Elogia el esfuerzo y la forma de pensar, no la inteligencia. Equivocarse es normal y bueno para aprender.',
+  'Si te habla de algo que no sea matemáticas, responde con cariño en una frase y vuelve al ejercicio. No pidas ni guardes datos personales.',
+  'No uses LaTeX ni markdown: escribe las cuentas con símbolos normales (×, ÷, +, −) y las fracciones como 3/4.'
+].join('\n');
+function addMsg(who, text){ var m = el('div', {class:'msg ' + who}, text); $('#msgs').append(m); $('#msgs').scrollTop = 1e6; return m; }
+function openChat(){
+  $('#chatBox').classList.remove('hidden');
+  if (!$('#msgs').children.length){
+    addMsg('lumi', DB.apiKey ? '¡Hola! Pregúntame lo que quieras sobre este ejercicio o sobre mates. 😊'
+      : '¡Hola! Para charlar conmigo libremente, un adulto tiene que activarlo en la Zona de padres ⚙️. Mientras tanto, pulsa 💡 Pista y te ayudo paso a paso.');
+  }
+  setTimeout(function(){ $('#chatIn').focus(); }, 100);
+}
+function currentContext(){
+  if (!P || !step) return 'Ahora mismo no está haciendo ningún ejercicio (está leyendo una explicación o entre ejercicios).';
+  var tmp = document.createElement('div'); tmp.innerHTML = toHTML(step.say);
+  return 'Tema: ' + TOPIC[P.tid].name + ' (nivel ' + DB.prog[P.tid].level + ' de 5). Ejercicio actual: "' + tmp.textContent.replace(/\s+/g, ' ') + '". Lleva ' + P.wrongs + ' fallos y ' + P.hints + ' pistas en este ejercicio.';
+}
+async function getClient(){
+  if (!AnthropicLib){ var mod = await import('https://esm.sh/@anthropic-ai/sdk'); AnthropicLib = mod.default || mod.Anthropic; }
+  return new AnthropicLib({apiKey: DB.apiKey, dangerouslyAllowBrowser: true});
+}
+async function askClaude(messages, system){
+  var client = await getClient();
+  var resp = await client.beta.messages.create({
+    model: 'claude-opus-5-5',
+    max_tokens: 4000,
+    betas: ['server-side-fallback-2026-07-01'],
+    fallbacks: 'default',
+    output_config: {effort: 'low'},
+    system: system,
+    messages: messages
+  });
+  if (resp.stop_reason === 'refusal') return 'Mmm, de eso no puedo hablar. ¿Seguimos con las mates? 😊';
+  return resp.content.filter(function(b){ return b.type === 'text'; }).map(function(b){ return b.text; }).join('').trim();
+}
+function errText(e){
+  var A = AnthropicLib;
+  if (A && e instanceof A.AuthenticationError) return 'La clave no funciona. Pide a un adulto que la revise en la Zona de padres.';
+  if (A && e instanceof A.RateLimitError) return 'Estoy un poco saturada. Espera un momento y vuelve a preguntar.';
+  if (A && e instanceof A.APIConnectionError) return 'No tengo conexión a internet ahora mismo. ¡Prueba con 💡 Pista!';
+  if (A && e instanceof A.APIError) return 'Ha habido un problema (' + (e.status || 'error') + '). Prueba otra vez.';
+  return 'No puedo conectarme ahora mismo. ¡Prueba con 💡 Pista!';
+}
+async function sendChat(){
+  var q = $('#chatIn').value.trim(); if (!q) return;
+  $('#chatIn').value = ''; addMsg('me', q);
+  if (!DB.apiKey){ addMsg('lumi', 'Para responder a preguntas libres necesito que un adulto me active en la Zona de padres ⚙️. ¡Pero puedes pulsar 💡 Pista!'); return; }
+  chatLog.push({role:'user', content:q});
+  var m = addMsg('lumi', 'Pensando… 🤔');
+  try {
+    var hist = chatLog.slice(-12); while (hist.length && hist[0].role !== 'user') hist.shift();
+    var t = await askClaude(hist, LUMI_SYSTEM + '\n\nContexto: ' + currentContext());
+    m.textContent = t; chatLog.push({role:'assistant', content:t}); speak(t);
+  } catch(e){ chatLog.pop(); m.textContent = errText(e); }
+}
+function setupMic(){
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR){ $('#micBtn').classList.add('hidden'); return; }
+  $('#micBtn').addEventListener('click', function(){
+    try {
+      var r = new SR(); r.lang = 'es-ES'; r.interimResults = false;
+      $('#micBtn').textContent = '🔴';
+      r.onresult = function(e){ $('#chatIn').value = e.results[0][0].transcript; sendChat(); };
+      r.onend = r.onerror = function(){ $('#micBtn').textContent = '🎤'; };
+      r.start();
+    } catch(e){ $('#micBtn').textContent = '🎤'; }
+  });
+}
+
+/* =====================================================================
+   Arranque y eventos
+   ===================================================================== */
+function init(){
+  load();
+  $('#backBtn').addEventListener('click', function(){ try { speechSynthesis.cancel(); } catch(e){} drawHome(); });
+  $('#sayAgain').addEventListener('click', function(){ speak(lastSaid); });
+  $('#hintBtn').addEventListener('click', onHintBtn);
+  $('#askBtn').addEventListener('click', openChat);
+  $('#introBtn').addEventListener('click', function(){
+    var tid = P ? P.tid : (S && S.queue[S.idx]); if (!tid) return;
+    var resume = S.idx; runIntro(tid, function(){ S.idx = resume; nextProblem(); });
+  });
+  $('#dailyBtn').addEventListener('click', function(){ sfx.tap(); startSession(TOPICS.map(function(t){ return t.id; }), 8, true); });
+  $('#againBtn').addEventListener('click', function(){ startSession(S.ids, S.total, S.daily); });
+  $('#homeBtn').addEventListener('click', drawHome);
+  $('#parentsBtn').addEventListener('click', openParents);
+  $('#gateOk').addEventListener('click', function(){ if (+$('#gateIn').value === gateAns){ $('#gate').classList.add('hidden'); $('#pzone').classList.remove('hidden'); fillParents(); } else { $('#gateIn').value = ''; $('#gateIn').placeholder = 'No es correcto'; } });
+  $('#pSave').addEventListener('click', function(){
+    DB.name = $('#pName').value.trim(); DB.voice = $('#pVoice').checked; DB.rate = +$('#pRate').value; DB.apiKey = $('#pKey').value.trim();
+    TOPICS.forEach(function(t){ var nv = +$('#lv-' + t.id).value; if (nv !== DB.prog[t.id].level){ DB.prog[t.id].level = nv; DB.prog[t.id].streak = 0; DB.prog[t.id].struggle = 0; } });
+    save(); $('#parents').classList.add('hidden'); drawHome();
+  });
+  $('#pTest').addEventListener('click', async function(){
+    var key = $('#pKey').value.trim(); if (!key){ $('#pTestOut').textContent = 'Escribe una clave.'; return; }
+    var old = DB.apiKey; DB.apiKey = key; $('#pTestOut').textContent = 'Probando…';
+    try { var t = await askClaude([{role:'user', content:'Saluda en una frase corta.'}], LUMI_SYSTEM); $('#pTestOut').textContent = '✅ Funciona: «' + t + '»'; }
+    catch(e){ $('#pTestOut').textContent = '❌ ' + errText(e); }
+    DB.apiKey = old;
+  });
+  $('#pReset').addEventListener('click', function(){ if (confirm('¿Seguro que quieres borrar todo el progreso?')){ var k = DB.apiKey; localStorage.removeItem(STORE); load(); DB.apiKey = k; save(); $('#parents').classList.add('hidden'); $('#onboard').classList.remove('hidden'); } });
+  [].forEach.call(document.querySelectorAll('[data-close]'), function(b){ b.addEventListener('click', function(){ b.closest('.overlay').classList.add('hidden'); }); });
+  $('#chatSend').addEventListener('click', sendChat);
+  $('#chatIn').addEventListener('keydown', function(e){ if (e.key === 'Enter') sendChat(); });
+  $('#startBtn').addEventListener('click', function(){
+    DB.name = $('#nameIn').value.trim(); save();
+    $('#onboard').classList.add('hidden'); drawHome();
+    speak('¡Hola' + (DB.name ? ' ' + DB.name : '') + '! Elige un tema o empieza con el reto del día.');
+  });
+  setupMic();
+  drawHome();
+  if (!DB.name && !DB.days.length) $('#onboard').classList.remove('hidden');
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(function(){});
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
