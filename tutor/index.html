@@ -238,6 +238,49 @@ input{font-family:inherit}
 .sum-stars{font-size:46px}
 #summary .lumi{width:120px;height:120px}
 
+/* motivación: cerebro, metas y premios */
+.brain{margin-top:14px;border:0;width:100%;text-align:left;background:#fff;border-radius:22px;padding:14px;box-shadow:0 4px 0 var(--line);display:flex;gap:14px;align-items:center}
+.brain:active{transform:translateY(3px)}
+.bx{width:80px;height:80px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;font-size:50px;background:radial-gradient(circle at 40% 35%,#fff 0,#ffd6ec 45%,#e9b8ff 100%);position:relative;animation:glow 2.4s infinite}
+.bx .rk{position:absolute;right:-6px;bottom:-4px;font-size:28px;background:#fff;border-radius:50%;width:40px;height:40px;display:grid;place-items:center;box-shadow:0 2px 6px rgba(80,50,200,.2)}
+@keyframes glow{50%{box-shadow:0 0 0 8px rgba(168,85,247,.15)}}
+.brain-info{flex:1;min-width:0}
+.brain-info .pts{display:block}
+.brain-info b{font-size:21px;display:block;line-height:1.15}
+.brain-info .pts{font-size:16px;font-weight:800;color:#a855f7}
+.bar{display:block;height:14px;border-radius:999px;background:#eee8ff;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#ff8fb8,#a855f7);border-radius:999px;transition:width .8s}
+.bar.goal i{background:linear-gradient(90deg,#ffd43b,#ff922b)}
+.small{font-size:14px;color:var(--muted);display:block;margin-top:4px}
+.prizes-btn{margin-top:10px;width:100%;border:0;border-radius:18px;padding:12px 16px;background:#fff;box-shadow:0 4px 0 var(--line);font-size:19px;font-weight:800;color:var(--primary);display:flex;align-items:center;gap:10px}
+.prizes-btn .last{margin-left:auto;font-size:26px;letter-spacing:2px}
+.topic .goal{font-size:13px;color:var(--muted);font-weight:700}
+.lvgoal{margin-top:6px;font-size:15px;font-weight:700;color:var(--muted)}
+.lvgoal .g{color:var(--accent);letter-spacing:1px}
+.combo{background:#ff7a00;color:#fff}
+.float-pts{position:fixed;font-weight:800;font-size:30px;color:#fff;background:#a855f7;border-radius:999px;padding:2px 16px;z-index:42;pointer-events:none;animation:floatup 1.4s forwards;box-shadow:0 4px 12px rgba(168,85,247,.4)}
+@keyframes floatup{to{transform:translateY(-110px);opacity:0}}
+#celebrate .sheet{text-align:center;max-width:460px}
+.cel-em{font-size:100px;line-height:1.1;animation:celpop .6s}
+@keyframes celpop{0%{transform:scale(.2) rotate(-20deg)}70%{transform:scale(1.2) rotate(8deg)}}
+.cel-kind{font-size:15px;font-weight:800;color:#a855f7;text-transform:uppercase;letter-spacing:1px}
+#celebrate h2{font-size:28px;margin:4px 0}
+.ranks{display:flex;flex-direction:column;gap:6px;margin:6px 0 14px}
+.rank{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:12px;background:#faf8ff}
+.rank .e{font-size:28px}
+.rank.cur{background:#f3e8ff;outline:3px solid #a855f7}
+.rank.locked{opacity:.4}
+.rank .m{margin-left:auto;font-weight:800;color:var(--muted);font-size:15px}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+.badge{background:#faf8ff;border-radius:16px;padding:10px 6px;text-align:center;border:2px solid var(--line)}
+.badge .e{font-size:42px;display:block;line-height:1.2}
+.badge.got{border-color:#ffd43b;background:#fffbe8}
+.badge.locked .e{filter:grayscale(1);opacity:.25}
+.badge b{font-size:14px;display:block;line-height:1.2}
+.badge small{font-size:12px;color:var(--muted);display:block;line-height:1.2;margin-top:2px}
+.sum-brain{font-size:26px;font-weight:800;color:#a855f7}
+.sum-badges{font-size:40px;letter-spacing:4px}
+
 /* confeti */
 .confetti{position:fixed;top:-30px;font-size:26px;pointer-events:none;z-index:40;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
@@ -317,6 +360,18 @@ input{font-family:inherit}
       <span class="pill" id="starPill">⭐ 0</span>
       <button class="iconbtn" id="parentsBtn" aria-label="Zona de padres">⚙️</button>
     </div>
+    <button class="brain" id="brainBtn" aria-label="Mi cerebro y mis premios">
+      <span class="bx">🧠<span class="rk" id="rankEm">🌱</span></span>
+      <span class="brain-info">
+        <b id="rankName">Cerebro Semillita</b>
+        <span class="pts" id="brainPts">0 puntos de cerebro</span>
+        <span class="bar"><i id="rankBar" style="width:0"></i></span>
+        <span class="small" id="rankNext"></span>
+        <span class="bar goal"><i id="goalBar" style="width:0"></i></span>
+        <span class="small" id="goalTxt"></span>
+      </span>
+    </button>
+    <button class="prizes-btn" id="prizesBtn">🏆 Mis premios <span id="prizesCount"></span><span class="last" id="prizesLast"></span></button>
     <button class="daily" id="dailyBtn"><span class="em">🚀</span><div><b>Reto del día</b><span id="dailySub">8 ejercicios variados</span></div></button>
     <div class="topics" id="topics"></div>
     <div class="home-foot" id="homeFoot"></div>
@@ -330,17 +385,19 @@ input{font-family:inherit}
       <button class="iconbtn" id="backBtn" aria-label="Volver">🏠</button>
       <div class="title" id="lTitle"></div>
       <div class="progress" id="lProg"></div>
-      <span class="pill" id="lStars">⭐ 0</span>
+      <span class="pill combo hidden" id="lCombo">🔥 x2</span>
+      <span class="pill" id="lStars">🧠 0</span>
     </div>
     <div class="tutor">
       <svg class="lumi" id="lumiFace"><use href="#lumi"/></svg>
       <div class="bubble-wrap">
         <div class="bubble" id="bubble"></div>
+        <div class="lvgoal" id="lvGoal"></div>
         <div class="tools">
-          <button class="tool" id="sayAgain">🔊 Repetir</button>
+          <button class="tool" id="sayAgain" aria-label="Repetir">🔊</button>
           <button class="tool" id="hintBtn">💡 Pista</button>
-          <button class="tool" id="askBtn">💬 Pregúntale a Lumi</button>
-          <button class="tool" id="introBtn">📖 Explicación</button>
+          <button class="tool" id="askBtn">💬 Preguntar</button>
+          <button class="tool" id="introBtn">📖 Lección</button>
         </div>
       </div>
     </div>
@@ -354,12 +411,37 @@ input{font-family:inherit}
   <svg class="lumi happy" style="margin:0 auto"><use href="#lumi"/></svg>
   <h1 id="sumTitle">¡Muy bien!</h1>
   <div class="sum-stars" id="sumStars"></div>
+  <div class="sum-brain" id="sumBrain"></div>
+  <div class="sum-badges" id="sumBadges"></div>
   <p id="sumText" style="font-size:20px;max-width:520px;margin:10px auto"></p>
   <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px">
     <button class="btn big" id="againBtn">Otra vez 🔁</button>
     <button class="btn big ghost" id="homeBtn">Inicio 🏠</button>
   </div>
 </section>
+
+<!-- CELEBRACIÓN -->
+<div class="overlay hidden" id="celebrate">
+  <div class="sheet">
+    <div class="cel-kind" id="celKind"></div>
+    <div class="cel-em" id="celEm"></div>
+    <h2 id="celTitle"></h2>
+    <p id="celText" style="font-size:19px"></p>
+    <button class="btn big" id="celOk">¡Genial! 🎉</button>
+  </div>
+</div>
+
+<!-- PREMIOS -->
+<div class="overlay hidden" id="prizes">
+  <div class="sheet">
+    <div class="row" style="justify-content:space-between;display:flex;align-items:center"><h2 style="margin:0">🏆 Mis premios</h2><button class="iconbtn" data-close>✖</button></div>
+    <p class="note" style="margin:6px 0">Gana puntos de cerebro 🧠 con cada ejercicio para hacer crecer tu cerebro. Supera retos para ganar premios.</p>
+    <h3 style="margin:10px 0 4px">🧠 Mi cerebro</h3>
+    <div class="ranks" id="ranksList"></div>
+    <h3 style="margin:10px 0 6px">🎖️ Premios <span id="badgesCount" class="note"></span></h3>
+    <div class="badges" id="badgesGrid"></div>
+  </div>
+</div>
 
 <!-- BIENVENIDA -->
 <div class="overlay hidden" id="onboard">
@@ -396,6 +478,8 @@ input{font-family:inherit}
       <p class="note">Con una clave de la API de Claude (console.anthropic.com), el botón «Pregúntale a Lumi» responde a cualquier duda con preguntas guía, sin dar la solución. La clave se guarda solo en este dispositivo y cada pregunta tiene un pequeño coste en tu cuenta. Sin clave, todo lo demás funciona igual y sin internet.</p>
       <input type="password" id="pKey" placeholder="sk-ant-..." autocomplete="off">
       <div class="row" style="margin-top:8px"><button class="btn ghost" id="pTest">Probar clave</button><span class="note" id="pTestOut"></span></div>
+      <label for="pGoal">Meta diaria de ejercicios</label>
+      <select id="pGoal"><option value="5">5 ejercicios</option><option value="10">10 ejercicios</option><option value="15">15 ejercicios</option><option value="20">20 ejercicios</option></select>
       <label>Progreso</label>
       <div id="pStats" class="note"></div>
       <div class="row" style="margin-top:16px;justify-content:space-between">
@@ -493,6 +577,11 @@ function load(){
   TOPICS.forEach(function(t){
     if (!DB.prog[t.id]) DB.prog[t.id] = {level:START[t.id], stars:0, solved:0, streak:0, struggle:0, seen:false};
   });
+  if (DB.brain == null) DB.brain = 0;
+  if (!DB.badges) DB.badges = {};
+  if (!DB.goal) DB.goal = 10;
+  DB.st = Object.assign({solved:0, perfect:0, combo:0, bestCombo:0, daily:0, goals:0, ups:0, perfectSessions:0}, DB.st || {});
+  if (!DB.day || DB.day.k !== today()) DB.day = {k:today(), n:0, pts:0, goalDone:false};
 }
 function save(){ try { localStorage.setItem(STORE, JSON.stringify(DB)); } catch(e){} }
 function today(){ var d = new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
@@ -1402,7 +1491,7 @@ function startSession(ids, total, daily){
   var queue = [];
   if (daily){ var all = shuffle(ids); for (var i = 0; i < total; i++) queue.push(all[i % all.length]); }
   else for (var j = 0; j < total; j++) queue.push(ids[0]);
-  S = {ids:ids, queue:queue, idx:0, total:total, stars:0, perfect:0, daily:daily, ups:[]};
+  S = {ids:ids, queue:queue, idx:0, total:total, stars:0, perfect:0, daily:daily, ups:[], pts:0, combo:0, badges:[]};
   show('lesson');
   drawProgress();
   var first = queue[0];
@@ -1411,9 +1500,10 @@ function startSession(ids, total, daily){
 function drawProgress(){
   var p = $('#lProg'); p.innerHTML = '';
   for (var i = 0; i < S.total; i++) p.append(el('i', {class: i < S.idx ? 'done' : i === S.idx ? 'cur' : ''}));
-  $('#lStars').textContent = '⭐ ' + S.stars;
+  $('#lStars').textContent = '🧠 +' + S.pts;
+  $('#lCombo').textContent = '🔥 x' + S.combo; $('#lCombo').classList.toggle('hidden', S.combo < 2);
 }
-function setTitle(tid){ var t = TOPIC[tid]; $('#lTitle').textContent = t.em + ' ' + t.name + ' · Nivel ' + DB.prog[tid].level; }
+function setTitle(tid){ var t = TOPIC[tid]; $('#lTitle').textContent = t.em + ' ' + t.name + ' · Nivel ' + DB.prog[tid].level; $('#lvGoal').innerHTML = lvGoalText(tid); }
 
 function runIntro(tid, cb){
   var I = INTROS[tid], ws = $('#ws'); P = null; step = null;
@@ -1514,25 +1604,50 @@ function finishProblem(){
   var pr = DB.prog[P.tid];
   var stars = P.revealed ? 0 : (P.hints === 0 && P.wrongs === 0) ? 3 : (P.hints + P.wrongs <= 2) ? 2 : 1;
   pr.solved++; pr.stars += stars; DB.stars += stars; S.stars += stars; if (stars === 3) S.perfect++;
-  var lvMsg = '';
-  if (stars === 3){ pr.streak++; pr.struggle = 0; }
-  else if (stars === 0 || P.wrongs >= 3){ pr.struggle++; pr.streak = 0; }
-  else pr.streak = 0;
-  if (pr.streak >= 3 && pr.level < 5){ pr.level++; pr.streak = 0; lvMsg = ' 🎉 ¡Subes al nivel ' + pr.level + ' de ' + TOPIC[P.tid].name + '!'; S.ups.push(TOPIC[P.tid].name + ' → nivel ' + pr.level); toast('¡Nivel ' + pr.level + '! 🚀'); sfx.level(); }
+  DB.st.solved++; DB.day.n++;
+  var lvMsg = '', cels = [], L = pr.level;
+  if (stars === 3){ pr.streak++; pr.struggle = 0; S.combo++; DB.st.perfect++; DB.st.bestCombo = Math.max(DB.st.bestCombo, S.combo); }
+  else { S.combo = 0; if (stars === 0 || P.wrongs >= 3){ pr.struggle++; pr.streak = 0; } else pr.streak = 0; }
+  /* puntos de cerebro: más estrellas y más nivel, más puntos; bonus por racha */
+  var pts = stars === 3 ? 10 + 2*L : stars === 2 ? 7 + L : stars === 1 ? 4 + L : 2;
+  if (S.combo >= 3) pts += 5;
+  cels = cels.concat(addBrain(pts));
+  if (pr.streak >= 3 && pr.level < 5){
+    pr.level++; pr.streak = 0; DB.st.ups++;
+    lvMsg = ' 🎉 ¡Subes al nivel ' + pr.level + ' de ' + TOPIC[P.tid].name + '!'; S.ups.push(TOPIC[P.tid].name + ' → nivel ' + pr.level);
+    cels.unshift({kind:'¡Reto superado!', em:'⬆️' + TOPIC[P.tid].em, title:'¡Nivel ' + pr.level + ' de ' + TOPIC[P.tid].name + '!', text:'Has hecho 3 ejercicios seguidos a la primera. Te llevas 30 puntos de cerebro de premio. ¡Ahora los ejercicios serán un poco más difíciles!'});
+    cels = cels.concat(addBrain(30)); pts += 30;
+  }
   else if (pr.struggle >= 2 && pr.level > 1){ pr.level--; pr.struggle = 0; lvMsg = ' Vamos a practicar un poquito más fácil para coger fuerza. 💪'; }
+  if (!DB.day.goalDone && DB.day.n >= DB.goal){
+    DB.day.goalDone = true; DB.st.goals++;
+    cels.push({kind:'¡Meta del día!', em:'🎯', title:'¡Meta de hoy conseguida!', text:'Has hecho ' + DB.goal + ' ejercicios hoy. ¡20 puntos de cerebro extra!'});
+    cels = cels.concat(addBrain(20)); pts += 20;
+  }
+  var nb = checkBadges(); S.badges = S.badges.concat(nb); cels = cels.concat(nb.map(badgeCel));
   save();
-  S.idx++; drawProgress();
-  if (stars === 3) confetti();
-  say((stars ? pick(PRAISE) + ' ' : '¡Ya lo tienes! ') + P.explain + lvMsg);
+  S.idx++; drawProgress(); setTitle(P.tid);
+  floatPts(pts);
+  if (stars === 3 && !cels.length) confetti();
+  say((stars ? pick(PRAISE) + ' ' : '¡Ya lo tienes! ') + P.explain + lvMsg + (S.combo >= 3 ? ' 🔥 ¡Racha de ' + S.combo + '!' : ''));
+  var celT = cels.length ? setTimeout(function(){ celT = null; celebrate(cels); }, 1600) : null;
   var ans = $('#ans'); ans.innerHTML = '';
   ans.append(el('div', {class:'result'}, el('span', {class:'stars'}, '⭐'.repeat(stars) + '☆'.repeat(3 - stars)),
-    el('button', {class:'btn big', onclick:function(){ sfx.tap(); nextProblem(); }}, S.idx >= S.total ? 'Terminar 🏁' : 'Siguiente ▶')));
+    el('button', {class:'btn big', onclick:function(){ sfx.tap(); if (celT){ clearTimeout(celT); celT = null; celebrate(cels, nextProblem); } else if (!$('#celebrate').classList.contains('hidden')) celCb = nextProblem; else nextProblem(); }}, S.idx >= S.total ? 'Terminar 🏁' : 'Siguiente ▶')));
   step = null; busy = false;
 }
 function endSession(){
   if (DB.days.indexOf(today()) < 0){ DB.days.push(today()); if (DB.days.length > 400) DB.days = DB.days.slice(-400); }
+  var bonus = S.daily ? 25 : 15, cels = [];
+  if (S.daily) DB.st.daily++;
+  if (S.stars === S.total * 3) DB.st.perfectSessions++;
+  cels = cels.concat(addBrain(bonus));
+  var nb = checkBadges(); S.badges = S.badges.concat(nb); cels = cels.concat(nb.map(badgeCel));
   save();
   show('summary');
+  $('#sumBrain').textContent = '+' + S.pts + ' puntos de cerebro 🧠 (incluye ' + bonus + ' por terminar)';
+  $('#sumBadges').textContent = S.badges.map(function(b){ return (b.crown ? '👑' : '') + b.em; }).join(' ');
+  if (cels.length) setTimeout(function(){ celebrate(cels); }, 2500);
   var max = S.total * 3;
   $('#sumTitle').textContent = S.stars >= max * .8 ? '¡Espectacular, ' + (DB.name || 'campeona') + '!' : S.stars >= max * .5 ? '¡Muy buen trabajo!' : '¡Bien hecho por no rendirte!';
   $('#sumStars').textContent = '⭐ ' + S.stars + ' / ' + max;
@@ -1542,6 +1657,98 @@ function endSession(){
   $('#sumText').textContent = t;
   speak($('#sumTitle').textContent + ' ' + t);
   confetti();
+}
+
+/* =====================================================================
+   Motivación: puntos de cerebro, rangos, meta diaria y premios
+   ===================================================================== */
+var RANKS = [
+  {min:0,     name:'Cerebro Semillita',  em:'🌱'},
+  {min:100,   name:'Cerebro Chispa',     em:'⚡'},
+  {min:300,   name:'Cerebro Brillante',  em:'💡'},
+  {min:700,   name:'Cerebro Explorador', em:'🔭'},
+  {min:1200,  name:'Cerebro Inventor',   em:'🛠️'},
+  {min:2000,  name:'Cerebro Genial',     em:'🎓'},
+  {min:3500,  name:'Supercerebro',       em:'🚀'},
+  {min:6000,  name:'Cerebro Galáctico',  em:'🌌'},
+  {min:10000, name:'Cerebro Legendario', em:'👑'}
+];
+function rankOf(p){ var r = 0; RANKS.forEach(function(x, i){ if (p >= x.min) r = i; }); return r; }
+var BADGES = [
+  {id:'primer',   em:'👣', name:'Primer paso',       desc:'Haz tu primer ejercicio',            t:function(){ return DB.st.solved >= 1; }},
+  {id:'diez',     em:'🔟', name:'Calentando motores', desc:'Haz 10 ejercicios',                 t:function(){ return DB.st.solved >= 10; }},
+  {id:'cien',     em:'💯', name:'Cien',              desc:'Haz 100 ejercicios',                 t:function(){ return DB.st.solved >= 100; }},
+  {id:'quini',    em:'🏔️', name:'La gran montaña',   desc:'Haz 500 ejercicios',                 t:function(){ return DB.st.solved >= 500; }},
+  {id:'perf10',   em:'🎯', name:'Puntería',          desc:'10 ejercicios a la primera',         t:function(){ return DB.st.perfect >= 10; }},
+  {id:'perf50',   em:'🏹', name:'Ojo de halcón',     desc:'50 ejercicios a la primera',         t:function(){ return DB.st.perfect >= 50; }},
+  {id:'combo5',   em:'🔥', name:'En racha',          desc:'5 seguidos a la primera',            t:function(){ return DB.st.bestCombo >= 5; }},
+  {id:'combo10',  em:'🌋', name:'Imparable',         desc:'10 seguidos a la primera',           t:function(){ return DB.st.bestCombo >= 10; }},
+  {id:'sube1',    em:'⬆️', name:'¡Para arriba!',     desc:'Sube de nivel por primera vez',      t:function(){ return DB.st.ups >= 1; }},
+  {id:'sube10',   em:'🪜', name:'Escalera mágica',   desc:'Sube 10 niveles en total',           t:function(){ return DB.st.ups >= 10; }},
+  {id:'meta1',    em:'🎈', name:'Meta cumplida',     desc:'Consigue la meta del día',           t:function(){ return DB.st.goals >= 1; }},
+  {id:'meta10',   em:'🎡', name:'Diez metas',        desc:'Consigue la meta del día 10 veces',  t:function(){ return DB.st.goals >= 10; }},
+  {id:'reto1',    em:'🚀', name:'Despegue',          desc:'Termina un Reto del día',            t:function(){ return DB.st.daily >= 1; }},
+  {id:'reto10',   em:'🛸', name:'Viaje espacial',    desc:'Termina 10 Retos del día',           t:function(){ return DB.st.daily >= 10; }},
+  {id:'diam',     em:'💎', name:'Diamante',          desc:'Termina una sesión con todas las estrellas', t:function(){ return DB.st.perfectSessions >= 1; }},
+  {id:'dias3',    em:'📅', name:'Constancia',        desc:'Practica 3 días seguidos',           t:function(){ return dayStreak() >= 3; }},
+  {id:'dias7',    em:'🗓️', name:'Semana completa',   desc:'Practica 7 días seguidos',           t:function(){ return dayStreak() >= 7; }},
+  {id:'dias30',   em:'🌟', name:'Superconstancia',   desc:'Practica 30 días seguidos',          t:function(){ return dayStreak() >= 30; }},
+  {id:'arcoiris', em:'🌈', name:'Arcoíris',          desc:'Practica los 7 temas',               t:function(){ return TOPICS.every(function(x){ return DB.prog[x.id].solved > 0; }); }}
+];
+TOPICS.forEach(function(t){
+  BADGES.push({id:'master-' + t.id, em:t.em, crown:true, name:'Corona de ' + t.name, desc:'Llega al nivel 5 de ' + t.name,
+    t:function(){ return DB.prog[t.id].level >= 5 && DB.prog[t.id].solved > 0; }});
+});
+function checkBadges(){
+  var got = [];
+  BADGES.forEach(function(b){ if (!DB.badges[b.id] && b.t()){ DB.badges[b.id] = Date.now(); got.push(b); } });
+  return got;
+}
+function badgeCel(b){ return {kind:'¡Premio nuevo!', em:(b.crown ? '👑' : '') + b.em, title:b.name, text:b.desc + '. ¡Lo has conseguido! Lo tienes guardado en «Mis premios».'}; }
+function addBrain(n, why){
+  var before = rankOf(DB.brain);
+  DB.brain += n; DB.day.pts += n; if (S) S.pts += n;
+  var after = rankOf(DB.brain), cels = [];
+  if (after > before){ var r = RANKS[after]; cels.push({kind:'¡Tu cerebro ha crecido!', em:r.em, title:r.name, text:'Has llegado a ' + r.min + ' puntos de cerebro. ¡Cada ejercicio te hace más fuerte!'}); }
+  return cels;
+}
+function floatPts(n){
+  var a = $('#ans').getBoundingClientRect();
+  var f = el('div', {class:'float-pts', style:'left:' + (a.left + a.width/2 - 50) + 'px;top:' + (a.top - 10) + 'px'}, '+' + n + ' 🧠');
+  document.body.append(f); setTimeout(function(){ f.remove(); }, 1400);
+}
+var celQ = [], celCb = null;
+function celebrate(items, cb){
+  if (!items.length){ if (cb) cb(); return; }
+  celQ = celQ.concat(items); if (cb) celCb = cb;
+  if ($('#celebrate').classList.contains('hidden')) nextCel();
+}
+function nextCel(){
+  if (!celQ.length){ $('#celebrate').classList.add('hidden'); var c = celCb; celCb = null; if (c) c(); return; }
+  var it = celQ.shift();
+  $('#celKind').textContent = it.kind; $('#celEm').textContent = it.em; $('#celTitle').textContent = it.title; $('#celText').textContent = it.text;
+  var e = $('#celEm'); e.style.animation = 'none'; void e.offsetWidth; e.style.animation = '';
+  $('#celebrate').classList.remove('hidden');
+  sfx.level(); confetti(); speak(it.title + '. ' + it.text);
+}
+function lvGoalText(tid){
+  var pr = DB.prog[tid];
+  if (pr.level >= 5) return '👑 ¡Nivel máximo de ' + TOPIC[tid].name + '!';
+  var g = ''; for (var i = 0; i < 3; i++) g += i < pr.streak ? '⭐' : '☆';
+  return 'Reto para subir al nivel ' + (pr.level + 1) + ': 3 seguidos a la primera <span class="g">' + g + '</span>';
+}
+function openPrizes(){
+  var cur = rankOf(DB.brain), rl = $('#ranksList'); rl.innerHTML = '';
+  RANKS.forEach(function(r, i){
+    rl.append(el('div', {class:'rank' + (i === cur ? ' cur' : i > cur ? ' locked' : '')}, el('span', {class:'e'}, i > cur ? '🔒' : r.em), el('b', {}, r.name), el('span', {class:'m'}, r.min + ' 🧠')));
+  });
+  var g = $('#badgesGrid'); g.innerHTML = ''; var n = 0;
+  BADGES.forEach(function(b){
+    var got = !!DB.badges[b.id]; if (got) n++;
+    g.append(el('div', {class:'badge ' + (got ? 'got' : 'locked')}, el('span', {class:'e'}, (b.crown ? '👑' : '') + b.em), el('b', {}, got ? b.name : '???'), el('small', {}, b.desc)));
+  });
+  $('#badgesCount').textContent = n + ' de ' + BADGES.length;
+  $('#prizes').classList.remove('hidden');
 }
 
 function confetti(){
@@ -1562,13 +1769,28 @@ function drawHome(){
   var ds = dayStreak();
   $('#helloSub').textContent = ds ? 'Llevas ' + ds + ' ' + plural(ds,'día','días') + ' seguidos 🔥' : '¿Qué aprendemos hoy?';
   $('#starPill').textContent = '⭐ ' + DB.stars;
+  if (DB.day.k !== today()) DB.day = {k:today(), n:0, pts:0, goalDone:false};
+  var ri = rankOf(DB.brain), r = RANKS[ri], nx = RANKS[ri + 1];
+  $('#rankEm').textContent = r.em; $('#rankName').textContent = r.name;
+  $('#brainPts').textContent = DB.brain + ' puntos de cerebro';
+  $('#rankBar').style.width = (nx ? Math.round((DB.brain - r.min) / (nx.min - r.min) * 100) : 100) + '%';
+  $('#rankNext').textContent = nx ? 'Te faltan ' + (nx.min - DB.brain) + ' 🧠 para ser ' + nx.name + ' ' + nx.em : '¡Has llegado a lo más alto!';
+  $('#goalBar').style.width = Math.min(100, Math.round(DB.day.n / DB.goal * 100)) + '%';
+  $('#goalTxt').textContent = DB.day.goalDone ? '🎯 ¡Meta de hoy conseguida! (' + DB.day.n + ' ejercicios)' : '🎯 Meta de hoy: ' + DB.day.n + ' de ' + DB.goal + ' ejercicios';
+  var nb = Object.keys(DB.badges).length;
+  $('#prizesCount').textContent = '· ' + nb + ' de ' + BADGES.length;
+  var last = Object.keys(DB.badges).sort(function(a, b){ return DB.badges[b] - DB.badges[a]; }).slice(0, 3)
+    .map(function(id){ var b = BADGES.find(function(x){ return x.id === id; }); return b ? (b.crown ? '👑' : '') + b.em : ''; });
+  $('#prizesLast').textContent = last.join('');
   var g = $('#topics'); g.innerHTML = '';
   TOPICS.forEach(function(t){
     var pr = DB.prog[t.id], dots = el('span', {style:'display:flex;gap:3px'});
     for (var i = 1; i <= 5; i++) dots.append(el('i', {class:'dot' + (i <= pr.level ? ' on' : '')}));
     g.append(el('button', {class:'topic', onclick:function(){ sfx.tap(); startSession([t.id], 6, false); }},
       el('span', {class:'em', style:'background:' + t.color}, t.em), el('b', {}, t.name),
-      el('span', {class:'lv'}, 'Nivel ', dots), el('span', {class:'st'}, '⭐ ' + pr.stars)));
+      el('span', {class:'lv'}, 'Nivel ', dots),
+      el('span', {class:'goal'}, pr.level >= 5 ? '👑 ¡Nivel máximo!' : 'Para subir: ' + '⭐'.repeat(pr.streak) + '☆'.repeat(3 - pr.streak)),
+      el('span', {class:'st'}, '⭐ ' + pr.stars)));
   });
   $('#dailySub').textContent = (DB.days.indexOf(today()) >= 0 ? '¡Hecho hoy! ¿Otro? · ' : '') + '8 ejercicios variados';
   $('#homeFoot').textContent = 'Consejo: unos 15 minutos al día valen más que una hora una vez a la semana.';
@@ -1587,7 +1809,7 @@ function openParents(){
 }
 function fillParents(){
   $('#pName').value = DB.name; $('#pVoice').checked = DB.voice; $('#pRate').value = DB.rate; $('#pKey').value = DB.apiKey || '';
-  $('#pTestOut').textContent = '';
+  $('#pTestOut').textContent = ''; $('#pGoal').value = String(DB.goal);
   loadVoices();
   var v = pickVoice();
   $('#voiceNote').textContent = !('speechSynthesis' in window) ? 'Este navegador no puede leer en voz alta. El texto se ve igualmente.'
@@ -1598,7 +1820,7 @@ function fillParents(){
     for (var i = 1; i <= 5; i++){ var o = el('option', {value:i}, 'Nivel ' + i); if (i === DB.prog[t.id].level) o.selected = true; s.append(o); }
     g.append(el('span', {}, t.em + ' ' + t.name), s);
   });
-  $('#pStats').innerHTML = TOPICS.map(function(t){ var p = DB.prog[t.id]; return t.em + ' ' + t.name + ': ' + p.solved + ' ejercicios, ⭐ ' + p.stars; }).join('<br>') + '<br>Días practicados: ' + DB.days.length + ' · Racha actual: ' + dayStreak();
+  $('#pStats').innerHTML = TOPICS.map(function(t){ var p = DB.prog[t.id]; return t.em + ' ' + t.name + ': ' + p.solved + ' ejercicios, ⭐ ' + p.stars; }).join('<br>') + '<br>🧠 Puntos de cerebro: ' + DB.brain + ' (' + RANKS[rankOf(DB.brain)].name + ') · 🏆 Premios: ' + Object.keys(DB.badges).length + ' de ' + BADGES.length + '<br>Días practicados: ' + DB.days.length + ' · Racha actual: ' + dayStreak();
 }
 
 /* =====================================================================
@@ -1697,9 +1919,12 @@ function init(){
   $('#againBtn').addEventListener('click', function(){ startSession(S.ids, S.total, S.daily); });
   $('#homeBtn').addEventListener('click', drawHome);
   $('#parentsBtn').addEventListener('click', openParents);
+  $('#brainBtn').addEventListener('click', openPrizes);
+  $('#prizesBtn').addEventListener('click', openPrizes);
+  $('#celOk').addEventListener('click', function(){ sfx.tap(); nextCel(); });
   $('#gateOk').addEventListener('click', function(){ if (+$('#gateIn').value === gateAns){ $('#gate').classList.add('hidden'); $('#pzone').classList.remove('hidden'); fillParents(); } else { $('#gateIn').value = ''; $('#gateIn').placeholder = 'No es correcto'; } });
   $('#pSave').addEventListener('click', function(){
-    DB.name = $('#pName').value.trim(); DB.voice = $('#pVoice').checked; DB.rate = +$('#pRate').value; DB.apiKey = $('#pKey').value.trim();
+    DB.name = $('#pName').value.trim(); DB.voice = $('#pVoice').checked; DB.rate = +$('#pRate').value; DB.apiKey = $('#pKey').value.trim(); DB.goal = +$('#pGoal').value || 10;
     TOPICS.forEach(function(t){ var nv = +$('#lv-' + t.id).value; if (nv !== DB.prog[t.id].level){ DB.prog[t.id].level = nv; DB.prog[t.id].streak = 0; DB.prog[t.id].struggle = 0; } });
     save(); $('#parents').classList.add('hidden'); drawHome();
   });
