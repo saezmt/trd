@@ -198,9 +198,10 @@ try { S = Object.assign({}, DEF, JSON.parse(localStorage.getItem("banderas") || 
 // Link directo: …/batalla-banderas.html#capitales abre con Capitales elegido
 if (location.hash === "#capitales") S.game = "caps";
 if (location.hash === "#banderas") S.game = "flags";
+if (location.hash === "#combinado") S.game = "mix";
 const save = () => { try { localStorage.setItem("banderas", JSON.stringify(S)); } catch(e) {} };
 
-const GAMES = [["flags","Banderas","¿de qué país es?"],["caps","Capitales","foto de la ciudad"]];
+const GAMES = [["flags","Banderas","¿de qué país es?"],["caps","Capitales","foto de la ciudad"],["mix","Combinado","banderas y capitales"]];
 const MODES = [["face","Cara a cara","tablet en la mesa"],["side","Lado a lado","juntos, mismo lado"],["cpu","Contra el robot","1 jugador"]];
 const LEVELS = [[2,"Fácil","2 opciones"],[4,"Normal","4 opciones"],[6,"Experto","6 opciones"]];
 const REG = [["fam","Las famosas"],["all","Todo el mundo"],["e","Europa"],["a","América"],["s","Asia"],["f","África"],["o","Oceanía"]];
@@ -318,9 +319,10 @@ function countdown(n){
   later(() => countdown(n-1), 750);
 }
 
-function preload(c){ new Image().src = src(c.c); if (S.game === "caps") new Image().src = csrc(c.c); }
-const answer = c => S.game === "caps" ? c.cap : c.n;
-const said = c => S.game === "caps" ? `${c.cap}, capital de ${c.n}` : c.n;
+let kind = "flags"; // tipo de la ronda actual: "flags" o "caps" (en Combinado cambia cada ronda)
+function preload(c){ new Image().src = src(c.c); if (S.game !== "flags" && c.cap) new Image().src = csrc(c.c); }
+const answer = c => kind === "caps" ? c.cap : c.n;
+const said = c => kind === "caps" ? `${c.cap}, capital de ${c.n}` : c.n;
 function nextCountry(){
   if (!deck.length) deck = shuffle(pool.filter(x => !cur || x.c !== cur.c));
   const c = deck.pop();
@@ -330,7 +332,7 @@ function nextCountry(){
 
 function options(c, n){
   const bad = x => x.c === c.c || (SIM[c.c]||[]).includes(x.c);
-  const ok = x => S.game !== "caps" || x.cap;
+  const ok = x => kind !== "caps" || x.cap;
   const src = (S.region==="fam" ? FAM : n >= 6 ? C.filter(x => x.k === c.k) : pool).filter(ok);
   const out = [c];
   for (const list of [shuffle(src), shuffle(C.filter(ok))])
@@ -345,13 +347,15 @@ function options(c, n){
 function newRound(){
   if (over || paused) return;
   cur = nextCountry(); roundOver = false;
+  kind = S.game === "caps" ? "caps" : S.game === "mix" && cur.cap && Math.random() < .5 ? "caps" : "flags";
   P.forEach((p, i) => {
     p.locked = false;
     if (p.cpu) return;
     const h = H[i]; h.classList.remove("locked","done"); hideMsg(i);
     const opts = options(cur, p.lv);
     q(i,".big").src = src(cur.c);
-    if (S.game === "caps"){ q(i,".city").src = csrc(cur.c); q(i,".ask").innerHTML = `Capital de <b>${cur.n}</b>`; }
+    h.classList.toggle("caps", kind === "caps");
+    if (kind === "caps"){ q(i,".city").src = csrc(cur.c); q(i,".ask").innerHTML = `Capital de <b>${cur.n}</b>`; }
     else q(i,".ask").textContent = "¿De qué país es esta bandera?";
     const box = q(i,".opts");
     box.className = `opts n${p.lv} names`;
@@ -389,7 +393,7 @@ function reveal(){
 function checkAll(){
   if (roundOver || !P.every(p => p.locked)) return;
   roundOver = true; reveal(); speak(said(cur));
-  humans().forEach(i => msg(i, `Era ${answer(cur)}<small>${S.game==="caps" ? "capital de "+cur.n : fimg(cur.c)}</small>`));
+  humans().forEach(i => msg(i, `Era ${answer(cur)}<small>${kind==="caps" ? "capital de "+cur.n : fimg(cur.c)}</small>`));
   later(newRound, 2300);
 }
 
@@ -398,7 +402,7 @@ function win(i){
   const p = P[i]; p.score++; p.got.unshift(cur.c);
   sfx.good(); speak(said(cur)); reveal();
   humans().forEach(j => {
-    if (j === i) msg(j, `¡Bien! +1<small>${S.game==="caps" ? `${cur.cap}, capital de ${cur.n}` : cur.n}</small>`);
+    if (j === i) msg(j, `¡Bien! +1<small>${kind==="caps" ? `${cur.cap}, capital de ${cur.n}` : cur.n}</small>`);
     else msg(j, `¡${p.name} fue más rápido!<small>Era ${answer(cur)}</small>`);
   });
   score();
