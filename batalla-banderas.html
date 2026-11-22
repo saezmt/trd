@@ -81,13 +81,18 @@ header .sc{background:#fff;color:var(--ink);border-radius:99px;padding:2px 12px;
 @container (min-aspect-ratio: 8/5){.body{grid-template-rows:minmax(0,1fr);grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);align-items:center}}
 .prompt{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;gap:1cqmin}
 .ask{font-size:clamp(14px,3.8cqmin,22px);opacity:.92}
+.pic{position:relative;width:fit-content;max-width:100%;margin:0 auto}
+.city{display:none}
+.ask b{font-weight:700;font-size:1.3em}
+.caps .city{display:block;height:17vh;height:min(31cqh,58cqw);width:auto;max-width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:14px;border:4px solid #fff;background:#fff3;box-shadow:0 7px 0 rgba(0,0,0,.25)}
+.caps .big{position:absolute;left:-12px;bottom:-12px;height:40%;border-width:3px;border-radius:8px;box-shadow:0 4px 0 rgba(0,0,0,.3)}
 .big{display:block;height:22vh;height:min(40cqh,52cqw);width:auto;max-width:100%;aspect-ratio:4/3;object-fit:contain;border-radius:10px;background:#fff;border:4px solid #fff;box-shadow:0 7px 0 rgba(0,0,0,.25)}
 .prow .fimg{height:clamp(44px,9vw,64px);border-radius:6px}
 header .fimg{height:1.1em;flex:none}
 .msg .fimg{height:1.6em;margin-top:4px}
 .end .flags{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
 .end .fimg{height:1.1em}
-@container (min-aspect-ratio: 8/5){.big{height:min(58cqh,42cqw)}.ask{font-size:clamp(14px,5.5cqh,26px)}.op{font-size:clamp(16px,6.5cqh,32px);min-height:max(52px,19cqh)}.msg{left:23%;max-width:44%}}
+@container (min-aspect-ratio: 8/5){.big{height:min(58cqh,42cqw)}.caps .city{height:min(56cqh,30cqw)}.ask{font-size:clamp(14px,5.5cqh,26px)}.op{font-size:clamp(16px,6.5cqh,32px);min-height:max(52px,19cqh)}.msg{left:23%;max-width:44%}}
 .opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2.5cqmin}
 .opts.n6{grid-template-columns:repeat(3,minmax(0,1fr))}
 @container (max-width:560px){.opts.n6.names{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -126,10 +131,11 @@ header .fimg{height:1.1em;flex:none}
 <main id="menu" class="screen on">
   <div class="hero">
     <h1>Batalla de Banderas</h1>
-    <p>Sale una bandera: el primero que toque el país correcto se la queda. ¡Gana quien capture más!</p>
+    <p>Banderas o capitales: el primero que toque la respuesta correcta se queda la bandera. ¡Gana quien capture más!</p>
   </div>
   <div class="parade" id="parade" aria-hidden="true"></div>
   <div class="panel">
+    <div class="grp"><span>¿A qué jugamos?</span><div class="seg" id="sGame"></div></div>
     <div class="grp"><span>¿Cómo jugáis?</span><div class="seg" id="sMode"></div></div>
     <div class="players">
       <div class="pc a">
@@ -148,6 +154,7 @@ header .fimg{height:1.1em;flex:none}
     <div class="grp"><span>Decir el nombre en voz alta</span><div class="seg" id="sV"></div></div>
     <button class="go" id="go">¡A jugar!</button>
     <p class="note">Cada jugador elige su nivel: con «Fácil» solo hay 2 opciones, así los peques pueden ganar a los mayores.</p>
+    <p class="note"><a href="capitales/creditos.html" style="color:inherit">Créditos de las fotos y banderas</a></p>
   </div>
 </main>
 
@@ -169,7 +176,14 @@ const RAW = "es:España:e*;fr:Francia:e*;it:Italia:e*;de:Alemania:e*;pt:Portugal
 "au:Australia:o*;nz:Nueva Zelanda:o*;pg:Papúa Nueva Guinea:o;fj:Fiyi:o;sb:Islas Salomón:o;vu:Vanuatu:o;ws:Samoa:o;to:Tonga:o;ki:Kiribati:o;tv:Tuvalu:o;nr:Nauru:o;pw:Palaos:o;fm:Micronesia:o;mh:Islas Marshall:o";
 const src = c => `banderas/${c}.svg`;
 const fimg = (c, n="") => `<img class="fimg" src="${src(c)}" alt="${n}" draggable="false">`;
-const C = RAW.split(";").map(s => { const [c,n,k] = s.split(":"); return {c, n, k:k[0], f:k.includes("*")}; });
+// Capitales (Israel y Nauru no entran: capital en disputa / sin capital oficial)
+const CAPS = Object.fromEntries(("es:Madrid;fr:París;it:Roma;de:Berlín;pt:Lisboa;gb:Londres;ie:Dublín;nl:Ámsterdam;be:Bruselas;lu:Luxemburgo;ch:Berna;at:Viena;dk:Copenhague;no:Oslo;se:Estocolmo;fi:Helsinki;is:Reikiavik;pl:Varsovia;cz:Praga;sk:Bratislava;hu:Budapest;ro:Bucarest;bg:Sofía;gr:Atenas;hr:Zagreb;si:Liubliana;rs:Belgrado;ba:Sarajevo;me:Podgorica;mk:Skopie;al:Tirana;xk:Pristina;ua:Kiev;by:Minsk;md:Chisináu;ru:Moscú;ee:Tallin;lv:Riga;lt:Vilna;mt:La Valeta;cy:Nicosia;ad:Andorra la Vieja;mc:Mónaco;sm:San Marino;va:Ciudad del Vaticano;li:Vaduz;"+
+"us:Washington D. C.;ca:Ottawa;mx:Ciudad de México;gt:Ciudad de Guatemala;bz:Belmopán;sv:San Salvador;hn:Tegucigalpa;ni:Managua;cr:San José;pa:Ciudad de Panamá;cu:La Habana;do:Santo Domingo;ht:Puerto Príncipe;jm:Kingston;pr:San Juan;bs:Nasáu;bb:Bridgetown;tt:Puerto España;gd:Saint George;lc:Castries;vc:Kingstown;ag:Saint John;dm:Roseau;kn:Basseterre;co:Bogotá;ve:Caracas;ec:Quito;pe:Lima;bo:Sucre;cl:Santiago;ar:Buenos Aires;uy:Montevideo;py:Asunción;br:Brasilia;gy:Georgetown;sr:Paramaribo;"+
+"cn:Pekín;jp:Tokio;kr:Seúl;kp:Pionyang;in:Nueva Delhi;pk:Islamabad;bd:Daca;np:Katmandú;bt:Timbu;lk:Sri Jayawardenapura Kotte;mv:Malé;af:Kabul;ir:Teherán;iq:Bagdad;sy:Damasco;lb:Beirut;jo:Amán;sa:Riad;ye:Saná;om:Mascate;ae:Abu Dabi;qa:Doha;bh:Manama;kw:Ciudad de Kuwait;tr:Ankara;ge:Tiflis;am:Ereván;az:Bakú;kz:Astaná;uz:Taskent;tm:Asjabad;kg:Biskek;tj:Dusambé;mn:Ulán Bator;th:Bangkok;vn:Hanói;la:Vientián;kh:Nom Pen;mm:Naipyidó;my:Kuala Lumpur;sg:Singapur;id:Yakarta;ph:Manila;bn:Bandar Seri Begawan;tl:Dili;"+
+"ma:Rabat;dz:Argel;tn:Túnez;ly:Trípoli;eg:El Cairo;sd:Jartum;ss:Yuba;et:Adís Abeba;er:Asmara;dj:Yibuti;so:Mogadiscio;ke:Nairobi;ug:Kampala;rw:Kigali;bi:Gitega;tz:Dodoma;mz:Maputo;mw:Lilongüe;zm:Lusaka;zw:Harare;bw:Gaborone;na:Windhoek;za:Pretoria;ls:Maseru;sz:Mbabane;mg:Antananarivo;mu:Port Louis;sc:Victoria;km:Moroni;ao:Luanda;cd:Kinsasa;cg:Brazzaville;ga:Libreville;gq:Malabo;cm:Yaundé;cf:Bangui;td:Yamena;ne:Niamey;ng:Abuya;bj:Porto Novo;tg:Lomé;gh:Accra;ci:Yamusukro;bf:Uagadugú;ml:Bamako;sn:Dakar;gm:Banjul;gw:Bisáu;gn:Conakri;sl:Freetown;lr:Monrovia;mr:Nuakchot;cv:Praia;st:Santo Tomé;"+
+"au:Canberra;nz:Wellington;pg:Port Moresby;fj:Suva;sb:Honiara;vu:Port Vila;ws:Apia;to:Nukualofa;ki:Tarawa Sur;tv:Funafuti;pw:Ngerulmud;fm:Palikir;mh:Majuro").split(";").map(s => s.split(":")));
+const csrc = c => `capitales/${c}.jpg`;
+const C = RAW.split(";").map(s => { const [c,n,k] = s.split(":"); return {c, n, k:k[0], f:k.includes("*"), cap:CAPS[c]}; });
 const FAM = C.filter(x => x.f);
 // Banderas casi idénticas: nunca salen juntas como opciones
 const SIM = {td:["ro"],ro:["td"],mc:["id"],id:["mc"],nl:["lu"],lu:["nl"]};
@@ -178,11 +192,12 @@ const rnd = (a,b) => a + Math.random()*(b-a);
 const shuffle = a => { a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; };
 
 // ---------- Ajustes ----------
-const DEF = {mode:"face", q:"flag", region:"fam", goal:10, voice:true, names:["Jugador 1","Jugador 2"], lv:[4,2]};
+const DEF = {game:"flags", mode:"face", q:"flag", region:"fam", goal:10, voice:true, names:["Jugador 1","Jugador 2"], lv:[4,2]};
 let S = DEF;
 try { S = Object.assign({}, DEF, JSON.parse(localStorage.getItem("banderas") || "{}")); } catch(e) {}
 const save = () => { try { localStorage.setItem("banderas", JSON.stringify(S)); } catch(e) {} };
 
+const GAMES = [["flags","Banderas","¿de qué país es?"],["caps","Capitales","foto de la ciudad"]];
 const MODES = [["face","Cara a cara","tablet en la mesa"],["side","Lado a lado","juntos, mismo lado"],["cpu","Contra el robot","1 jugador"]];
 const LEVELS = [[2,"Fácil","2 opciones"],[4,"Normal","4 opciones"],[6,"Experto","6 opciones"]];
 const REG = [["fam","Las famosas"],["all","Todo el mundo"],["e","Europa"],["a","América"],["s","Asia"],["f","África"],["o","Oceanía"]];
@@ -195,6 +210,7 @@ function seg(el, opts, get, set){
   return draw;
 }
 const draws = [
+  seg($("sGame"), GAMES, () => S.game, v => S.game = v),
   seg($("sMode"), MODES, () => S.mode, v => S.mode = v),
   seg($("sL0"), LEVELS, () => S.lv[0], v => S.lv[0] = v),
   seg($("sL1"), LEVELS, () => S.lv[1], v => S.lv[1] = v),
@@ -249,7 +265,7 @@ const clearAll = () => { timers.forEach(clearTimeout); timers = []; clearTimeout
 
 H.forEach((h, i) => {
   h.innerHTML = `<header><b class="nm"></b><span class="cap"></span><span class="rv"></span><span class="sc"></span></header>
-    <div class="body"><div class="prompt"><div class="ask">¿De qué país es esta bandera?</div><img class="big" alt=""></div><div class="opts"></div></div>
+    <div class="body"><div class="prompt"><div class="ask"></div><div class="pic"><img class="city" alt=""><img class="big" alt=""></div></div><div class="opts"></div></div>
     <div class="msg"></div>
     <div class="end"><h2></h2><p class="t"></p><div class="flags"></div><div class="btns"><button class="again">Revancha</button><button class="alt home">Menú</button></div></div>`;
   h.querySelector(".opts").addEventListener("pointerdown", ev => {
@@ -272,14 +288,17 @@ function start(){
   clearAll(); try { window.speechSynthesis && speechSynthesis.cancel(); } catch(e) {}
   const cpu = S.mode === "cpu";
   P = [0,1].map(i => ({ name: (i===1 && cpu) ? "Robot" : ((S.names[i]||"").trim() || `Jugador ${i+1}`), lv: S.lv[i], cpu: i===1 && cpu, score:0, got:[], locked:false }));
-  pool = S.region==="all" ? C : S.region==="fam" ? FAM : C.filter(x => x.k === S.region);
+  const capsMode = S.game === "caps";
+  const ok = x => !capsMode || x.cap;
+  pool = (S.region==="all" ? C : S.region==="fam" ? FAM : C.filter(x => x.k === S.region)).filter(ok);
   deck = shuffle(pool);
-  new Image().src = src(deck[deck.length-1].c); // primera bandera lista durante la cuenta atrás
+  preload(deck[deck.length-1]); // primera ronda lista durante la cuenta atrás
+  H.forEach(h => h.classList.toggle("caps", capsMode));
   over = false; paused = false;
   G.className = "screen on " + (cpu ? "cpu" : S.mode==="face" ? "face" : "side");
   layout();
   $("menu").classList.remove("on");
-  H.forEach((h,i) => { h.classList.remove("locked","done"); q(i,".end").classList.remove("on"); q(i,".opts").innerHTML=""; q(i,".big").removeAttribute("src"); hideMsg(i); });
+  H.forEach((h,i) => { h.classList.remove("locked","done"); q(i,".end").classList.remove("on"); q(i,".opts").innerHTML=""; q(i,".big").removeAttribute("src"); q(i,".city").removeAttribute("src"); q(i,".ask").textContent=""; hideMsg(i); });
   score();
   countdown(3);
 }
@@ -296,18 +315,22 @@ function countdown(n){
   later(() => countdown(n-1), 750);
 }
 
+function preload(c){ new Image().src = src(c.c); if (S.game === "caps") new Image().src = csrc(c.c); }
+const answer = c => S.game === "caps" ? c.cap : c.n;
+const said = c => S.game === "caps" ? `${c.cap}, capital de ${c.n}` : c.n;
 function nextCountry(){
   if (!deck.length) deck = shuffle(pool.filter(x => !cur || x.c !== cur.c));
   const c = deck.pop();
-  if (deck.length) new Image().src = src(deck[deck.length-1].c); // precarga la siguiente
+  if (deck.length) preload(deck[deck.length-1]); // precarga la siguiente
   return c;
 }
 
 function options(c, n){
   const bad = x => x.c === c.c || (SIM[c.c]||[]).includes(x.c);
-  const src = S.region==="fam" ? FAM : n >= 6 ? C.filter(x => x.k === c.k) : pool;
+  const ok = x => S.game !== "caps" || x.cap;
+  const src = (S.region==="fam" ? FAM : n >= 6 ? C.filter(x => x.k === c.k) : pool).filter(ok);
   const out = [c];
-  for (const list of [shuffle(src), shuffle(C)])
+  for (const list of [shuffle(src), shuffle(C.filter(ok))])
     for (const x of list){
       if (out.length >= n) break;
       if (bad(x) || out.includes(x) || out.some(o => (SIM[o.c]||[]).includes(x.c))) continue;
@@ -325,9 +348,11 @@ function newRound(){
     const h = H[i]; h.classList.remove("locked","done"); hideMsg(i);
     const opts = options(cur, p.lv);
     q(i,".big").src = src(cur.c);
+    if (S.game === "caps"){ q(i,".city").src = csrc(cur.c); q(i,".ask").innerHTML = `Capital de <b>${cur.n}</b>`; }
+    else q(i,".ask").textContent = "¿De qué país es esta bandera?";
     const box = q(i,".opts");
     box.className = `opts n${p.lv} names`;
-    box.innerHTML = opts.map(o => `<button type="button" class="op" data-c="${o.c}">${o.n}</button>`).join("");
+    box.innerHTML = opts.map(o => `<button type="button" class="op" data-c="${o.c}">${answer(o)}</button>`).join("");
   });
   if (P[1].cpu) cpuPlan();
 }
@@ -360,18 +385,18 @@ function reveal(){
 }
 function checkAll(){
   if (roundOver || !P.every(p => p.locked)) return;
-  roundOver = true; reveal(); speak(cur.n);
-  humans().forEach(i => msg(i, `Era ${cur.n}<small>${fimg(cur.c)}</small>`));
+  roundOver = true; reveal(); speak(said(cur));
+  humans().forEach(i => msg(i, `Era ${answer(cur)}<small>${S.game==="caps" ? "capital de "+cur.n : fimg(cur.c)}</small>`));
   later(newRound, 2300);
 }
 
 function win(i){
   roundOver = true; clearTimeout(cpuT);
   const p = P[i]; p.score++; p.got.unshift(cur.c);
-  sfx.good(); speak(cur.n); reveal();
+  sfx.good(); speak(said(cur)); reveal();
   humans().forEach(j => {
-    if (j === i) msg(j, `¡Bien! +1<small>${cur.n}</small>`);
-    else msg(j, `¡${p.name} fue más rápido!<small>Era ${cur.n}</small>`);
+    if (j === i) msg(j, `¡Bien! +1<small>${S.game==="caps" ? `${cur.cap}, capital de ${cur.n}` : cur.n}</small>`);
+    else msg(j, `¡${p.name} fue más rápido!<small>Era ${answer(cur)}</small>`);
   });
   score();
   if (p.score >= S.goal) later(end, 1500); else later(newRound, 2000);
