@@ -195,6 +195,9 @@ const shuffle = a => { a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Ma
 const DEF = {game:"flags", mode:"face", q:"flag", region:"fam", goal:10, voice:true, names:["Jugador 1","Jugador 2"], lv:[4,2]};
 let S = DEF;
 try { S = Object.assign({}, DEF, JSON.parse(localStorage.getItem("banderas") || "{}")); } catch(e) {}
+// Link directo: …/batalla-banderas.html#capitales abre con Capitales elegido
+if (location.hash === "#capitales") S.game = "caps";
+if (location.hash === "#banderas") S.game = "flags";
 const save = () => { try { localStorage.setItem("banderas", JSON.stringify(S)); } catch(e) {} };
 
 const GAMES = [["flags","Banderas","¿de qué país es?"],["caps","Capitales","foto de la ciudad"]];
