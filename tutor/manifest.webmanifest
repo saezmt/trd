@@ -1,0 +1,17 @@
+{
+  "name": "Lumi · Tu tutora de mates",
+  "short_name": "Lumi Mates",
+  "description": "Tutora de matemáticas interactiva para niños de 8 a 10 años.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f4f0ff",
+  "theme_color": "#6c4cf5",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml"}
+  ]
+}
