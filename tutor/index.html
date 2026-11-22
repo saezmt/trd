@@ -365,10 +365,10 @@ input{font-family:inherit}
 <div class="overlay hidden" id="onboard">
   <div class="sheet" style="text-align:center">
     <svg class="lumi happy" style="width:110px;height:110px"><use href="#lumi"/></svg>
-    <h2>¡Hola! Soy Lumi ✨</h2>
+    <h2 id="obTitle">¡Hola! Soy Lumi ✨</h2>
     <p>Soy tu tutora de matemáticas. Vamos a aprender jugando, paso a paso. Si te equivocas, ¡no pasa nada! Así se aprende.</p>
     <label for="nameIn">¿Cómo te llamas?</label>
-    <input type="text" id="nameIn" maxlength="20" placeholder="Tu nombre" autocomplete="off">
+    <input type="text" id="nameIn" maxlength="20" placeholder="Tu nombre" autocomplete="off" value="Valeria">
     <div style="margin-top:16px"><button class="btn big" id="startBtn">¡Empezamos! 🚀</button></div>
   </div>
 </div>
@@ -489,7 +489,7 @@ var START = {posicional:3, sumas:2, multi:2, division:1, fracciones:1, recta:2, 
 var DB;
 function load(){
   try { DB = JSON.parse(localStorage.getItem(STORE)) || null; } catch(e){ DB = null; }
-  if (!DB) DB = {name:'', voice:true, rate:0.95, apiKey:'', stars:0, days:[], prog:{}};
+  if (!DB) DB = {name:'Valeria', welcomed:false, voice:true, rate:0.95, apiKey:'', stars:0, days:[], prog:{}};
   TOPICS.forEach(function(t){
     if (!DB.prog[t.id]) DB.prog[t.id] = {level:START[t.id], stars:0, solved:0, streak:0, struggle:0, seen:false};
   });
@@ -1710,18 +1710,18 @@ function init(){
     catch(e){ $('#pTestOut').textContent = '❌ ' + errText(e); }
     DB.apiKey = old;
   });
-  $('#pReset').addEventListener('click', function(){ if (confirm('¿Seguro que quieres borrar todo el progreso?')){ var k = DB.apiKey; localStorage.removeItem(STORE); load(); DB.apiKey = k; save(); $('#parents').classList.add('hidden'); $('#onboard').classList.remove('hidden'); } });
+  $('#pReset').addEventListener('click', function(){ if (confirm('¿Seguro que quieres borrar todo el progreso?')){ var k = DB.apiKey, nm = DB.name; localStorage.removeItem(STORE); load(); DB.apiKey = k; DB.name = nm; save(); $('#nameIn').value = nm; $('#parents').classList.add('hidden'); $('#onboard').classList.remove('hidden'); } });
   [].forEach.call(document.querySelectorAll('[data-close]'), function(b){ b.addEventListener('click', function(){ b.closest('.overlay').classList.add('hidden'); }); });
   $('#chatSend').addEventListener('click', sendChat);
   $('#chatIn').addEventListener('keydown', function(e){ if (e.key === 'Enter') sendChat(); });
   $('#startBtn').addEventListener('click', function(){
-    DB.name = $('#nameIn').value.trim(); save();
+    DB.name = $('#nameIn').value.trim(); DB.welcomed = true; save();
     $('#onboard').classList.add('hidden'); drawHome();
     speak('¡Hola' + (DB.name ? ' ' + DB.name : '') + '! Elige un tema o empieza con el reto del día.');
   });
   setupMic();
   drawHome();
-  if (!DB.name && !DB.days.length) $('#onboard').classList.remove('hidden');
+  if (!DB.welcomed && !DB.days.length){ $('#nameIn').value = DB.name || ''; $('#obTitle').textContent = DB.name ? '¡Hola, ' + DB.name + '! Soy Lumi ✨' : '¡Hola! Soy Lumi ✨'; $('#onboard').classList.remove('hidden'); }
   if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(function(){});
 }
 document.addEventListener('DOMContentLoaded', init);
