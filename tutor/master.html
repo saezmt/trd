@@ -90,7 +90,8 @@ th{color:var(--muted);font-weight:700}
       <summary>¿Cómo se crea la hoja? (5 minutos, una sola vez)</summary>
       <ol>
         <li>Entra en <b>sheets.google.com</b> con tu cuenta y crea una hoja en blanco. Llámala, por ejemplo, «Lumi master».</li>
-        <li>Menú <b>Extensiones → Apps Script</b>. Borra lo que haya y pega el código de <a href="hoja-master.gs" target="_blank" rel="noopener">hoja-master.gs</a>.</li>
+        <li>Menú <b>Extensiones → Apps Script</b>. Borra lo que haya y pega este código: <button class="btn ghost" id="copyCode" type="button" style="padding:4px 12px;font-size:15px">📋 Copiar código</button>
+          <textarea id="code" readonly style="width:100%;height:140px;margin-top:6px;font-size:12px;font-family:monospace;border-radius:10px;border:2px solid var(--line);padding:8px"></textarea></li>
         <li>En la línea <code>var CLAVE = 'CAMBIA-ESTA-CLAVE';</code> pon una clave que solo sepas tú. Guarda (💾).</li>
         <li><b>Implementar → Nueva implementación</b> → tipo <b>Aplicación web</b>. Ejecutar como: <b>Yo</b>. Quién tiene acceso: <b>Cualquier usuario</b>. Pulsa Implementar y acepta los permisos.</li>
         <li>Copia la URL de la aplicación web (termina en <code>/exec</code>) y pégala arriba junto con tu clave.</li>
@@ -257,6 +258,12 @@ $('#copy').addEventListener('click', function(){
   var i = $('#shareUrl'); i.select();
   (navigator.clipboard ? navigator.clipboard.writeText(i.value) : Promise.reject()).then(function(){ $('#copied').textContent = '✅ Copiado. Pégalo en WhatsApp, un correo o un mensaje.'; })
     .catch(function(){ document.execCommand('copy'); $('#copied').textContent = '✅ Copiado.'; });
+});
+fetch('hoja-master.gs').then(function(r){ return r.text(); }).then(function(t){ $('#code').value = t; }).catch(function(){ $('#code').value = 'No se ha podido cargar el código. Ábrelo en: ' + new URL('hoja-master.gs', location.href).href; });
+$('#copyCode').addEventListener('click', function(){
+  var c = $('#code'); c.select();
+  (navigator.clipboard ? navigator.clipboard.writeText(c.value) : Promise.reject()).then(function(){ $('#copyCode').textContent = '✅ Copiado'; })
+    .catch(function(){ document.execCommand('copy'); $('#copyCode').textContent = '✅ Copiado'; });
 });
 if (cfg.url && cfg.clave) load(); else showLogin('');
 </script>
