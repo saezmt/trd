@@ -1,5 +1,5 @@
 // Guarda la app para que funcione sin internet. Sube la versión al cambiar archivos.
-var CACHE = 'lumi-mates-v3';
+var CACHE = 'lumi-mates-v4';
 var SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', function(e){
   e.waitUntil(caches.open(CACHE).then(function(c){ return c.addAll(SHELL); }).then(function(){ return self.skipWaiting(); }));
