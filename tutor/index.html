@@ -469,8 +469,11 @@ input{font-family:inherit}
       <label for="pName">Nombre</label>
       <input type="text" id="pName" maxlength="20">
       <label>Voz de Lumi</label>
-      <div class="row"><label style="margin:0;font-weight:500"><input type="checkbox" id="pVoice"> Leer en voz alta</label>
-        <span>Velocidad</span><input type="range" id="pRate" min="0.6" max="1.3" step="0.05" style="flex:1"></div>
+      <label style="margin:0;font-weight:500"><input type="checkbox" id="pVoice"> Leer en voz alta</label>
+      <select id="pVoiceSel" style="margin-top:6px"></select>
+      <div class="row" style="margin-top:6px"><span style="min-width:110px">Velocidad</span><input type="range" id="pRate" min="0.6" max="1.2" step="0.05" style="flex:1"></div>
+      <div class="row"><span style="min-width:110px">Tono 🎵</span><input type="range" id="pPitch" min="0.8" max="1.8" step="0.05" style="flex:1"></div>
+      <button class="btn ghost" id="pVoiceTest" style="margin-top:6px">🔊 Probar voz</button>
       <p class="note" id="voiceNote"></p>
       <label>Nivel de cada tema (1 = fácil · 5 = difícil). Se ajusta solo según cómo le vaya.</label>
       <div class="lvgrid" id="pLevels"></div>
@@ -573,10 +576,12 @@ var START = {posicional:3, sumas:2, multi:2, division:1, fracciones:1, recta:2, 
 var DB;
 function load(){
   try { DB = JSON.parse(localStorage.getItem(STORE)) || null; } catch(e){ DB = null; }
-  if (!DB) DB = {name:'Valeria', welcomed:false, voice:true, rate:0.95, apiKey:'', stars:0, days:[], prog:{}};
+  if (!DB) DB = {name:'Valeria', welcomed:false, voice:true, rate:0.9, pitch:1.35, voiceName:'', apiKey:'', stars:0, days:[], prog:{}};
   TOPICS.forEach(function(t){
     if (!DB.prog[t.id]) DB.prog[t.id] = {level:START[t.id], stars:0, solved:0, streak:0, struggle:0, seen:false};
   });
+  if (DB.pitch == null){ DB.pitch = 1.35; if (!DB.rate || DB.rate === 0.95) DB.rate = 0.9; }
+  if (DB.voiceName == null) DB.voiceName = '';
   if (DB.brain == null) DB.brain = 0;
   if (!DB.badges) DB.badges = {};
   if (!DB.goal) DB.goal = 10;
@@ -599,20 +604,35 @@ function dayStreak(){
 var voices = [];
 function loadVoices(){ try { voices = speechSynthesis.getVoices() || []; } catch(e){ voices = []; } }
 if ('speechSynthesis' in window){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
-function pickVoice(){
-  var es = voices.filter(function(v){ return /^es/i.test(v.lang); });
-  return es.find(function(v){ return /es[-_]ES/i.test(v.lang) && /female|mujer|m[oó]nica|helena|laura|elvira|lucia|luc[ií]a/i.test(v.name); })
-      || es.find(function(v){ return /es[-_]ES/i.test(v.lang); }) || es[0] || null;
+/* Voces femeninas y suaves primero; las masculinas al final. Los nombres dependen del dispositivo
+   (Android/Google: es-es-x-eea / eec son femeninas; Microsoft: Elvira, Ximena…; Apple: Mónica, Marisol, Paulina…). */
+var FEM = /female|femenin|mujer|m[oó]nica|marisol|paulina|helena|laura|elvira|ximena|irene|luc[ií]a|elena|carmen|conchita|lupe|pen[eé]lope|sabina|dalia|esperanza|camila|isabela|soledad|sof[ií]a|lola|abril|estrella|triniti|vera|x-eea|x-eec|eea-|eec-/i;
+var MASC = /\bmale\b|hombre|masculin|jorge|pablo|diego|[aá]lvaro|ra[uú]l|enrique|juan|carlos|jos[eé]|miguel|andr[eé]s|alonso|sergio|gonzalo|dar[ií]o|arnau|x-eed|x-eef|eed-|eef-/i;
+function voiceScore(v){
+  var sc = 0;
+  if (/^es[-_]ES/i.test(v.lang)) sc += 6; else if (/^es/i.test(v.lang)) sc += 3;
+  if (FEM.test(v.name) || FEM.test(v.voiceURI || '')) sc += 5;
+  if (MASC.test(v.name) || MASC.test(v.voiceURI || '')) sc -= 8;
+  if (/natural|neural|online|premium|enhanced|mejorad/i.test(v.name)) sc += 3;
+  return sc;
+}
+function spanishVoices(){
+  return voices.filter(function(v){ return /^es/i.test(v.lang); }).sort(function(a, b){ return voiceScore(b) - voiceScore(a); });
+}
+function pickVoice(name){
+  var es = spanishVoices(), want = name != null ? name : DB.voiceName;
+  if (want){ var w = es.find(function(v){ return v.name === want; }); if (w) return w; }
+  return es[0] || null;
 }
 var lastSaid = '';
-function speak(text){
-  lastSaid = text;
-  if (!DB.voice || !('speechSynthesis' in window)) return;
+function speak(text, opt){
+  lastSaid = text; opt = opt || {};
+  if ((!DB.voice && !opt.force) || !('speechSynthesis' in window)) return;
   try {
     speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(toSpeech(text));
-    u.lang = 'es-ES'; var v = pickVoice(); if (v) u.voice = v;
-    u.rate = DB.rate || 0.95; u.pitch = 1.15;
+    var v = pickVoice(opt.voiceName); if (v){ u.voice = v; u.lang = v.lang; } else u.lang = 'es-ES';
+    u.rate = opt.rate || DB.rate || 0.9; u.pitch = opt.pitch || DB.pitch || 1.35;
     var L = $('#lumiFace');
     u.onstart = function(){ L.classList.add('talking'); };
     u.onend = u.onerror = function(){ L.classList.remove('talking'); };
@@ -1808,12 +1828,16 @@ function openParents(){
   $('#parents').classList.remove('hidden');
 }
 function fillParents(){
-  $('#pName').value = DB.name; $('#pVoice').checked = DB.voice; $('#pRate').value = DB.rate; $('#pKey').value = DB.apiKey || '';
+  $('#pName').value = DB.name; $('#pVoice').checked = DB.voice; $('#pRate').value = DB.rate; $('#pPitch').value = DB.pitch; $('#pKey').value = DB.apiKey || '';
   $('#pTestOut').textContent = ''; $('#pGoal').value = String(DB.goal);
   loadVoices();
+  var vs = spanishVoices(), sel = $('#pVoiceSel'); sel.innerHTML = '';
+  sel.append(el('option', {value:''}, 'Automática (la más dulce que encuentre)'));
+  vs.forEach(function(x){ var o = el('option', {value:x.name}, (FEM.test(x.name) || FEM.test(x.voiceURI || '') ? '👩 ' : MASC.test(x.name) || MASC.test(x.voiceURI || '') ? '👨 ' : '🗣️ ') + x.name + ' (' + x.lang + ')'); if (x.name === DB.voiceName) o.selected = true; sel.append(o); });
+  sel.classList.toggle('hidden', !vs.length);
   var v = pickVoice();
   $('#voiceNote').textContent = !('speechSynthesis' in window) ? 'Este navegador no puede leer en voz alta. El texto se ve igualmente.'
-    : v ? 'Voz: ' + v.name + '.' : 'No se ha encontrado una voz en español. En tablets Huawei: Ajustes → Accesibilidad → Texto a voz y elige un motor con español (o instala uno desde AppGallery). El texto se ve igualmente.';
+    : v ? 'Ahora suena: ' + v.name + '. Sube el tono para una voz más dulce y prueba otras voces de la lista con «Probar voz». Si la tablet solo tiene voces de hombre, en Ajustes → Accesibilidad → Texto a voz puedes instalar o elegir otra voz en español.' : 'No se ha encontrado una voz en español. En tablets Huawei: Ajustes → Accesibilidad → Texto a voz y elige un motor con español (o instala uno desde AppGallery). El texto se ve igualmente.';
   var g = $('#pLevels'); g.innerHTML = '';
   TOPICS.forEach(function(t){
     var s = el('select', {id:'lv-' + t.id});
@@ -1921,10 +1945,13 @@ function init(){
   $('#parentsBtn').addEventListener('click', openParents);
   $('#brainBtn').addEventListener('click', openPrizes);
   $('#prizesBtn').addEventListener('click', openPrizes);
+  $('#pVoiceTest').addEventListener('click', function(){
+    speak('¡Hola' + (DB.name ? ', ' + DB.name : '') + '! Soy Lumi, tu tutora de mates. ¡Qué bien lo estás haciendo!', {force:true, voiceName:$('#pVoiceSel').value, rate:+$('#pRate').value, pitch:+$('#pPitch').value});
+  });
   $('#celOk').addEventListener('click', function(){ sfx.tap(); nextCel(); });
   $('#gateOk').addEventListener('click', function(){ if (+$('#gateIn').value === gateAns){ $('#gate').classList.add('hidden'); $('#pzone').classList.remove('hidden'); fillParents(); } else { $('#gateIn').value = ''; $('#gateIn').placeholder = 'No es correcto'; } });
   $('#pSave').addEventListener('click', function(){
-    DB.name = $('#pName').value.trim(); DB.voice = $('#pVoice').checked; DB.rate = +$('#pRate').value; DB.apiKey = $('#pKey').value.trim(); DB.goal = +$('#pGoal').value || 10;
+    DB.name = $('#pName').value.trim(); DB.voice = $('#pVoice').checked; DB.rate = +$('#pRate').value; DB.pitch = +$('#pPitch').value; DB.voiceName = $('#pVoiceSel').value; DB.apiKey = $('#pKey').value.trim(); DB.goal = +$('#pGoal').value || 10;
     TOPICS.forEach(function(t){ var nv = +$('#lv-' + t.id).value; if (nv !== DB.prog[t.id].level){ DB.prog[t.id].level = nv; DB.prog[t.id].streak = 0; DB.prog[t.id].struggle = 0; } });
     save(); $('#parents').classList.add('hidden'); drawHome();
   });
