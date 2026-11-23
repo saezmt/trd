@@ -281,6 +281,45 @@ input{font-family:inherit}
 .sum-brain{font-size:26px;font-weight:800;color:#a855f7}
 .sum-badges{font-size:40px;letter-spacing:4px}
 
+/* perfiles, modo mayores y nuevos temas */
+body.mayor{font-size:21px;--key:62px;--cw:50px}
+body.mayor .bubble{font-size:23px;max-height:200px}
+body.mayor .tool{font-size:18px;padding:8px 14px}
+body.mayor .choice{font-size:24px;min-height:68px}
+body.mayor .topic b{font-size:21px}
+@media (min-width:700px){ body.mayor{--key:74px;--cw:62px} body.mayor .bubble{font-size:27px} body.mayor .choice{font-size:28px} }
+.kp.dec{grid-template-columns:repeat(7,1fr)}
+.age-row{display:flex;gap:10px;align-items:center;justify-content:center}
+.sheet .age-row input{flex:0 0 130px;width:130px;text-align:center;font-size:32px;font-weight:800;padding:6px;border-radius:14px;border:3px solid var(--line)}
+.age-row .btn{font-size:28px;width:60px;padding:8px 0}
+.who-list{display:flex;flex-direction:column;gap:10px;margin:14px 0}
+.who-btn{border:0;border-radius:18px;background:#faf8ff;padding:12px 16px;display:flex;align-items:center;gap:14px;font-size:23px;font-weight:800;box-shadow:0 3px 0 var(--line);text-align:left}
+.who-btn .e{font-size:42px}
+.who-btn small{display:block;font-size:15px;color:var(--muted);font-weight:600}
+.share-note{font-size:14px;color:var(--muted);background:#f6f3ff;border-radius:12px;padding:8px 10px;margin-top:10px}
+.mem-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%}
+.mem{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.mem b{width:58px;height:74px;border-radius:14px;background:#fff;display:grid;place-items:center;font-size:46px;box-shadow:0 3px 0 var(--line)}
+.mem.hid b{background:#ece6ff;color:#a99ce0}
+.mem-bar{width:100%;max-width:420px;height:10px;border-radius:999px;background:#eee8ff;overflow:hidden}
+.mem-bar i{display:block;height:100%;width:100%;background:var(--primary);transform-origin:left}
+@keyframes shrink{to{transform:scaleX(0)}}
+.ticket{background:#fffef8;border-radius:8px;padding:12px 18px;box-shadow:0 3px 12px rgba(0,0,0,.08);width:100%;max-width:420px;border-top:8px dotted #e3dcff}
+.ticket .tk-h{text-align:center;font-weight:800;letter-spacing:3px;color:var(--muted);margin-bottom:4px}
+.ticket .row2{display:flex;justify-content:space-between;gap:10px;font-size:20px;padding:3px 0}
+.ticket .tot{border-top:2px dashed #bbb;margin-top:6px;padding-top:6px;font-weight:800}
+.ticket .pay{color:var(--primary);font-weight:700}
+.clock{width:200px;height:200px}
+@media (min-width:700px){ .clock{width:260px;height:260px} .mem b{width:72px;height:90px;font-size:58px} .ticket .row2{font-size:24px} }
+.dwrap{display:flex;flex-direction:column;align-items:center;gap:2px}
+.dclock{font-size:34px;font-weight:800;background:#2b2350;color:#7dffb0;border-radius:12px;padding:4px 18px;font-variant-numeric:tabular-nums;letter-spacing:2px}
+.series{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px;max-width:680px}
+.series .chip{font-size:28px;padding:8px 14px}
+.series .chip.q{background:var(--accent);color:#fff}
+.series .chip.hl{outline:3px solid var(--primary)}
+.series .sd{font-size:15px;font-weight:800;color:#e8590c;min-width:26px;text-align:center;visibility:hidden}
+.series .sd.on{visibility:visible}
+
 /* confeti */
 .confetti{position:fixed;top:-30px;font-size:26px;pointer-events:none;z-index:40;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
@@ -358,7 +397,8 @@ input{font-family:inherit}
       <div><h1 id="hello">¡Hola!</h1><p id="helloSub">¿Qué aprendemos hoy?</p></div>
       <div class="spacer"></div>
       <span class="pill" id="starPill">⭐ 0</span>
-      <button class="iconbtn" id="parentsBtn" aria-label="Zona de padres">⚙️</button>
+      <button class="iconbtn" id="whoBtn" aria-label="Cambiar de persona">👤</button>
+      <button class="iconbtn" id="parentsBtn" aria-label="Ajustes">⚙️</button>
     </div>
     <button class="brain" id="brainBtn" aria-label="Mi cerebro y mis premios">
       <span class="bx">🧠<span class="rk" id="rankEm">🌱</span></span>
@@ -446,12 +486,26 @@ input{font-family:inherit}
 <!-- BIENVENIDA -->
 <div class="overlay hidden" id="onboard">
   <div class="sheet" style="text-align:center">
+    <div style="text-align:right;height:0"><button class="iconbtn hidden" id="obClose" data-close aria-label="Cerrar">✖</button></div>
     <svg class="lumi happy" style="width:110px;height:110px"><use href="#lumi"/></svg>
     <h2 id="obTitle">¡Hola! Soy Lumi ✨</h2>
-    <p>Soy tu tutora de matemáticas. Vamos a aprender jugando, paso a paso. Si te equivocas, ¡no pasa nada! Así se aprende.</p>
+    <p>Soy tu compañera de matemáticas y de entrenamiento mental. Practicaremos paso a paso y a tu ritmo. Equivocarse es parte de aprender.</p>
     <label for="nameIn">¿Cómo te llamas?</label>
-    <input type="text" id="nameIn" maxlength="20" placeholder="Tu nombre" autocomplete="off" value="Valeria">
-    <div style="margin-top:16px"><button class="btn big" id="startBtn">¡Empezamos! 🚀</button></div>
+    <input type="text" id="nameIn" maxlength="20" placeholder="Tu nombre" autocomplete="off" style="font-size:22px;text-align:center">
+    <label for="ageIn">¿Cuántos años tienes?</label>
+    <div class="age-row"><button class="btn ghost" id="ageMinus" aria-label="menos">−</button><input type="number" id="ageIn" inputmode="numeric" min="4" max="110" placeholder="?"><button class="btn ghost" id="agePlus" aria-label="más">+</button></div>
+    <p class="note" id="obNote" style="min-height:22px"></p>
+    <div><button class="btn big" id="startBtn">¡Empezamos! 🚀</button></div>
+    <div class="share-note hidden" id="obShare">🔗 Al usar este enlace, tu nombre, edad y avances se comparten con la persona que te lo envió, para que pueda seguir tu progreso.</div>
+  </div>
+</div>
+
+<!-- ¿QUIÉN PRACTICA? -->
+<div class="overlay hidden" id="who">
+  <div class="sheet" style="text-align:center">
+    <h2>¿Quién va a practicar? 👋</h2>
+    <div class="who-list" id="whoList"></div>
+    <button class="btn ghost" id="whoAdd">➕ Añadir otra persona</button>
   </div>
 </div>
 
@@ -459,15 +513,18 @@ input{font-family:inherit}
 <div class="overlay hidden" id="parents">
   <div class="sheet">
     <div id="gate">
-      <h2>Zona de padres 🔒</h2>
-      <p>Para entrar, resuelve: <b id="gateQ"></b></p>
+      <h2>Ajustes 🔒</h2>
+      <p>Para mayores. Para entrar, resuelve: <b id="gateQ"></b></p>
       <input type="number" id="gateIn" inputmode="numeric">
       <div class="row" style="margin-top:12px"><button class="btn" id="gateOk">Entrar</button><button class="btn ghost" data-close>Cerrar</button></div>
     </div>
     <div id="pzone" class="hidden">
-      <h2>Zona de padres ⚙️</h2>
+      <h2>Ajustes ⚙️</h2>
       <label for="pName">Nombre</label>
       <input type="text" id="pName" maxlength="20">
+      <label for="pAge">Edad</label>
+      <div class="row"><input type="number" id="pAge" min="4" max="110" style="width:110px"><button class="btn ghost" id="pAgeLv">Ajustar niveles a esta edad</button></div>
+      <p class="note" id="pAgeNote"></p>
       <label>Voz de Lumi</label>
       <label style="margin:0;font-weight:500"><input type="checkbox" id="pVoice"> Leer en voz alta</label>
       <select id="pVoiceSel" style="margin-top:6px"></select>
@@ -487,6 +544,7 @@ input{font-family:inherit}
       <div id="pStats" class="note"></div>
       <div class="row" style="margin-top:16px;justify-content:space-between">
         <button class="btn ghost" id="pReset" style="color:#d43d3d">Borrar progreso</button>
+        <button class="btn ghost" id="pDelete" style="color:#d43d3d">Eliminar a esta persona</button>
         <button class="btn" id="pSave">Guardar</button>
       </div>
     </div>
@@ -550,6 +608,10 @@ function fracName(a,b){ return (NUMW[a]||a) + ' ' + denName(b, a !== 1); }
 function toHTML(t){ return t.replace(/\[\[(\d+)\/(\d+)\]\]/g, '<span class="frac"><span>$1</span><span>$2</span></span>'); }
 function toSpeech(t){
   return t.replace(/\[\[(\d+)\/(\d+)\]\]/g, function(_,a,b){ return fracName(+a,+b); })
+    .replace(/(\d+),(\d\d) €/g, function(_, e, c){ return (e === '1' ? 'un euro' : e === '0' ? '' : e + ' euros') + (e === '0' ? '' : ' con ') + (+c) + ' céntimos'; })
+    .replace(/(\d+) €/g, function(_, e){ return e === '1' ? 'un euro' : e + ' euros'; })
+    .replace(/(\d+) %/g, '$1 por ciento')
+    .replace(/(\d{1,2}):(\d\d)/g, function(_, h, m){ return h + (m === '00' ? ' en punto' : ' y ' + (+m)); })
     .replace(/<[^>]+>/g,' ')
     .replace(/×\s*\?/g,'por cuánto').replace(/\?\s*=/g,'cuánto es igual a')
     .replace(/\s×\s/g,' por ').replace(/\s÷\s/g,' entre ').replace(/\s[−-]\s/g,' menos ').replace(/\s\+\s/g,' más ').replace(/\s=\s/g,' es igual a ')
@@ -560,7 +622,7 @@ function toSpeech(t){
 /* =====================================================================
    Datos guardados
    ===================================================================== */
-var STORE = 'lumi-mates-v1';
+var STORE = 'lumi-mates-v2', OLD_STORE = 'lumi-mates-v1';
 var TOPICS = [
   {id:'posicional', name:'Valor posicional', em:'🧱', color:'#ffe3c4'},
   {id:'sumas',      name:'Sumas y restas',   em:'➕', color:'#d0ebff'},
@@ -568,27 +630,81 @@ var TOPICS = [
   {id:'division',   name:'Dividir y repartir', em:'🍬', color:'#ffdeeb'},
   {id:'fracciones', name:'Fracciones',       em:'🍕', color:'#fff3bf'},
   {id:'recta',      name:'Recta numérica',   em:'📏', color:'#c3fae8'},
-  {id:'problemas',  name:'Problemas',        em:'🧩', color:'#ffe3e3'}
+  {id:'problemas',  name:'Problemas',        em:'🧩', color:'#ffe3e3'},
+  {id:'calculo',    name:'Cálculo mental',   em:'⚡', color:'#fff0c2'},
+  {id:'memoria',    name:'Memoria de números', em:'🧠', color:'#f3d9fa'},
+  {id:'dinero',     name:'Dinero y cambio',  em:'💶', color:'#d3f9d8'},
+  {id:'horas',      name:'La hora',          em:'🕒', color:'#dbe4ff'},
+  {id:'series',     name:'Series y patrones', em:'🔢', color:'#ffe8cc'}
 ];
 var TOPIC = {}; TOPICS.forEach(function(t){ TOPIC[t.id] = t; });
-/* Niveles iniciales pensados para 9 años (4º de primaria) */
-var START = {posicional:3, sumas:2, multi:2, division:1, fracciones:1, recta:2, problemas:1};
-var DB;
-function load(){
-  try { DB = JSON.parse(localStorage.getItem(STORE)) || null; } catch(e){ DB = null; }
-  if (!DB) DB = {name:'Valeria', welcomed:false, voice:true, rate:0.9, pitch:1.35, voiceName:'', apiKey:'', stars:0, days:[], prog:{}};
-  TOPICS.forEach(function(t){
-    if (!DB.prog[t.id]) DB.prog[t.id] = {level:START[t.id], stars:0, solved:0, streak:0, struggle:0, seen:false};
-  });
-  if (DB.pitch == null){ DB.pitch = 1.35; if (!DB.rate || DB.rate === 0.95) DB.rate = 0.9; }
-  if (DB.voiceName == null) DB.voiceName = '';
-  if (DB.brain == null) DB.brain = 0;
-  if (!DB.badges) DB.badges = {};
-  if (!DB.goal) DB.goal = 10;
-  DB.st = Object.assign({solved:0, perfect:0, combo:0, bestCombo:0, daily:0, goals:0, ups:0, perfectSessions:0}, DB.st || {});
-  if (!DB.day || DB.day.k !== today()) DB.day = {k:today(), n:0, pts:0, goalDone:false};
+/* Qué temas ve cada grupo de edad y en qué orden */
+var TOPIC_SETS = {
+  nino:   ['posicional','sumas','multi','division','fracciones','recta','problemas','calculo','horas','dinero','series','memoria'],
+  adulto: ['calculo','memoria','dinero','horas','series','problemas','sumas','multi','division','fracciones']
+};
+TOPIC_SETS.mayor = TOPIC_SETS.adulto;
+function modeOf(age){ return age < 13 ? 'nino' : age < 60 ? 'adulto' : 'mayor'; }
+function myTopicIds(){ return TOPIC_SETS[DB && DB.mode] || TOPIC_SETS.nino; }
+function myTopics(){ return myTopicIds().map(function(id){ return TOPIC[id]; }); }
+/* Nivel inicial según la edad: a los 9 años, 4º de primaria; los adultos empiezan en medio; los mayores, suave */
+var START9 = {posicional:3, sumas:2, multi:2, division:1, fracciones:1, recta:2, problemas:1, calculo:2, horas:1, dinero:1, series:1, memoria:2};
+var START_AD = {calculo:3, memoria:3, dinero:3, horas:3, series:3, problemas:3, sumas:4, multi:4, division:4, fracciones:3, posicional:5, recta:4};
+function startLevel(id, age){
+  var m = modeOf(age), c = function(x){ return Math.max(1, Math.min(5, x)); };
+  if (m === 'nino') return c(START9[id] + Math.round((age - 9) * 0.8));
+  if (m === 'adulto') return START_AD[id];
+  return c(START_AD[id] - (age >= 75 ? 2 : 1));
 }
-function save(){ try { localStorage.setItem(STORE, JSON.stringify(DB)); } catch(e){} }
+var ROOT, DB = null;
+function normalize(d){
+  d.age = +d.age || 9; d.mode = modeOf(d.age);
+  if (!d.uid) d.uid = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  if (!d.prog) d.prog = {};
+  TOPICS.forEach(function(t){ if (!d.prog[t.id]) d.prog[t.id] = {level:startLevel(t.id, d.age), stars:0, solved:0, streak:0, struggle:0, seen:false}; });
+  if (d.voice == null) d.voice = true;
+  if (d.pitch == null){ d.pitch = d.mode === 'nino' ? 1.35 : 1.15; if (!d.rate || d.rate === 0.95) d.rate = d.mode === 'mayor' ? 0.85 : 0.9; }
+  if (!d.rate) d.rate = 0.9;
+  if (d.voiceName == null) d.voiceName = '';
+  if (d.brain == null) d.brain = 0;
+  if (d.stars == null) d.stars = 0;
+  if (!d.days) d.days = [];
+  if (!d.badges) d.badges = {};
+  if (!d.goal) d.goal = d.mode === 'nino' ? 10 : d.mode === 'adulto' ? 8 : 6;
+  d.st = Object.assign({solved:0, perfect:0, combo:0, bestCombo:0, daily:0, goals:0, ups:0, perfectSessions:0, sessions:0, opens:0}, d.st || {});
+  if (!d.day || d.day.k !== today()) d.day = {k:today(), n:0, pts:0, goalDone:false};
+  delete d.apiKey; delete d.welcomed;
+  return d;
+}
+function loadRoot(){
+  try { ROOT = JSON.parse(localStorage.getItem(STORE)); } catch(e){ ROOT = null; }
+  if (!ROOT || !ROOT.profiles){
+    ROOT = {profiles:{}, order:[], current:null, apiKey:''};
+    var old = null; try { old = JSON.parse(localStorage.getItem(OLD_STORE)); } catch(e){}
+    if (old && (old.welcomed || (old.days && old.days.length) || old.brain)){
+      ROOT.apiKey = old.apiKey || ''; old.age = old.age || 9;
+      var id = 'p' + Date.now(); ROOT.profiles[id] = old; ROOT.order.push(id); ROOT.current = id;
+    }
+  }
+  if (!ROOT.dev) ROOT.dev = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  if (!ROOT.outbox) ROOT.outbox = [];
+  ROOT.order = ROOT.order.filter(function(id){ return ROOT.profiles[id]; });
+  ROOT.order.forEach(function(id){ normalize(ROOT.profiles[id]); });
+  if (!ROOT.profiles[ROOT.current]) ROOT.current = ROOT.order[0] || null;
+  DB = ROOT.current ? ROOT.profiles[ROOT.current] : null;
+}
+function save(){ try { localStorage.setItem(STORE, JSON.stringify(ROOT)); } catch(e){} }
+function applyMode(){
+  var m = DB ? DB.mode : 'nino';
+  document.body.classList.toggle('mayor', m === 'mayor');
+  PRAISE = m === 'nino' ? PRAISE_K : PRAISE_A;
+}
+function useProfile(id){ ROOT.current = id; DB = normalize(ROOT.profiles[id]); applyMode(); save(); }
+function addProfile(name, age){
+  var id = 'p' + Date.now() + rnd(0, 999);
+  ROOT.profiles[id] = normalize({name:name, age:age}); ROOT.order.push(id); useProfile(id); return id;
+}
+function profileEmoji(p){ return p.age < 13 ? '🧒' : p.age < 60 ? '🧑' : '🧓'; }
 function today(){ var d = new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
 function dayStreak(){
   var set = {}; DB.days.forEach(function(d){ set[d] = 1; });
@@ -1445,14 +1561,15 @@ function calcStep(op, a, b){
     check: chk, hints: hints, reveal: a + ' ' + opS + ' ' + b + ' = ' + res + '. Escríbelo.', solve: function(api){ api.showCarries(); } };
 }
 function genWord(L){
+  var adult = DB && DB.mode !== 'nino', W1 = adult ? WPA1 : WP1, W2 = adult ? WPA2 : WP2;
   if (L >= 4 && (L === 5 || Math.random() < .6)){
-    var d = pick(WP2)(), p1 = d.parts[0], p2 = d.parts[1];
+    var d = pick(W2)(), p1 = d.parts[0], p2 = d.parts[1];
     return { render: function(ws){ return storyCard(ws, d); },
       steps: [opStep(p1.op, 'Este problema tiene dos pasos. Primero: ' + p1.q + ' ¿Qué operación hacemos?'), calcStep(p1.op, p1.a, p1.b),
               opStep(p2.op, '¡Primer paso hecho! Ahora: ' + p2.q + ' ¿Qué operación?'), calcStep(p2.op, p2.a, p2.b)],
       explain: 'Primero ' + p1.a + ' ' + (p1.op === '-' ? '−' : p1.op) + ' ' + p1.b + ' = ' + calcRes(p1.op, p1.a, p1.b) + ', y después ' + p2.a + ' ' + (p2.op === '-' ? '−' : p2.op) + ' ' + p2.b + ' = ' + calcRes(p2.op, p2.a, p2.b) + '. ¡Problema resuelto!' };
   }
-  var pool = WP1.filter(function(t){ return t.lv <= Math.min(L, 3); });
+  var pool = W1.filter(function(t){ return t.lv <= Math.min(L, 3); });
   if (L >= 3) pool = pool.filter(function(t){ return t.lv >= 2; });
   var w = pick(pool).f(), res = calcRes(w.op, w.a, w.b);
   return { render: function(ws){ return storyCard(ws, w); },
@@ -1460,10 +1577,421 @@ function genWord(L){
     explain: 'La respuesta es ' + res + '. ¿Tiene sentido? ¡Sí!' };
 }
 
-var GEN = {posicional:genPlace, sumas:genAddSub, multi:genMult, division:genDiv, fracciones:genFrac, recta:genLine, problemas:genWord};
+/* =====================================================================
+   Temas de entrenamiento mental (también para adultos y mayores)
+   ===================================================================== */
+function eur(x){ var c = Math.round(x * 100); return (c % 100 === 0 ? String(c / 100) : Math.floor(c / 100) + ',' + String(c % 100).padStart(2, '0')) + ' €'; }
+function hm(t){ t = ((t % 1440) + 1440) % 1440; return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
+function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+function decCheck(ans, unitWord){
+  return function(v){
+    if (Math.abs(v - ans) < 0.001) return OK;
+    if (ans < 1 && Math.abs(v - Math.round(ans * 100)) < 0.001) return no('¡Ojo! ' + Math.round(ans * 100) + ' céntimos se escriben 0,' + String(Math.round(ans * 100)).padStart(2, '0') + ' €. Usa la coma.');
+    return no('No es ' + String(v).replace('.', ',') + (unitWord || '') + '. Es un poco ' + (v > ans ? 'menos.' : 'más.'));
+  };
+}
+function eqBox(ws, text){ var q = el('span', {class:'q'}, '?'); ws.append(el('div', {class:'eq'}, text + ' = ', q)); return q; }
+
+/* ---------- Cálculo mental ---------- */
+function T10(n){ return n - n % 10; }
+function genCalc(L){
+  var a, b, c, n, k, r = Math.random();
+  if (L === 1){
+    if (r < .5){ a = rnd(3,12); b = rnd(2, 20 - a); return mental(a + ' + ' + b, a + b, [
+      'Empieza por el número más grande, el ' + Math.max(a,b) + ', y cuenta hacia delante ' + Math.min(a,b) + '.',
+      a + b > 10 && a < 10 ? 'Truco: completa el 10. ' + a + ' + ' + (10 - a) + ' = 10, y te quedan ' + (b - (10 - a)) + ' por sumar.' : 'Si te ayuda, cuenta con los dedos.']); }
+    a = rnd(8,20); b = rnd(2, a - 1); return mental(a + ' − ' + b, a - b, ['Empieza en el ' + a + ' y cuenta hacia atrás ' + b + '.', 'O piensa: ¿cuánto le falta al ' + b + ' para llegar al ' + a + '?']);
+  }
+  if (L === 2){
+    if (r < .4){ do { a = rnd(12,88); b = rnd(3,9); } while (a % 10 + b < 10); k = 10 - a % 10;
+      return mental(a + ' + ' + b, a + b, ['Completa la decena: de ' + a + ' a ' + (T10(a) + 10) + ' van ' + k + '.', 'Ya has sumado ' + k + ', así que te quedan ' + (b - k) + ' por sumar a ' + (T10(a) + 10) + '.']); }
+    if (r < .8){ do { a = rnd(21,99); b = rnd(3,9); } while (a % 10 >= b); k = a % 10;
+      return mental(a + ' − ' + b, a - b, ['Baja primero hasta la decena: de ' + a + ' a ' + T10(a) + ' son ' + k + '.', 'Ya has quitado ' + k + '; te quedan ' + (b - k) + ' por quitar a ' + T10(a) + '.']); }
+    n = rnd(6,25); return mental('El doble de ' + n, 2 * n, ['El doble es sumar el número consigo mismo: ' + n + ' + ' + n + '.', n >= 10 ? 'Haz el doble de ' + T10(n) + ' (' + 2 * T10(n) + ') y el doble de ' + n % 10 + ' (' + 2 * (n % 10) + ').' : 'Cuenta ' + n + ' dos veces.']);
+  }
+  if (L === 3){
+    if (r < .35){ a = rnd(23,68); b = rnd(14,29); var bu = b % 10;
+      return mental(a + ' + ' + b, a + b, ['Suma primero las decenas: ' + a + ' + ' + T10(b) + ' = ' + (a + T10(b)) + '.',
+        bu >= 7 ? 'Truco: ' + b + ' es casi ' + (T10(b) + 10) + '. Suma ' + (T10(b) + 10) + ' y luego quita ' + (10 - bu) + '.' : 'Ahora suma las ' + bu + ' unidades que faltan.']); }
+    if (r < .7){ a = rnd(45,98); b = rnd(13, a - 12);
+      return mental(a + ' − ' + b, a - b, ['Resta primero las decenas: ' + a + ' − ' + T10(b) + ' = ' + (a - T10(b)) + '.', 'Ahora quita las ' + b % 10 + ' unidades que faltan.']); }
+    if (r < .85){ n = rnd(16,49); return mental('El doble de ' + n, 2 * n, ['Haz el doble de ' + T10(n) + ' y el doble de ' + n % 10 + '.', 'El doble de ' + T10(n) + ' es ' + 2 * T10(n) + ' y el doble de ' + n % 10 + ' es ' + 2 * (n % 10) + '. Súmalos.']); }
+    do { n = rnd(12,49) * 2; } while (n % 10 % 2);
+    return mental('La mitad de ' + n, n / 2, ['La mitad es repartir en 2 partes iguales. Parte el número: ' + T10(n) + ' y ' + n % 10 + '.', 'La mitad de ' + T10(n) + ' es ' + T10(n) / 2 + ' y la mitad de ' + n % 10 + ' es ' + (n % 10) / 2 + '.']);
+  }
+  if (L === 4){
+    if (r < .4){ a = pick([3,4,6,7,8,9]); b = rnd(3,9); var b1 = Math.floor(b / 2);
+      return mental(a + ' × ' + b, a * b, ['Si no la recuerdas, usa una que sepas: ' + a + ' × ' + (b - 1) + ' = ' + a * (b - 1) + '. ¿Cuánto le añades?', 'Párte' + 'la en dos: ' + a + ' × ' + b1 + ' + ' + a + ' × ' + (b - b1) + ' = ' + a * b1 + ' + ' + a * (b - b1) + '.']); }
+    if (r < .7){ n = rnd(2,30) * 20; var p = pick([10,50]);
+      return mental('El ' + p + ' % de ' + n, n * p / 100, [p === 10 ? 'El 10 % es la décima parte: divide entre 10 (quita un cero).' : 'El 50 % es la mitad.', p === 10 ? n + ' ÷ 10 = ?' : 'La mitad de ' + n + ' = ?']); }
+    n = rnd(12,39); k = rnd(2,6);
+    return mental(n + ' × ' + k, n * k, ['Parte el ' + n + ' en ' + T10(n) + ' y ' + n % 10 + '.', T10(n) + ' × ' + k + ' = ' + T10(n) * k + ' y ' + n % 10 + ' × ' + k + ' = ' + (n % 10) * k + '. Ahora súmalos.']);
+  }
+  if (r < .35){ a = rnd(25,70); b = rnd(12,45); c = rnd(8, a + b - 10);
+    return mental(a + ' + ' + b + ' − ' + c, a + b - c, ['Ve paso a paso, de izquierda a derecha: primero ' + a + ' + ' + b + '.', 'Llevas ' + (a + b) + '. Ahora quítale ' + c + '.']); }
+  if (r < .65){ var pc = pick([25,20,10]); n = rnd(3,40) * 20;
+    return mental('El ' + pc + ' % de ' + n, n * pc / 100, [pc === 25 ? 'El 25 % es la cuarta parte: la mitad de la mitad.' : pc === 20 ? 'El 20 % es el doble del 10 %.' : 'El 10 % es dividir entre 10.',
+      pc === 25 ? 'La mitad de ' + n + ' es ' + n / 2 + '. ¿Y la mitad de eso?' : pc === 20 ? 'El 10 % de ' + n + ' es ' + n / 10 + '. ¿Y el doble?' : n + ' ÷ 10 = ?']); }
+  if (r < .8){ do { n = rnd(60,240) * 2; } while ((n % 100) % 2 !== 0);
+    return mental('La mitad de ' + n, n / 2, ['Parte el número: ' + (n - n % 100) + ' y ' + n % 100 + '.', 'La mitad de ' + (n - n % 100) + ' es ' + (n - n % 100) / 2 + ' y la mitad de ' + n % 100 + ' es ' + (n % 100) / 2 + '.']); }
+  n = rnd(41,99); k = rnd(3,8);
+  return mental(n + ' × ' + k, n * k, ['Parte el ' + n + ' en ' + T10(n) + ' y ' + n % 10 + '.', T10(n) + ' × ' + k + ' = ' + T10(n) * k + ' y ' + n % 10 + ' × ' + k + ' = ' + (n % 10) * k + '. Súmalos.']);
+}
+function mental(expr, ans, hints){
+  return {
+    render: function(ws){ var q = eqBox(ws, expr); return {q:q}; },
+    steps: [{
+      say: 'Calcula de cabeza: <b>' + expr + '</b>', input: 'keypad', answer: ans,
+      onInput: function(v, api){ api.q.textContent = v || '?'; },
+      check: function(v){
+        if (v === ans) return OK;
+        if (Math.abs(v - ans) === 10) return no('¡Casi! Revisa las decenas.');
+        if (Math.abs(v - ans) <= 3) return no('¡Muy cerca! Te has ' + (v > ans ? 'pasado' : 'quedado corto') + ' por poquito.');
+        return no('No es ' + v + '. Probemos con un truco.');
+      },
+      hints: hints.map(function(h){ return {say:h}; }),
+      reveal: expr + ' = ' + ans + '. Escríbelo.'
+    }],
+    explain: expr + ' = ' + ans + '. ' + pick(['Hacer cuentas de cabeza mantiene la mente ágil.', 'Usar trucos hace las cuentas más fáciles.', '¡Cálculo mental de primera!'])
+  };
+}
+
+/* ---------- Memoria de números ---------- */
+function memManip(ws, digits, ms){
+  var box = el('div', {class:'mem'}), cells = [];
+  digits.forEach(function(d){ var c = el('b', {}, d); cells.push(c); box.append(c); });
+  var barI = el('i'), bar = el('div', {class:'mem-bar'}, barI);
+  var btn = el('button', {class:'btn ghost', onclick:function(){ hide(); }}, '👀 Ya me los sé');
+  ws.append(el('div', {class:'mem-wrap'}, box, bar, btn));
+  var timer = null;
+  function showFor(t){
+    clearTimeout(timer); box.classList.remove('hid'); cells.forEach(function(c, i){ c.textContent = digits[i]; });
+    btn.classList.remove('hidden'); bar.classList.remove('hidden');
+    barI.style.animation = 'none'; void barI.offsetWidth; barI.style.animation = 'shrink ' + t + 'ms linear forwards';
+    if (t) timer = setTimeout(hide, t);
+  }
+  function hide(){ clearTimeout(timer); if (!box.isConnected) return; cells.forEach(function(c){ c.textContent = '?'; }); box.classList.add('hid'); btn.classList.add('hidden'); bar.classList.add('hidden'); }
+  function reveal(){ clearTimeout(timer); box.classList.remove('hid'); cells.forEach(function(c, i){ c.textContent = digits[i]; }); btn.classList.add('hidden'); bar.classList.add('hidden'); }
+  if (ms) showFor(ms); else reveal();
+  return { show: showFor, hide: hide, reveal: reveal, visible: function(){ return !box.classList.contains('hid'); } };
+}
+function grouped(s){ return s.replace(/(\d\d)(?=\d)/g, '$1 '); }
+function genMem(L){
+  var rev = L >= 4 && Math.random() < .5, n = rev ? L : [3,4,5,6,7][L - 1];
+  var ds = [], prev = -1;
+  for (var i = 0; i < n; i++){ var d; do { d = rnd(1,9); } while (d === prev); ds.push(d); prev = d; }
+  var s = ds.join(''), r = ds.slice().reverse().join(''), target = rev ? r : s;
+  var factor = DB && DB.mode === 'mayor' ? 1.5 : 1, ms = Math.round((1000 * n + 1500) * factor);
+  return {
+    render: function(ws){ return memManip(ws, ds, ms); },
+    steps: [{
+      say: 'Memoriza estos ' + n + ' números. Cuando desaparezcan, escríbelos ' + (rev ? '<b>al revés</b>, del último al primero.' : 'en el mismo orden.'),
+      input: 'keypad', answer: +target, maxLen: 8,
+      onInput: function(v, api){ if (v && api.visible()) api.hide(); },
+      check: function(v){
+        var t = String(v);
+        if (t === target) return OK;
+        if (rev && t === s) return no('¡Los recuerdas bien, pero en el orden normal! Ahora escríbelos al revés.');
+        if (t.length !== n) return no('Eran ' + n + ' números y has escrito ' + t.length + '.');
+        var ok = 0; for (var i = 0; i < n; i++) if (t[i] === target[i]) ok++;
+        return no('Has acertado ' + ok + ' de ' + n + ' en su sitio. ¡Vas bien!');
+      },
+      hints: [
+        {say:'Te los enseño otra vez. Truco: agrúpalos de dos en dos, como un número de teléfono.', act:function(api){ api.show(ms); }},
+        {say:'Una vez más. Dilos en voz alta mientras los miras' + (rev ? ' y luego dilos al revés.' : '.'), act:function(api){ api.show(ms); }}
+      ],
+      reveal: 'Eran ' + grouped(s) + (rev ? '; al revés: ' + grouped(r) : '') + '. Escríbelo.', solve: function(api){ api.reveal(); },
+      done: function(api){ api.reveal(); }
+    }],
+    explain: (rev ? 'Al revés era ' + grouped(r) + '. ' : 'Eran ' + grouped(s) + '. ') + pick(['Esto entrena la memoria de trabajo, la que usamos para recordar un teléfono o la lista de la compra.', 'Agrupar los números ayuda mucho a recordarlos.', '¡Buena memoria!'])
+  };
+}
+
+/* ---------- Dinero y cambio ---------- */
+var SHOP = [['🍞','barra de pan',60,160,'una'],['🥛','litro de leche',80,150,'un'],['🍎','kilo de manzanas',150,350,'un'],['🧀','queso',300,900,'un'],['☕','café',100,200,'un'],
+  ['🍅','kilo de tomates',120,300,'un'],['🥚','docena de huevos',180,350,'una'],['🍫','chocolate',100,300,'un'],['📰','periódico',150,250,'el'],['💐','ramo de flores',500,1500,'un'],['🧴','champú',200,600,'un'],['🍊','bolsa de naranjas',200,400,'una']];
+function ticketManip(ws, items, payC){
+  var t = el('div', {class:'ticket'}), totV = el('b', {}, '?');
+  t.append(el('div', {class:'tk-h'}, '🧾 TICKET'));
+  items.forEach(function(it){ t.append(el('div', {class:'row2'}, el('span', {}, it.em + ' ' + it.name), el('span', {}, it.c != null ? eur(it.c / 100) : '?'))); });
+  if (items.length > 1) t.append(el('div', {class:'row2 tot'}, el('span', {}, 'TOTAL'), totV));
+  if (payC) t.append(el('div', {class:'row2 pay'}, el('span', {}, '💶 Pagas con'), el('b', {}, eur(payC / 100))));
+  ws.append(t);
+  return { setTotal: function(c){ totV.textContent = eur(c / 100); } };
+}
+function shopItems(k, whole){
+  return shuffle(SHOP).slice(0, k).map(function(p){
+    var c = whole ? rnd(Math.max(1, Math.round(p[2] / 100)), Math.max(2, Math.round(p[3] / 100))) * 100 : rnd(p[2] / 5, p[3] / 5) * 5;
+    return {em:p[0], name:p[1], art:p[4], c:c};
+  });
+}
+function changeHints(priceC, payC){
+  var up = Math.ceil(priceC / 100) * 100;
+  if (up === priceC || up === payC) return ['Cuenta hacia arriba desde ' + eur(priceC / 100) + ' hasta ' + eur(payC / 100) + '.', 'Es una resta: ' + eur(payC / 100) + ' − ' + eur(priceC / 100) + '.'];
+  return ['Cuenta hacia arriba: primero desde ' + eur(priceC / 100) + ' hasta el euro siguiente, ' + eur(up / 100) + '.',
+    'De ' + eur(priceC / 100) + ' a ' + eur(up / 100) + ' van ' + (up - priceC) + ' céntimos, y de ' + eur(up / 100) + ' a ' + eur(payC / 100) + ' van ' + eur((payC - up) / 100) + '. Súmalos.'];
+}
+function genMoney(L){
+  var items, payC, totC, it;
+  if (L === 1){ it = shopItems(1, true)[0]; payC = it.c < 1000 ? 1000 : 2000; if (it.c >= payC) it.c = payC - 300;
+    return moneyChange([it], it.c, payC); }
+  if (L === 2){ items = shopItems(rnd(2,3), true); totC = items.reduce(function(s, x){ return s + x.c; }, 0);
+    return moneyTotal(items, totC, null); }
+  if (L === 3){ it = shopItems(1, false)[0]; if (it.c > 900) it.c = rnd(60, 180) * 5; payC = it.c < 200 ? 200 : it.c < 500 ? 500 : 1000;
+    return moneyChange([it], it.c, payC); }
+  if (L === 4){ items = shopItems(rnd(2,3), false).map(function(x){ x.c = Math.min(x.c, 600); x.c -= x.c % 10; return x; });
+    totC = items.reduce(function(s, x){ return s + x.c; }, 0); payC = totC < 1000 ? 1000 : 2000;
+    return moneyTotal(items, totC, payC); }
+  if (Math.random() < .5){
+    var pct = pick([10,20,25,50]), pr = (pct === 25 ? rnd(2,8) * 20 : rnd(2,15) * 10), off = pr * pct / 100, em = pick(['🧥','👟','📻','🫖','🧳','🪴']);
+    return {
+      render: function(ws){ ws.append(el('div', {class:'story'}, el('span', {class:'em'}, em), el('div', {html:'Precio: <b>' + pr + ' €</b><br>Rebaja: <b>' + pct + ' %</b>'}))); return {}; },
+      steps: [
+        {say:'Un artículo cuesta ' + pr + ' € y tiene una rebaja del ' + pct + ' %. Primero: ¿cuántos euros te descuentan?', input:'keypad', unit:'€', answer:off, check:function(v){ return v === off ? OK : no(v + ' € no es el ' + pct + ' % de ' + pr + '.'); },
+          hints:[{say: pct === 50 ? 'El 50 % es la mitad.' : pct === 25 ? 'El 25 % es la cuarta parte: la mitad de la mitad.' : pct === 10 ? 'El 10 % es dividir entre 10.' : 'El 20 % es el doble del 10 %. El 10 % de ' + pr + ' es ' + pr / 10 + '.'}], reveal:'El descuento es ' + off + ' €. Escríbelo.'},
+        {say:'¡Eso es! Te descuentan ' + off + ' €. ¿Cuánto pagas al final?', input:'keypad', unit:'€', answer:pr - off, check:function(v){ return v === pr - off ? OK : no(v === pr + off ? '¡Ojo! El descuento se resta, no se suma.' : 'Resta el descuento al precio.'); },
+          hints:[{say: pr + ' − ' + off + ' = ?'}], reveal:'Pagas ' + (pr - off) + ' €. Escríbelo.'}
+      ],
+      explain: pr + ' € − ' + off + ' € = ' + (pr - off) + ' €. ¡Buena compra!'
+    };
+  }
+  var kg = rnd(2,5), unitC = rnd(18,60) * 5, tot = kg * unitC, fr = pick([['🍓','fresas'],['🍇','uvas'],['🍒','cerezas'],['🥩','carne picada']]);
+  return {
+    render: function(ws){ ws.append(el('div', {class:'story'}, el('span', {class:'em'}, fr[0]), el('div', {html:'<b>' + kg + ' kg</b> de ' + fr[1] + ' cuestan <b>' + eur(tot / 100) + '</b>'}))); return {}; },
+    steps: [{ say:kg + ' kilos de ' + fr[1] + ' cuestan ' + eur(tot / 100) + '. ¿Cuánto cuesta 1 kilo?', input:'keypad', decimal:true, unit:'€', answer:unitC / 100, check:decCheck(unitC / 100, ' €'),
+      hints:[{say:'Hay que repartir el precio entre ' + kg + ': divide ' + eur(tot / 100) + ' entre ' + kg + '.'}, {say:'Prueba a pensar en céntimos: ' + tot + ' céntimos entre ' + kg + '.'}],
+      reveal:'1 kilo cuesta ' + eur(unitC / 100) + '. Escríbelo con la coma.' }],
+    explain: eur(tot / 100) + ' ÷ ' + kg + ' = ' + eur(unitC / 100) + ' el kilo.'
+  };
+}
+function moneyChange(items, priceC, payC){
+  var ch = (payC - priceC) / 100, H = changeHints(priceC, payC);
+  return {
+    render: function(ws){ return ticketManip(ws, items, payC); },
+    steps: [{ say:'Compras ' + (items[0].art ? items[0].art + ' ' : '') + items[0].name + ' por ' + eur(priceC / 100) + ' y pagas con ' + eur(payC / 100) + '. ¿Cuánto te devuelven?' + (ch % 1 ? ' Usa la coma para los céntimos.' : ''),
+      input:'keypad', decimal:true, unit:'€', answer:ch, check:decCheck(ch, ' €'), hints:H.map(function(h){ return {say:h}; }), reveal:'Te devuelven ' + eur(ch) + '. Escríbelo.' }],
+    explain: eur(payC / 100) + ' − ' + eur(priceC / 100) + ' = ' + eur(ch) + '. ¡Así nadie te da mal el cambio!'
+  };
+}
+function moneyTotal(items, totC, payC){
+  var eu = items.reduce(function(s, x){ return s + Math.floor(x.c / 100); }, 0), ce = items.reduce(function(s, x){ return s + x.c % 100; }, 0);
+  var steps = [{ say:'¿Cuánto cuesta todo junto?', input:'keypad', decimal:true, unit:'€', answer:totC / 100, check:decCheck(totC / 100, ' €'),
+    hints:[{say:'Suma primero los euros y luego los céntimos.'}, {say:'Los euros suman ' + eu + ' € y los céntimos ' + ce + ' céntimos' + (ce >= 100 ? ', que son más de un euro.' : '.')}],
+    reveal:'El total es ' + eur(totC / 100) + '. Escríbelo.', done:function(api){ api.setTotal(totC); } }];
+  if (payC){ var H = changeHints(totC, payC);
+    steps.push({ say:'¡Bien! Pagas con ' + eur(payC / 100) + '. ¿Cuánto te devuelven?', input:'keypad', decimal:true, unit:'€', answer:(payC - totC) / 100, check:decCheck((payC - totC) / 100, ' €'),
+      hints:H.map(function(h){ return {say:h}; }), reveal:'Te devuelven ' + eur((payC - totC) / 100) + '. Escríbelo.' }); }
+  return { render:function(ws){ return ticketManip(ws, items, payC); }, steps:steps,
+    explain:'Total: ' + eur(totC / 100) + (payC ? ' y te devuelven ' + eur((payC - totC) / 100) : '') + '. ¡Cuentas claras!' };
+}
+
+/* ---------- La hora y el tiempo ---------- */
+function clockManip(ws, h, m){
+  var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 200 200'); svg.setAttribute('class', 'clock');
+  var s = '<circle cx="100" cy="100" r="94" fill="#fff" stroke="#6c4cf5" stroke-width="6"/>';
+  for (var i = 0; i < 60; i++){ var a = i * 6 * Math.PI / 180, r1 = i % 5 ? 84 : 77;
+    s += '<line x1="' + (100 + r1 * Math.sin(a)).toFixed(1) + '" y1="' + (100 - r1 * Math.cos(a)).toFixed(1) + '" x2="' + (100 + 88 * Math.sin(a)).toFixed(1) + '" y2="' + (100 - 88 * Math.cos(a)).toFixed(1) + '" stroke="#2b2350" stroke-width="' + (i % 5 ? 1.5 : 3.5) + '"/>'; }
+  for (var n = 1; n <= 12; n++){ var b = n * 30 * Math.PI / 180;
+    s += '<text x="' + (100 + 63 * Math.sin(b)).toFixed(1) + '" y="' + (100 - 63 * Math.cos(b) + 8).toFixed(1) + '" text-anchor="middle" font-size="22" font-weight="800" fill="#2b2350">' + n + '</text>'; }
+  s += '<line class="hh" x1="100" y1="100" x2="100" y2="54" stroke="#2b2350" stroke-width="9" stroke-linecap="round"/>';
+  s += '<line class="mh" x1="100" y1="100" x2="100" y2="22" stroke="#ff6b6b" stroke-width="5" stroke-linecap="round"/><circle cx="100" cy="100" r="7" fill="#2b2350"/>';
+  svg.innerHTML = s; ws.append(svg);
+  var hh = svg.querySelector('.hh'), mh = svg.querySelector('.mh');
+  function set(h, m){ hh.setAttribute('transform', 'rotate(' + ((h % 12) * 30 + m * 0.5) + ' 100 100)'); mh.setAttribute('transform', 'rotate(' + (m * 6) + ' 100 100)'); }
+  set(h, m);
+  return {set:set};
+}
+function timeName(h, m){
+  var h12 = ((h + 11) % 12) + 1, nx = (h12 % 12) + 1;
+  function H(x){ return x === 1 ? 'la 1' : 'las ' + x; }
+  if (m === 0) return H(h12) + ' en punto';
+  if (m === 15) return H(h12) + ' y cuarto';
+  if (m === 30) return H(h12) + ' y media';
+  if (m === 45) return H(nx) + ' menos cuarto';
+  return m < 30 ? H(h12) + ' y ' + m : H(nx) + ' menos ' + (60 - m);
+}
+function digital(ws, t, label){ ws.append(el('div', {class:'dwrap'}, label ? el('span', {class:'small'}, label) : null, el('div', {class:'dclock'}, hm(t)))); }
+function genTime(L){
+  if (L <= 2){
+    var h = rnd(1,12), m = L === 1 ? pick([0,30]) : pick([15,45,15,45,5,10,20,25,35,40,50,55]);
+    var right = timeName(h, m), cand = [];
+    cand.push(timeName(h === 12 ? 1 : h + 1, m), timeName(h === 1 ? 12 : h - 1, m));
+    var hc = m === 0 ? 12 : m / 5; if (hc === Math.round(hc)) cand.push(timeName(hc, (h % 12) * 5));
+    if (m > 30) cand.push((((h + 11) % 12) + 1 === 1 ? 'la 1' : 'las ' + (((h + 11) % 12) + 1)) + ' menos ' + (m === 45 ? 'cuarto' : 60 - m));
+    else cand.push(timeName(h, m === 0 ? 30 : m === 30 ? 0 : 60 - m));
+    var opts = [right]; shuffle(cand).forEach(function(c){ if (opts.length < 4 && opts.indexOf(c) < 0) opts.push(c); });
+    while (opts.length < 4){ var x = timeName(rnd(1,12), m); if (opts.indexOf(x) < 0) opts.push(x); }
+    return {
+      render: function(ws){ return clockManip(ws, h, m); },
+      steps: [{ say:'¿Qué hora marca el reloj?', input:'choice', options:shuffle(opts).map(function(o){ return {label:cap(o), value:o}; }), answer:right,
+        check:function(v){ return v === right ? OK : no('Mmm, no. Recuerda: la aguja corta marca la hora y la larga, roja, los minutos.'); },
+        hints:[{say:'La aguja corta está ' + (m === 0 ? 'justo en el ' + h : 'entre el ' + h + ' y el ' + ((h % 12) + 1)) + '.'},
+               {say:'La aguja larga está en el ' + (m === 0 ? 12 : m / 5) + (m === 0 ? ': en punto.' : m === 15 ? ': y cuarto.' : m === 30 ? ': y media.' : m === 45 ? ': menos cuarto.' : ', que son ' + m + ' minutos.')}],
+        reveal:'Son ' + right + '.' }],
+      explain: 'Son ' + right + '.'
+    };
+  }
+  var t0, X, ans, opts;
+  if (L === 3){
+    t0 = rnd(7,20) * 60 + pick([0,10,15,20,30,40,45,50]); X = pick([15,20,30,40,45,50,75,90,105]); ans = t0 + X;
+    opts = [hm(ans)]; shuffle([hm(ans + 60), hm(ans - 60), hm(ans - 10), hm(ans + 15), hm(t0 + X % 60 + 100 * 0)]).forEach(function(o){ if (opts.length < 4 && opts.indexOf(o) < 0) opts.push(o); });
+    var nh = Math.ceil((t0 + 1) / 60) * 60, toH = nh - t0;
+    return {
+      render: function(ws){ var a = clockManip(ws, Math.floor(t0 / 60), t0 % 60); digital(ws, t0, 'Ahora son las'); return a; },
+      steps: [{ say:'Ahora son las ' + hm(t0) + '. ¿Qué hora será dentro de ' + (X >= 60 ? (X === 60 ? '1 hora' : '1 hora y ' + (X - 60) + ' minutos') : X + ' minutos') + '?',
+        input:'choice', options:shuffle(opts).map(function(o){ return {label:o, value:o}; }), answer:hm(ans),
+        check:function(v){ return v === hm(ans) ? OK : no('No es ' + v + '. Recuerda que una hora tiene 60 minutos.'); },
+        hints:[{say:'Ve primero hasta la siguiente hora en punto: de ' + hm(t0) + ' a ' + hm(nh) + ' van ' + toH + ' minutos.'},
+               {say: X > toH ? 'Te quedan ' + (X - toH) + ' minutos por sumar a partir de las ' + hm(nh) + '.' : 'Solo hay que sumar ' + X + ' minutos a ' + hm(t0) + '.'}],
+        reveal:'Serán las ' + hm(ans) + '.', done:function(api){ api.set(Math.floor(ans / 60), ans % 60); } }],
+      explain: hm(t0) + ' + ' + X + ' minutos = ' + hm(ans) + '.'
+    };
+  }
+  if (L === 4 || Math.random() < .4){
+    t0 = rnd(9,19) * 60 + pick([0,10,15,20,30,40,45,50]); X = rnd(7,30) * 5; var t1 = t0 + X;
+    var ev = pick([['🎬','La película'],['🚆','El viaje en tren'],['⚽','El partido'],['🏥','La consulta del médico'],['🎂','La merienda']]);
+    var nh2 = Math.ceil((t0 + 1) / 60) * 60;
+    return {
+      render: function(ws){ ws.append(el('div', {class:'frow'}, el('div', {class:'story', style:'padding:8px 14px'}, el('span', {class:'em'}, ev[0]))));
+        var w = el('div', {class:'frow'}); ws.append(w); digital(w, t0, 'Empieza'); digital(w, t1, 'Termina'); return {}; },
+      steps: [{ say: ev[1] + ' empieza a las ' + hm(t0) + ' y termina a las ' + hm(t1) + '. ¿Cuántos minutos dura?', input:'keypad', unit:'min', answer:X,
+        check:function(v){ if (v === X) return OK; if (v === (Math.floor(t1 / 60) * 100 + t1 % 60) - (Math.floor(t0 / 60) * 100 + t0 % 60)) return no('¡Ojo! Has restado como si una hora tuviera 100 minutos. Tiene 60.'); return no('No son ' + v + ' minutos. Es un poco ' + (v > X ? 'menos.' : 'más.')); },
+        hints:[{say:'Cuenta primero hasta la siguiente hora en punto: de ' + hm(t0) + ' a ' + hm(nh2) + ' van ' + (nh2 - t0) + ' minutos.'},
+               {say:'Después suma lo que va de ' + hm(nh2) + ' a ' + hm(t1) + ': ' + (t1 - nh2) + ' minutos. Recuerda que cada hora completa son 60.'}],
+        reveal:'Dura ' + X + ' minutos. Escríbelo.' }],
+      explain: 'De ' + hm(t0) + ' a ' + hm(t1) + ' van ' + X + ' minutos' + (X >= 60 ? ', o sea, ' + Math.floor(X / 60) + ' h y ' + X % 60 + ' min.' : '.')
+    };
+  }
+  if (Math.random() < .5){
+    var k = pick([4,6,8,12]), h0 = rnd(6,9), nmax = Math.floor((23 - h0) / k) + 1, nd = Math.min(nmax, rnd(2,4)); if (nd < 2) nd = 2;
+    ans = (h0 + k * (nd - 1)) * 60; var ordn = ['', 'primera', 'segunda', 'tercera', 'cuarta'][nd];
+    opts = [hm(ans)]; [hm(ans + k * 60), hm(ans - k * 60 >= h0 * 60 ? ans - k * 60 : ans + 2 * k * 60), hm(ans + 60), hm(h0 * 60 + k * nd * 60)].forEach(function(o){ if (opts.length < 4 && opts.indexOf(o) < 0) opts.push(o); });
+    while (opts.length < 4){ var o2 = hm(ans + rnd(1,3) * 60 * (Math.random() < .5 ? -1 : 1)); if (opts.indexOf(o2) < 0) opts.push(o2); }
+    return {
+      render: function(ws){ ws.append(el('div', {class:'story'}, el('span', {class:'em'}, '💊'), el('div', {html:'Una pastilla cada <b>' + k + ' horas</b>.<br>La primera, a las <b>' + hm(h0 * 60) + '</b>.'}))); return {}; },
+      steps: [{ say:'Tomas una pastilla cada ' + k + ' horas. Si la primera es a las ' + hm(h0 * 60) + ', ¿a qué hora toca la ' + ordn + '?', input:'choice', options:shuffle(opts).map(function(o){ return {label:o, value:o}; }), answer:hm(ans),
+        check:function(v){ return v === hm(ans) ? OK : no('No es a las ' + v + '. Ve sumando ' + k + ' horas cada vez.'); },
+        hints:[{say:'La segunda toma es ' + k + ' horas después de la primera: a las ' + hm((h0 + k) * 60) + '.'}, {say:'Sigue sumando ' + k + ' horas hasta llegar a la ' + ordn + ' toma.'}],
+        reveal:'La ' + ordn + ' toca a las ' + hm(ans) + '.' }],
+      explain: 'Cada ' + k + ' horas: ' + Array.apply(null, Array(nd)).map(function(_, i){ return hm((h0 + k * i) * 60); }).join(' → ') + '.'
+    };
+  }
+  t0 = pick([21,22,23]) * 60 + pick([0,15,30,45]); X = pick([7,8,9]) * 60 + pick([0,15,30]); ans = t0 + X;
+  opts = [hm(ans)]; [hm(ans + 60), hm(ans - 60), hm(ans + 30), hm(ans - 15)].forEach(function(o){ if (opts.length < 4 && opts.indexOf(o) < 0) opts.push(o); });
+  var hX = Math.floor(X / 60), mX = X % 60;
+  return {
+    render: function(ws){ ws.append(el('div', {class:'story'}, el('span', {class:'em'}, '🛌'), el('div', {html:'Te acuestas a las <b>' + hm(t0) + '</b> y duermes <b>' + hX + ' h' + (mX ? ' ' + mX + ' min' : '') + '</b>.'}))); return {}; },
+    steps: [{ say:'Te acuestas a las ' + hm(t0) + ' y duermes ' + hX + ' horas' + (mX ? ' y ' + mX + ' minutos' : '') + '. ¿A qué hora te despiertas?', input:'choice', options:shuffle(opts).map(function(o){ return {label:o, value:o}; }), answer:hm(ans),
+      check:function(v){ return v === hm(ans) ? OK : no('No es a las ' + v + '. Recuerda que a medianoche el reloj vuelve a empezar en 0:00.'); },
+      hints:[{say:'Cuenta hasta medianoche: de ' + hm(t0) + ' a 0:00 van ' + (1440 - t0) / 60 + ' horas.'}, {say:'Después sigue contando las horas que faltan a partir de las 0:00.'}],
+      reveal:'Te despiertas a las ' + hm(ans) + '.' }],
+    explain: hm(t0) + ' + ' + hX + ' h' + (mX ? ' ' + mX + ' min' : '') + ' = ' + hm(ans) + '. ¡Buenos días!'
+  };
+}
+
+/* ---------- Series y patrones ---------- */
+function seriesManip(ws, terms){
+  var box = el('div', {class:'series'}), chips = [], sds = [];
+  terms.forEach(function(t, i){
+    if (i){ var sd = el('span', {class:'sd'}, ''); sds.push(sd); box.append(sd); }
+    var c = el('span', {class:'chip' + (t === '?' ? ' q' : '')}, t); chips.push(c); box.append(c);
+  });
+  ws.append(box);
+  return {
+    showDiffs: function(labels){ labels.forEach(function(l, i){ if (sds[i]){ sds[i].textContent = l; sds[i].classList.add('on'); } }); },
+    highlight: function(f){ chips.forEach(function(c, i){ c.classList.toggle('hl', f(i)); }); },
+    fill: function(v){ chips[chips.length - 1].textContent = v; chips[chips.length - 1].classList.remove('q'); }
+  };
+}
+function genSeries(L){
+  var t = [], d, a, b, kind, r = Math.random(), i;
+  function sgn(x){ return x >= 0 ? '+' + x : '−' + (-x); }
+  if (L === 1){ a = rnd(1,10); d = rnd(2,5); for (i = 0; i < 6; i++) t.push(a + d * i); kind = 'ar'; }
+  else if (L === 2){ if (r < .5){ a = rnd(45,90); d = -rnd(3,8); } else { a = rnd(1,9) * pick([5,10]); d = pick([5,10,25]); } for (i = 0; i < 6; i++) t.push(a + d * i); kind = 'ar'; }
+  else if (L === 3){ if (r < .5){ a = rnd(1,5); d = pick([2,2,3]); for (i = 0; i < 6; i++) t.push(a * Math.pow(d, i)); kind = 'geo'; }
+    else { a = rnd(2,15); var up = rnd(4,9), dn = rnd(1, up - 1); t.push(a); for (i = 1; i < 7; i++) t.push(t[i - 1] + (i % 2 ? up : -dn)); kind = 'alt'; b = [up, -dn]; } }
+  else if (L === 4){ if (r < .55){ a = rnd(1,10); var d0 = rnd(1,3); t.push(a); for (i = 1; i < 6; i++) t.push(t[i - 1] + d0 + i - 1); kind = 'grow'; }
+    else { a = rnd(1,5); for (i = 0; i < 6; i++) t.push((a + i) * (a + i)); kind = 'sq'; } }
+  else { if (r < .4){ var a1 = rnd(1,5), da = rnd(1,3), b1 = rnd(10,30), db = pick([5,10]); for (i = 0; i < 7; i++) t.push(i % 2 ? b1 + db * ((i - 1) / 2) : a1 + da * (i / 2)); kind = 'mix'; b = [da, db]; }
+    else if (r < .7){ var f1 = rnd(1,4), f2 = rnd(f1, 6); t = [f1, f2]; for (i = 2; i < 7; i++) t.push(t[i - 1] + t[i - 2]); kind = 'fib'; }
+    else { a = rnd(1,3) * Math.pow(2, 6); for (i = 0; i < 6; i++) t.push(a / Math.pow(2, i)); kind = 'half'; } }
+  var ans = t.pop(), shown = t.slice(), last = shown[shown.length - 1], prevD = last - shown[shown.length - 2];
+  var diffs = shown.slice(1).map(function(x, j){ return kind === 'geo' ? '×' + d : kind === 'half' ? '÷2' : sgn(x - shown[j]); });
+  var H = {
+    ar: ['Siempre se suma o se resta lo mismo.', 'Cada vez ' + (d > 0 ? 'se suma ' + d : 'se resta ' + (-d)) + '.'],
+    geo: ['Los números crecen cada vez más rápido. ¿Se suma o se multiplica?', 'Cada número es el anterior multiplicado por ' + d + '.'],
+    alt: ['La regla tiene dos pasos que se repiten.', 'Se suma ' + (b && b[0]) + ' y se resta ' + (b && -b[1]) + ', una y otra vez.'],
+    grow: ['Lo que se suma no es siempre lo mismo. ¿Cómo cambia?', 'Cada vez se suma uno más que la vez anterior.'],
+    sq: ['Piensa en multiplicaciones de un número por sí mismo.', 'Son ' + shown.map(function(x){ return Math.sqrt(x) + '×' + Math.sqrt(x); }).join(', ') + '…'],
+    mix: ['Aquí hay dos series mezcladas. Mira los números saltando de uno en uno.', 'Las posiciones 1ª, 3ª, 5ª… forman una serie, y las 2ª, 4ª, 6ª… otra. ¿Cuál toca ahora?'],
+    fib: ['Mira los dos números anteriores a cada uno.', 'Cada número es la suma de los dos anteriores.'],
+    half: ['Los números van bajando cada vez menos.', 'Cada número es la mitad del anterior.']
+  }[kind];
+  return {
+    render: function(ws){ return seriesManip(ws, shown.concat(['?'])); },
+    steps: [{ say:'Descubre la regla de la serie. ¿Qué número va en el lugar de la interrogación?', input:'keypad', answer:ans,
+      check:function(v){ if (v === ans) return OK; if (v === last + prevD && kind !== 'ar') return no('¡Ojo! La regla no es sumar siempre lo mismo. Fíjate bien en cómo cambia.'); return no('No es ' + v + '. Busca la regla.'); },
+      hints:[{say:'Mira qué pasa de un número al siguiente. ' + H[0]}, {say:H[1], act:function(api){ if (kind === 'mix') api.highlight(function(i){ return i % 2 === (shown.length % 2); }); else api.showDiffs(diffs); }}],
+      reveal:'Es el ' + ans + '. Escríbelo.', done:function(api){ api.fill(ans); } }],
+    explain: H[1] + ' Por eso sigue el ' + ans + '.'
+  };
+}
+
+/* ---------- Problemas para adultos ---------- */
+var WPA1 = [
+  {lv:1, f:function(){ var a=rnd(12,45), b=rnd(8,35); return {op:'+',a:a,b:b,emoji:'🛒',text:'En el mercado gastas '+a+' € en fruta y '+b+' € en pescado. ¿Cuánto gastas en total?'}; }},
+  {lv:1, f:function(){ var a=rnd(30,90), b=rnd(8,a-10); return {op:'-',a:a,b:b,emoji:'👛',text:'Llevas '+a+' € en el monedero y pagas '+b+' € en la farmacia. ¿Cuánto dinero te queda?'}; }},
+  {lv:1, f:function(){ var a=rnd(1200,3500), b=rnd(800,2500); return {op:'+',a:a,b:b,emoji:'🚶',text:'Por la mañana caminas '+a+' pasos y por la tarde '+b+'. ¿Cuántos pasos das en todo el día?'}; }},
+  {lv:1, f:function(){ var a=rnd(120,480), b=rnd(40,a-30); return {op:'-',a:a,b:b,emoji:'🚌',text:'Un viaje en autobús es de '+a+' km. Ya lleváis '+b+' km. ¿Cuántos kilómetros faltan?'}; }},
+  {lv:2, f:function(){ var a=rnd(2,9); return {op:'×',a:a,b:12,emoji:'🥚',text:'Compras '+a+' docenas de huevos. Una docena son 12. ¿Cuántos huevos tienes?'}; }},
+  {lv:2, f:function(){ var k=rnd(2,5), q=rnd(5,25); return {op:'÷',a:k*q,b:k,emoji:'🎁',text:'Repartes '+k*q+' € entre tus '+k+' nietos a partes iguales. ¿Cuánto le das a cada uno?'}; }},
+  {lv:2, f:function(){ var k=pick([2,3]), q=rnd(5,15); return {op:'÷',a:k*q,b:k,emoji:'💊',text:'Tienes '+k*q+' pastillas y tomas '+k+' al día. ¿Para cuántos días tienes?'}; }},
+  {lv:2, f:function(){ var a=rnd(3,8), b=rnd(14,30); return {op:'×',a:a,b:b,emoji:'🧶',text:'Para una bufanda tejes '+b+' vueltas cada día. ¿Cuántas vueltas tejes en '+a+' días?'}; }},
+  {lv:3, f:function(){ var a=rnd(3,8), b=rnd(12,35); return {op:'×',a:a,b:b,emoji:'🎭',text:'Una entrada del teatro cuesta '+b+' €. ¿Cuánto cuestan '+a+' entradas?'}; }},
+  {lv:3, f:function(){ var k=rnd(3,8), q=rnd(12,35); return {op:'÷',a:k*q,b:k,emoji:'🍽️',text:k+' amigos pagan una comida de '+k*q+' € a partes iguales. ¿Cuánto paga cada uno?'}; }},
+  {lv:3, f:function(){ var a=rnd(70,140), b=rnd(40,a-10); return {op:'-',a:a,b:b,emoji:'💡',text:'El recibo de la luz del mes pasado fue de '+a+' € y este mes es de '+b+' €. ¿Cuánto has ahorrado?'}; }},
+  {lv:3, f:function(){ var y=new Date().getFullYear(), b=y-rnd(3,40); return {op:'-',a:y,b:b,emoji:'🎂',text:'Tu nieta nació en el año '+b+'. ¿Cuántos años cumple en '+y+'?'}; }}
+];
+var WPA2 = [
+  function(){ var a=rnd(2,5), b=rnd(1,3), M=a*b<10?10:20; return {emoji:'🥖', text:'Compras '+a+' barras de pan a '+b+' € cada una y pagas con un billete de '+M+' €. ¿Cuánto te devuelven?',
+    parts:[{q:'¿Cuánto cuesta el pan?', op:'×', a:a, b:b}, {q:'Si pagas con '+M+' €, ¿cuánto te devuelven?', op:'-', a:M, b:a*b}]}; },
+  function(){ var a=rnd(2,12)*5, b=rnd(3,8), c=rnd(10,a*b-10); return {emoji:'🐷', text:'Ahorras '+a+' € cada mes durante '+b+' meses. Después gastas '+c+' € en un regalo. ¿Cuánto te queda?',
+    parts:[{q:'¿Cuánto ahorras en total?', op:'×', a:a, b:b}, {q:'Si gastas '+c+' €, ¿cuánto te queda?', op:'-', a:a*b, b:c}]}; },
+  function(){ var per=rnd(2,8)*10, p=pick([2,4]), q=pick([3,5,6,8]); return {emoji:'🥧', text:'Una receta para '+p+' personas lleva '+per*p+' gramos de harina. ¿Cuánta harina hace falta para '+q+' personas?',
+    parts:[{q:'¿Cuánta harina es para 1 persona?', op:'÷', a:per*p, b:p}, {q:'¿Y para '+q+' personas?', op:'×', a:per, b:q}]}; },
+  function(){ var c=pick([4,6,8]), qq=rnd(4,8), tot=c*qq, a=rnd(Math.ceil(tot/3), tot-6); return {emoji:'🍲', text:'A la comida del centro de mayores van '+a+' personas en autobús y '+(tot-a)+' en coche. Se sientan en mesas de '+c+'. ¿Cuántas mesas hacen falta?',
+    parts:[{q:'¿Cuántas personas van en total?', op:'+', a:a, b:tot-a}, {q:'Si hay mesas de '+c+', ¿cuántas hacen falta?', op:'÷', a:tot, b:c}]}; },
+  function(){ var a=rnd(2,5), b=rnd(2,4), c=rnd(2,6); return {emoji:'🍊', text:'Compras '+a+' kilos de naranjas a '+b+' € el kilo y una barra de pan de '+c+' €. ¿Cuánto pagas?',
+    parts:[{q:'¿Cuánto cuestan las naranjas?', op:'×', a:a, b:b}, {q:'Con el pan, ¿cuánto pagas en total?', op:'+', a:a*b, b:c}]}; }
+];
+
+var GEN = {posicional:genPlace, sumas:genAddSub, multi:genMult, division:genDiv, fracciones:genFrac, recta:genLine, problemas:genWord,
+  calculo:genCalc, memoria:genMem, dinero:genMoney, horas:genTime, series:genSeries};
 
 /* ---------- Mini lecciones (la primera vez que se entra en cada tema) ---------- */
 var INTROS = {
+  calculo: { setup:function(ws){ var q = eqBox(ws, '47 + 38'); return {q:q}; }, lines:[
+    {say:'El cálculo mental es hacer cuentas de cabeza, sin papel. Con unos trucos es más fácil de lo que parece.'},
+    {say:'Truco 1, descomponer: 47 + 38 es 40 + 30 = 70, y 7 + 8 = 15. Juntos, 85.', act:function(a){ a.q.textContent = '85'; }},
+    {say:'Truco 2, redondear: 38 es casi 40. 47 + 40 = 87, y quito los 2 que puse de más: 85. ¡Usa el truco que más te guste!'}]},
+  memoria: { setup:function(ws){ return memManip(ws, [5,8,2,7], 0); }, lines:[
+    {say:'Te enseñaré unos números durante unos segundos. Después se tapan y tienes que escribirlos.'},
+    {say:'Truco: agrúpalos de dos en dos, como un teléfono: 58, 27. Y dilos en voz alta.'},
+    {say:'Si se te olvidan, pide una pista y te los enseño otra vez. ¡Vamos a entrenar la memoria!', act:function(a){ a.hide(); }}]},
+  dinero: { setup:function(ws){ return ticketManip(ws, [{em:'🍞', name:'barra de pan', c:360}], 500); }, lines:[
+    {say:'Vamos a practicar con euros y céntimos, como en la compra.'},
+    {say:'Para saber el cambio, cuenta hacia arriba: de 3,60 € a 4 € van 40 céntimos, y de 4 € a 5 €, 1 euro. Te devuelven 1,40 €.'},
+    {say:'En el teclado tienes una coma para escribir los céntimos. ¡A comprar!'}]},
+  horas: { setup:function(ws){ return clockManip(ws, 3, 15); }, lines:[
+    {say:'En el reloj, la aguja corta marca las horas y la larga, la roja, los minutos.'},
+    {say:'Si la larga está en el 3, son «y cuarto»; en el 6, «y media»; y en el 9, «menos cuarto».'},
+    {say:'Aquí la corta está pasado el 3 y la larga en el 3: son las 3 y cuarto.'}]},
+  series: { setup:function(ws){ return seriesManip(ws, [2,4,6,8,'?']); }, lines:[
+    {say:'Una serie es una lista de números que sigue una regla secreta.'},
+    {say:'Mira qué pasa de un número al siguiente: aquí siempre se suma 2.', act:function(a){ a.showDiffs(['+2','+2','+2','+2']); }},
+    {say:'Así que el siguiente es el 10. ¡A descubrir reglas!', act:function(a){ a.fill(10); }}]},
+
   posicional: { setup:function(ws){ return blocksManip(ws, {cols:['c','d','u'], counts:{c:0,d:0,u:1}}); }, lines:[
     {say:'Te presento los bloques. Este cubito es <b>1 unidad</b>.'},
     {say:'Si juntamos 10 cubitos, formamos una barra: <b>1 decena = 10</b>.', act:function(a){ a.set({u:0,d:1}); a.highlight('d'); }},
@@ -1500,7 +2028,9 @@ var INTROS = {
    Motor de la lección
    ===================================================================== */
 var S = null, P = null, api = null, step = null, stepIdx = 0, hintIdx = 0, stepWrongs = 0, stepRevealed = false, busy = false;
-var PRAISE = ['¡Genial!','¡Muy bien!','¡Eso es!','¡Fantástico!','¡Lo has clavado!','¡Bravo!','¡Qué crack!','¡Perfecto!','¡Increíble!'];
+var PRAISE_K = ['¡Genial!','¡Muy bien!','¡Eso es!','¡Fantástico!','¡Lo has clavado!','¡Bravo!','¡Qué crack!','¡Perfecto!','¡Increíble!'];
+var PRAISE_A = ['¡Muy bien!','¡Excelente!','¡Perfecto!','¡Estupendo!','¡Así se hace!','¡Bravo!','¡Fenomenal!','¡Eso es!'];
+var PRAISE = PRAISE_K;
 var SHORT = ['¡Bien!','¡Correcto!','¡Eso es!','¡Muy bien!'];
 var TRYAGAIN = ['¡Inténtalo otra vez!','¡Tú puedes!','Piénsalo un poquito más.'];
 
@@ -1511,7 +2041,8 @@ function startSession(ids, total, daily){
   var queue = [];
   if (daily){ var all = shuffle(ids); for (var i = 0; i < total; i++) queue.push(all[i % all.length]); }
   else for (var j = 0; j < total; j++) queue.push(ids[0]);
-  S = {ids:ids, queue:queue, idx:0, total:total, stars:0, perfect:0, daily:daily, ups:[], pts:0, combo:0, badges:[]};
+  if (S && !S.reported) trackSession(false);
+  S = {ids:ids, queue:queue, idx:0, total:total, stars:0, perfect:0, daily:daily, ups:[], pts:0, combo:0, badges:[], t0:Date.now()};
   show('lesson');
   drawProgress();
   var first = queue[0];
@@ -1557,13 +2088,15 @@ function showStep(prefix){
 function renderInput(){
   var ans = $('#ans'); ans.innerHTML = '';
   if (step.input === 'keypad'){
-    var val = '';
+    var val = '', dec = !!step.decimal, maxLen = step.maxLen || 6;
     var disp = el('div', {class:'kp-display empty'}, '?');
-    var upd = function(){ disp.textContent = val || '?'; disp.classList.toggle('empty', !val); if (step.onInput) step.onInput(val, api); };
-    var kp = el('div', {class:'kp'});
-    '1234567890'.split('').forEach(function(d){ kp.append(el('button', {onclick:function(){ if (val.length < 6){ val = (val === '0' ? '' : val) + d; sfx.tap(); upd(); } }}, d)); });
+    var upd = function(){ disp.textContent = (val || '?') + (step.unit ? ' ' + step.unit : ''); disp.classList.toggle('empty', !val); if (step.onInput) step.onInput(val, api); };
+    var kp = el('div', {class:'kp' + (dec ? ' dec' : '')});
+    '1234567890'.split('').forEach(function(d){ kp.append(el('button', {onclick:function(){ if (val.length < maxLen){ val = (val === '0' ? '' : val) + d; sfx.tap(); upd(); } }}, d)); });
+    if (dec) kp.append(el('button', {'aria-label':'coma', onclick:function(){ if (val.indexOf(',') < 0 && val.length < maxLen - 1){ val = (val || '0') + ','; sfx.tap(); upd(); } }}, ','));
     kp.append(el('button', {class:'del', 'aria-label':'borrar', onclick:function(){ val = val.slice(0,-1); upd(); }}, '⌫'));
-    kp.append(el('button', {class:'go', 'aria-label':'comprobar', onclick:function(){ if (!val){ say('Escribe un número con el teclado.'); return; } var v = +val; var r = submit(v); if (r === false){ val = ''; upd(); } }}, '✓'));
+    kp.append(el('button', {class:'go', 'aria-label':'comprobar', onclick:function(){ if (!val || val === '0,'){ say('Escribe un número con el teclado.'); return; } var v = dec ? parseFloat(val.replace(',', '.')) : +val; var r = submit(v); if (r === false){ val = ''; upd(); } }}, '✓'));
+    upd();
     ans.append(disp, kp);
     ans._clear = function(){ val = ''; upd(); };
   } else if (step.input === 'choice'){
@@ -1613,7 +2146,7 @@ function reveal(){
   stepRevealed = true; P.revealed = true;
   if (step.solve) step.solve(api);
   if (step.input === 'choice'){ [].forEach.call($('#ans').querySelectorAll('.choice'), function(b){ if (b._v === step.answer) b.classList.add('reveal'); }); }
-  say(pick(['No pasa nada, ¡lo vemos juntas!','Tranquila, así se aprende.']) + ' ' + step.reveal);
+  say(pick(['No pasa nada, lo vemos paso a paso.','Con calma, así se aprende.']) + ' ' + step.reveal);
 }
 function onHintBtn(){
   if (!step || busy) return;
@@ -1660,16 +2193,18 @@ function endSession(){
   if (DB.days.indexOf(today()) < 0){ DB.days.push(today()); if (DB.days.length > 400) DB.days = DB.days.slice(-400); }
   var bonus = S.daily ? 25 : 15, cels = [];
   if (S.daily) DB.st.daily++;
+  DB.st.sessions++;
   if (S.stars === S.total * 3) DB.st.perfectSessions++;
   cels = cels.concat(addBrain(bonus));
   var nb = checkBadges(); S.badges = S.badges.concat(nb); cels = cels.concat(nb.map(badgeCel));
   save();
+  trackSession(true);
   show('summary');
   $('#sumBrain').textContent = '+' + S.pts + ' puntos de cerebro 🧠 (incluye ' + bonus + ' por terminar)';
   $('#sumBadges').textContent = S.badges.map(function(b){ return (b.crown ? '👑' : '') + b.em; }).join(' ');
   if (cels.length) setTimeout(function(){ celebrate(cels); }, 2500);
   var max = S.total * 3;
-  $('#sumTitle').textContent = S.stars >= max * .8 ? '¡Espectacular, ' + (DB.name || 'campeona') + '!' : S.stars >= max * .5 ? '¡Muy buen trabajo!' : '¡Bien hecho por no rendirte!';
+  $('#sumTitle').textContent = S.stars >= max * .8 ? '¡Espectacular, ' + (DB.name || '') + '!' : S.stars >= max * .5 ? '¡Muy buen trabajo!' : '¡Bien hecho por no rendirte!';
   $('#sumStars').textContent = '⭐ ' + S.stars + ' / ' + max;
   var t = 'Has hecho ' + S.total + ' ejercicios y ' + S.perfect + ' a la primera.';
   if (S.ups.length) t += ' Has subido de nivel: ' + S.ups.join(', ') + '.';
@@ -1713,15 +2248,16 @@ var BADGES = [
   {id:'dias3',    em:'📅', name:'Constancia',        desc:'Practica 3 días seguidos',           t:function(){ return dayStreak() >= 3; }},
   {id:'dias7',    em:'🗓️', name:'Semana completa',   desc:'Practica 7 días seguidos',           t:function(){ return dayStreak() >= 7; }},
   {id:'dias30',   em:'🌟', name:'Superconstancia',   desc:'Practica 30 días seguidos',          t:function(){ return dayStreak() >= 30; }},
-  {id:'arcoiris', em:'🌈', name:'Arcoíris',          desc:'Practica los 7 temas',               t:function(){ return TOPICS.every(function(x){ return DB.prog[x.id].solved > 0; }); }}
+  {id:'arcoiris', em:'🌈', name:'Arcoíris',          desc:'Practica todos tus temas',           t:function(){ return myTopics().every(function(x){ return DB.prog[x.id].solved > 0; }); }}
 ];
 TOPICS.forEach(function(t){
-  BADGES.push({id:'master-' + t.id, em:t.em, crown:true, name:'Corona de ' + t.name, desc:'Llega al nivel 5 de ' + t.name,
+  BADGES.push({id:'master-' + t.id, topic:t.id, em:t.em, crown:true, name:'Corona de ' + t.name, desc:'Llega al nivel 5 de ' + t.name,
     t:function(){ return DB.prog[t.id].level >= 5 && DB.prog[t.id].solved > 0; }});
 });
+function myBadges(){ var ids = myTopicIds(); return BADGES.filter(function(b){ return !b.topic || ids.indexOf(b.topic) >= 0; }); }
 function checkBadges(){
   var got = [];
-  BADGES.forEach(function(b){ if (!DB.badges[b.id] && b.t()){ DB.badges[b.id] = Date.now(); got.push(b); } });
+  myBadges().forEach(function(b){ if (!DB.badges[b.id] && b.t()){ DB.badges[b.id] = Date.now(); got.push(b); } });
   return got;
 }
 function badgeCel(b){ return {kind:'¡Premio nuevo!', em:(b.crown ? '👑' : '') + b.em, title:b.name, text:b.desc + '. ¡Lo has conseguido! Lo tienes guardado en «Mis premios».'}; }
@@ -1763,11 +2299,12 @@ function openPrizes(){
     rl.append(el('div', {class:'rank' + (i === cur ? ' cur' : i > cur ? ' locked' : '')}, el('span', {class:'e'}, i > cur ? '🔒' : r.em), el('b', {}, r.name), el('span', {class:'m'}, r.min + ' 🧠')));
   });
   var g = $('#badgesGrid'); g.innerHTML = ''; var n = 0;
-  BADGES.forEach(function(b){
+  var MB = myBadges();
+  MB.forEach(function(b){
     var got = !!DB.badges[b.id]; if (got) n++;
     g.append(el('div', {class:'badge ' + (got ? 'got' : 'locked')}, el('span', {class:'e'}, (b.crown ? '👑' : '') + b.em), el('b', {}, got ? b.name : '???'), el('small', {}, b.desc)));
   });
-  $('#badgesCount').textContent = n + ' de ' + BADGES.length;
+  $('#badgesCount').textContent = n + ' de ' + MB.length;
   $('#prizes').classList.remove('hidden');
 }
 
@@ -1787,7 +2324,7 @@ function toast(t){ var e = el('div', {class:'toast'}, t); document.body.append(e
 function drawHome(){
   $('#hello').textContent = '¡Hola' + (DB.name ? ', ' + DB.name : '') + '!';
   var ds = dayStreak();
-  $('#helloSub').textContent = ds ? 'Llevas ' + ds + ' ' + plural(ds,'día','días') + ' seguidos 🔥' : '¿Qué aprendemos hoy?';
+  $('#helloSub').textContent = ds ? 'Llevas ' + ds + ' ' + plural(ds,'día','días') + ' seguidos 🔥' : DB.mode === 'nino' ? '¿Qué aprendemos hoy?' : '¿Entrenamos la mente hoy?';
   $('#starPill').textContent = '⭐ ' + DB.stars;
   if (DB.day.k !== today()) DB.day = {k:today(), n:0, pts:0, goalDone:false};
   var ri = rankOf(DB.brain), r = RANKS[ri], nx = RANKS[ri + 1];
@@ -1798,12 +2335,12 @@ function drawHome(){
   $('#goalBar').style.width = Math.min(100, Math.round(DB.day.n / DB.goal * 100)) + '%';
   $('#goalTxt').textContent = DB.day.goalDone ? '🎯 ¡Meta de hoy conseguida! (' + DB.day.n + ' ejercicios)' : '🎯 Meta de hoy: ' + DB.day.n + ' de ' + DB.goal + ' ejercicios';
   var nb = Object.keys(DB.badges).length;
-  $('#prizesCount').textContent = '· ' + nb + ' de ' + BADGES.length;
+  $('#prizesCount').textContent = '· ' + nb + ' de ' + myBadges().length;
   var last = Object.keys(DB.badges).sort(function(a, b){ return DB.badges[b] - DB.badges[a]; }).slice(0, 3)
     .map(function(id){ var b = BADGES.find(function(x){ return x.id === id; }); return b ? (b.crown ? '👑' : '') + b.em : ''; });
   $('#prizesLast').textContent = last.join('');
   var g = $('#topics'); g.innerHTML = '';
-  TOPICS.forEach(function(t){
+  myTopics().forEach(function(t){
     var pr = DB.prog[t.id], dots = el('span', {style:'display:flex;gap:3px'});
     for (var i = 1; i <= 5; i++) dots.append(el('i', {class:'dot' + (i <= pr.level ? ' on' : '')}));
     g.append(el('button', {class:'topic', onclick:function(){ sfx.tap(); startSession([t.id], 6, false); }},
@@ -1813,7 +2350,9 @@ function drawHome(){
       el('span', {class:'st'}, '⭐ ' + pr.stars)));
   });
   $('#dailySub').textContent = (DB.days.indexOf(today()) >= 0 ? '¡Hecho hoy! ¿Otro? · ' : '') + '8 ejercicios variados';
-  $('#homeFoot').textContent = 'Consejo: unos 15 minutos al día valen más que una hora una vez a la semana.';
+  $('#homeFoot').textContent = DB.mode === 'mayor' ? 'Practicar un poco cada día ayuda a mantener la mente activa. Ve a tu ritmo: aquí no hay prisa.'
+    : DB.mode === 'adulto' ? 'Unos minutos al día de cálculo y memoria mantienen la mente en forma.'
+    : 'Consejo: unos 15 minutos al día valen más que una hora una vez a la semana.';
   show('home');
 }
 
@@ -1822,13 +2361,15 @@ function drawHome(){
    ===================================================================== */
 var gateAns = 0;
 function openParents(){
+  if (DB.mode !== 'nino'){ $('#gate').classList.add('hidden'); $('#pzone').classList.remove('hidden'); fillParents(); $('#parents').classList.remove('hidden'); return; }
   var a = rnd(12,19), b = rnd(12,19); gateAns = a*b;
   $('#gateQ').textContent = a + ' × ' + b;
   $('#gateIn').value = ''; $('#gate').classList.remove('hidden'); $('#pzone').classList.add('hidden');
   $('#parents').classList.remove('hidden');
 }
 function fillParents(){
-  $('#pName').value = DB.name; $('#pVoice').checked = DB.voice; $('#pRate').value = DB.rate; $('#pPitch').value = DB.pitch; $('#pKey').value = DB.apiKey || '';
+  $('#pName').value = DB.name; $('#pAge').value = DB.age; $('#pAgeNote').textContent = ''; $('#pVoice').checked = DB.voice; $('#pRate').value = DB.rate; $('#pPitch').value = DB.pitch; $('#pKey').value = ROOT.apiKey || '';
+  $('#pDelete').classList.toggle('hidden', ROOT.order.length < 2);
   $('#pTestOut').textContent = ''; $('#pGoal').value = String(DB.goal);
   loadVoices();
   var vs = spanishVoices(), sel = $('#pVoiceSel'); sel.innerHTML = '';
@@ -1839,33 +2380,42 @@ function fillParents(){
   $('#voiceNote').textContent = !('speechSynthesis' in window) ? 'Este navegador no puede leer en voz alta. El texto se ve igualmente.'
     : v ? 'Ahora suena: ' + v.name + '. Sube el tono para una voz más dulce y prueba otras voces de la lista con «Probar voz». Si la tablet solo tiene voces de hombre, en Ajustes → Accesibilidad → Texto a voz puedes instalar o elegir otra voz en español.' : 'No se ha encontrado una voz en español. En tablets Huawei: Ajustes → Accesibilidad → Texto a voz y elige un motor con español (o instala uno desde AppGallery). El texto se ve igualmente.';
   var g = $('#pLevels'); g.innerHTML = '';
-  TOPICS.forEach(function(t){
+  myTopics().forEach(function(t){
     var s = el('select', {id:'lv-' + t.id});
     for (var i = 1; i <= 5; i++){ var o = el('option', {value:i}, 'Nivel ' + i); if (i === DB.prog[t.id].level) o.selected = true; s.append(o); }
     g.append(el('span', {}, t.em + ' ' + t.name), s);
   });
-  $('#pStats').innerHTML = TOPICS.map(function(t){ var p = DB.prog[t.id]; return t.em + ' ' + t.name + ': ' + p.solved + ' ejercicios, ⭐ ' + p.stars; }).join('<br>') + '<br>🧠 Puntos de cerebro: ' + DB.brain + ' (' + RANKS[rankOf(DB.brain)].name + ') · 🏆 Premios: ' + Object.keys(DB.badges).length + ' de ' + BADGES.length + '<br>Días practicados: ' + DB.days.length + ' · Racha actual: ' + dayStreak();
+  $('#pStats').innerHTML = myTopics().map(function(t){ var p = DB.prog[t.id]; return t.em + ' ' + t.name + ': ' + p.solved + ' ejercicios, ⭐ ' + p.stars; }).join('<br>') + '<br>🧠 Puntos de cerebro: ' + DB.brain + ' (' + RANKS[rankOf(DB.brain)].name + ') · 🏆 Premios: ' + Object.keys(DB.badges).length + ' de ' + myBadges().length + '<br>Días practicados: ' + DB.days.length + ' · Racha actual: ' + dayStreak();
 }
 
 /* =====================================================================
    Pregúntale a Lumi (IA opcional con Claude)
    ===================================================================== */
 var chatLog = [], AnthropicLib = null;
-var LUMI_SYSTEM = [
-  'Eres Lumi, una tutora de matemáticas cariñosa y paciente para una niña de 9 años (4º de primaria, España).',
-  'Habla en español de España, con frases cortas y sencillas (máximo 3 frases por respuesta), cálidas y alegres. Puedes usar algún emoji.',
-  'Método socrático: NUNCA des la solución final del ejercicio que está haciendo. Haz una pregunta que la ayude a dar el siguiente pasito, o propón una forma de verlo (dibujar, contar, repartir, partir en trozos).',
-  'Si pregunta por un concepto (qué es una fracción, para qué sirve multiplicar…), explícalo con un ejemplo cotidiano y concreto.',
-  'Elogia el esfuerzo y la forma de pensar, no la inteligencia. Equivocarse es normal y bueno para aprender.',
-  'Si te habla de algo que no sea matemáticas, responde con cariño en una frase y vuelve al ejercicio. No pidas ni guardes datos personales.',
-  'No uses LaTeX ni markdown: escribe las cuentas con símbolos normales (×, ÷, +, −) y las fracciones como 3/4.'
-].join('\n');
+function systemPrompt(){
+  var a = DB ? DB.age : 9, m = DB ? DB.mode : 'nino', L;
+  if (m === 'nino') L = [
+    'Eres Lumi, una tutora de matemáticas cariñosa y paciente para alguien de ' + a + ' años (primaria, España).',
+    'Habla en español de España, con frases cortas y sencillas (máximo 3 frases por respuesta), cálidas y alegres. Puedes usar algún emoji.',
+    'Elogia el esfuerzo y la forma de pensar, no la inteligencia. Equivocarse es normal y bueno para aprender.'];
+  else L = [
+    'Eres Lumi, una compañera de matemáticas y de entrenamiento mental para una persona de ' + a + ' años.',
+    'Trátala con respeto y cercanía, como a una persona adulta: nunca la infantilices. Habla en español de España, con frases claras y cortas (máximo 3 por respuesta), con calma y buen humor.',
+    m === 'mayor' ? 'El objetivo es mantener la mente activa y disfrutar, sin prisa. Usa ejemplos de la vida diaria (la compra, recetas, horarios). No hagas afirmaciones médicas.' : 'Usa ejemplos de la vida diaria (compras, recetas, horarios, viajes).'];
+  return L.concat([
+    'Método socrático: NUNCA des la solución final del ejercicio que está haciendo. Haz una pregunta que ayude a dar el siguiente paso, o propón una forma de verlo (dibujar, contar, repartir, partir en trozos).',
+    'Si pregunta por un concepto, explícalo con un ejemplo cotidiano y concreto.',
+    'Si habla de algo que no sea matemáticas o el ejercicio, responde con amabilidad en una frase y vuelve al ejercicio. No pidas ni guardes datos personales.',
+    'No uses LaTeX ni markdown: escribe las cuentas con símbolos normales (×, ÷, +, −) y las fracciones como 3/4.'
+  ]).join('\n');
+}
+function keyHelp(){ return DB && DB.mode === 'nino' ? 'un adulto tiene que activarlo en Ajustes ⚙️' : 'hay que activarlo en Ajustes ⚙️ con una clave'; }
 function addMsg(who, text){ var m = el('div', {class:'msg ' + who}, text); $('#msgs').append(m); $('#msgs').scrollTop = 1e6; return m; }
 function openChat(){
   $('#chatBox').classList.remove('hidden');
   if (!$('#msgs').children.length){
-    addMsg('lumi', DB.apiKey ? '¡Hola! Pregúntame lo que quieras sobre este ejercicio o sobre mates. 😊'
-      : '¡Hola! Para charlar conmigo libremente, un adulto tiene que activarlo en la Zona de padres ⚙️. Mientras tanto, pulsa 💡 Pista y te ayudo paso a paso.');
+    addMsg('lumi', ROOT.apiKey ? '¡Hola! Pregúntame lo que quieras sobre este ejercicio o sobre mates. 😊'
+      : '¡Hola! Para charlar conmigo libremente, ' + keyHelp() + '. Mientras tanto, pulsa 💡 Pista y te ayudo paso a paso.');
   }
   setTimeout(function(){ $('#chatIn').focus(); }, 100);
 }
@@ -1876,7 +2426,7 @@ function currentContext(){
 }
 async function getClient(){
   if (!AnthropicLib){ var mod = await import('https://esm.sh/@anthropic-ai/sdk'); AnthropicLib = mod.default || mod.Anthropic; }
-  return new AnthropicLib({apiKey: DB.apiKey, dangerouslyAllowBrowser: true});
+  return new AnthropicLib({apiKey: ROOT.apiKey, dangerouslyAllowBrowser: true});
 }
 async function askClaude(messages, system){
   var client = await getClient();
@@ -1894,7 +2444,7 @@ async function askClaude(messages, system){
 }
 function errText(e){
   var A = AnthropicLib;
-  if (A && e instanceof A.AuthenticationError) return 'La clave no funciona. Pide a un adulto que la revise en la Zona de padres.';
+  if (A && e instanceof A.AuthenticationError) return 'La clave no funciona. Revísala en Ajustes ⚙️.';
   if (A && e instanceof A.RateLimitError) return 'Estoy un poco saturada. Espera un momento y vuelve a preguntar.';
   if (A && e instanceof A.APIConnectionError) return 'No tengo conexión a internet ahora mismo. ¡Prueba con 💡 Pista!';
   if (A && e instanceof A.APIError) return 'Ha habido un problema (' + (e.status || 'error') + '). Prueba otra vez.';
@@ -1903,12 +2453,12 @@ function errText(e){
 async function sendChat(){
   var q = $('#chatIn').value.trim(); if (!q) return;
   $('#chatIn').value = ''; addMsg('me', q);
-  if (!DB.apiKey){ addMsg('lumi', 'Para responder a preguntas libres necesito que un adulto me active en la Zona de padres ⚙️. ¡Pero puedes pulsar 💡 Pista!'); return; }
+  if (!ROOT.apiKey){ addMsg('lumi', 'Para responder a preguntas libres, ' + keyHelp() + '. ¡Pero puedes pulsar 💡 Pista!'); return; }
   chatLog.push({role:'user', content:q});
   var m = addMsg('lumi', 'Pensando… 🤔');
   try {
     var hist = chatLog.slice(-12); while (hist.length && hist[0].role !== 'user') hist.shift();
-    var t = await askClaude(hist, LUMI_SYSTEM + '\n\nContexto: ' + currentContext());
+    var t = await askClaude(hist, systemPrompt() + '\n\nContexto: ' + currentContext());
     m.textContent = t; chatLog.push({role:'assistant', content:t}); speak(t);
   } catch(e){ chatLog.pop(); m.textContent = errText(e); }
 }
@@ -1927,11 +2477,88 @@ function setupMic(){
 }
 
 /* =====================================================================
+   Seguimiento (opcional): si se entra con el link del organizador (?g=...),
+   el progreso se envía a su hoja de Google. Sin ese link no se envía nada.
+   ===================================================================== */
+function b64d(s){ s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return decodeURIComponent(escape(atob(s))); }
+function readShareLink(){
+  try {
+    var g = new URLSearchParams(location.search).get('g');
+    if (!g) return;
+    var u = b64d(g);
+    if (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u) || /^http:\/\/localhost:\d+\/[\w\/-]*$/.test(u)){ ROOT.sync = u; save(); }
+    history.replaceState(null, '', location.pathname);
+  } catch(e){}
+}
+function snapshot(){
+  var lv = {}, sv = {};
+  myTopicIds().forEach(function(id){ lv[id] = DB.prog[id].level; sv[id] = DB.prog[id].solved; });
+  return {brain:DB.brain, rank:RANKS[rankOf(DB.brain)].name, stars:DB.stars, solved:DB.st.solved, perfect:DB.st.perfect, sessions:DB.st.sessions, opens:DB.st.opens,
+    days:DB.days.length, streak:dayStreak(), badges:Object.keys(DB.badges).length, goal:DB.goal, levels:lv, solvedBy:sv, mode:DB.mode};
+}
+function track(type, extra){
+  if (!ROOT.sync || !DB) return;
+  var ev = Object.assign({type:type, ts:Date.now(), dev:ROOT.dev, uid:DB.uid, name:DB.name, age:DB.age, snap:snapshot()}, extra || {});
+  ROOT.outbox.push(ev); if (ROOT.outbox.length > 300) ROOT.outbox = ROOT.outbox.slice(-300);
+  save(); flush();
+}
+function trackOpen(){
+  if (!DB) return;
+  var now = Date.now();
+  if (DB.lastOpen && now - DB.lastOpen < 30 * 60 * 1000) return;
+  DB.lastOpen = now; DB.st.opens++; save(); track('uso');
+}
+function trackSession(done){
+  if (!S || S.reported || !DB) return;
+  var n = done ? S.total : S.idx; if (!n) return;
+  S.reported = true;
+  track('sesion', {topic:S.daily ? 'reto' : S.ids[0], topicName:S.daily ? 'Reto del día' : TOPIC[S.ids[0]].name, n:n, stars:S.stars, pts:S.pts,
+    min:Math.max(1, Math.round((Date.now() - S.t0) / 60000)), done:!!done});
+}
+var flushing = false;
+async function flush(){
+  if (flushing || !ROOT.sync || !ROOT.outbox.length || navigator.onLine === false) return;
+  flushing = true;
+  try {
+    while (ROOT.outbox.length){
+      var batch = ROOT.outbox.slice(0, 40);
+      await fetch(ROOT.sync, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({events:batch})});
+      ROOT.outbox.splice(0, batch.length); save();
+    }
+  } catch(e){} finally { flushing = false; }
+}
+window.addEventListener('online', function(){ flush(); });
+
+/* =====================================================================
    Arranque y eventos
    ===================================================================== */
+function obMode(){
+  var a = +$('#ageIn').value;
+  $('#obNote').textContent = !a ? '' : a < 4 || a > 110 ? 'Escribe una edad entre 4 y 110.' : modeOf(a) === 'nino' ? '🧒 Ejercicios de primaria adaptados a tu edad.' : modeOf(a) === 'adulto' ? '🧑 Entrenamiento mental: cálculo, memoria, dinero, horas y series.' : '🧓 Entrenamiento mental con letra grande, voz tranquila y sin prisas.';
+}
+function openOnboard(){
+  $('#nameIn').value = ''; $('#ageIn').value = ''; obMode();
+  $('#obClose').classList.toggle('hidden', !ROOT.order.length);
+  $('#obShare').classList.toggle('hidden', !ROOT.sync);
+  $('#who').classList.add('hidden'); $('#onboard').classList.remove('hidden');
+}
+function openWho(){
+  var l = $('#whoList'); l.innerHTML = '';
+  ROOT.order.forEach(function(id){
+    var p = ROOT.profiles[id];
+    l.append(el('button', {class:'who-btn', onclick:function(){ sfx.tap(); useProfile(id); $('#who').classList.add('hidden'); drawHome(); trackOpen(); speak('¡Hola, ' + p.name + '!'); }},
+      el('span', {class:'e'}, profileEmoji(p)), el('span', {}, p.name || 'Sin nombre', el('small', {}, p.age + ' años · ' + RANKS[rankOf(p.brain)].em + ' ' + RANKS[rankOf(p.brain)].name))));
+  });
+  $('#who').classList.remove('hidden');
+}
+function welcomeText(){
+  return DB.mode === 'nino' ? '¡Hola, ' + DB.name + '! Elige un tema o empieza con el reto del día.'
+    : '¡Hola, ' + DB.name + '! Vamos a entrenar la mente con cálculo, memoria, dinero, horas y series. Empezamos suave y la dificultad se adapta a ti.';
+}
 function init(){
-  load();
-  $('#backBtn').addEventListener('click', function(){ try { speechSynthesis.cancel(); } catch(e){} drawHome(); });
+  loadRoot();
+
+  $('#backBtn').addEventListener('click', function(){ try { speechSynthesis.cancel(); } catch(e){} trackSession(false); drawHome(); });
   $('#sayAgain').addEventListener('click', function(){ speak(lastSaid); });
   $('#hintBtn').addEventListener('click', onHintBtn);
   $('#askBtn').addEventListener('click', openChat);
@@ -1951,29 +2578,50 @@ function init(){
   $('#celOk').addEventListener('click', function(){ sfx.tap(); nextCel(); });
   $('#gateOk').addEventListener('click', function(){ if (+$('#gateIn').value === gateAns){ $('#gate').classList.add('hidden'); $('#pzone').classList.remove('hidden'); fillParents(); } else { $('#gateIn').value = ''; $('#gateIn').placeholder = 'No es correcto'; } });
   $('#pSave').addEventListener('click', function(){
-    DB.name = $('#pName').value.trim(); DB.voice = $('#pVoice').checked; DB.rate = +$('#pRate').value; DB.pitch = +$('#pPitch').value; DB.voiceName = $('#pVoiceSel').value; DB.apiKey = $('#pKey').value.trim(); DB.goal = +$('#pGoal').value || 10;
-    TOPICS.forEach(function(t){ var nv = +$('#lv-' + t.id).value; if (nv !== DB.prog[t.id].level){ DB.prog[t.id].level = nv; DB.prog[t.id].streak = 0; DB.prog[t.id].struggle = 0; } });
+    var ag = Math.round(+$('#pAge').value); if (ag >= 4 && ag <= 110 && ag !== DB.age){ DB.age = ag; DB.mode = modeOf(ag); applyMode(); }
+    DB.name = $('#pName').value.trim() || DB.name; DB.voice = $('#pVoice').checked; DB.rate = +$('#pRate').value; DB.pitch = +$('#pPitch').value; DB.voiceName = $('#pVoiceSel').value; ROOT.apiKey = $('#pKey').value.trim(); DB.goal = +$('#pGoal').value || 10;
+    myTopics().forEach(function(t){ var nv = +$('#lv-' + t.id).value; if (nv !== DB.prog[t.id].level){ DB.prog[t.id].level = nv; DB.prog[t.id].streak = 0; DB.prog[t.id].struggle = 0; } });
     save(); $('#parents').classList.add('hidden'); drawHome();
   });
   $('#pTest').addEventListener('click', async function(){
     var key = $('#pKey').value.trim(); if (!key){ $('#pTestOut').textContent = 'Escribe una clave.'; return; }
-    var old = DB.apiKey; DB.apiKey = key; $('#pTestOut').textContent = 'Probando…';
-    try { var t = await askClaude([{role:'user', content:'Saluda en una frase corta.'}], LUMI_SYSTEM); $('#pTestOut').textContent = '✅ Funciona: «' + t + '»'; }
+    var old = ROOT.apiKey; ROOT.apiKey = key; $('#pTestOut').textContent = 'Probando…';
+    try { var t = await askClaude([{role:'user', content:'Saluda en una frase corta.'}], systemPrompt()); $('#pTestOut').textContent = '✅ Funciona: «' + t + '»'; }
     catch(e){ $('#pTestOut').textContent = '❌ ' + errText(e); }
-    DB.apiKey = old;
+    ROOT.apiKey = old;
   });
-  $('#pReset').addEventListener('click', function(){ if (confirm('¿Seguro que quieres borrar todo el progreso?')){ var k = DB.apiKey, nm = DB.name; localStorage.removeItem(STORE); load(); DB.apiKey = k; DB.name = nm; save(); $('#nameIn').value = nm; $('#parents').classList.add('hidden'); $('#onboard').classList.remove('hidden'); } });
+  $('#pReset').addEventListener('click', function(){ if (confirm('¿Seguro que quieres borrar todo el progreso de ' + DB.name + '?')){
+    ROOT.profiles[ROOT.current] = normalize({name:DB.name, age:DB.age, uid:DB.uid, voice:DB.voice, rate:DB.rate, pitch:DB.pitch, voiceName:DB.voiceName, goal:DB.goal});
+    useProfile(ROOT.current); $('#parents').classList.add('hidden'); drawHome(); } });
+  $('#pDelete').addEventListener('click', function(){ if (ROOT.order.length > 1 && confirm('¿Eliminar a ' + DB.name + ' y todo su progreso de este dispositivo?')){
+    delete ROOT.profiles[ROOT.current]; ROOT.order = ROOT.order.filter(function(id){ return ROOT.profiles[id]; });
+    useProfile(ROOT.order[0]); $('#parents').classList.add('hidden'); drawHome(); openWho(); } });
+  $('#pAgeLv').addEventListener('click', function(){
+    var ag = Math.round(+$('#pAge').value); if (!(ag >= 4 && ag <= 110)){ $('#pAgeNote').textContent = 'Escribe una edad entre 4 y 110.'; return; }
+    DB.age = ag; DB.mode = modeOf(ag); TOPICS.forEach(function(t){ var p = DB.prog[t.id]; p.level = startLevel(t.id, ag); p.streak = 0; p.struggle = 0; });
+    save(); applyMode(); fillParents(); $('#pAgeNote').textContent = '✅ Niveles ajustados para ' + ag + ' años.'; });
+  $('#whoBtn').addEventListener('click', openWho);
+  $('#whoAdd').addEventListener('click', openOnboard);
+  $('#ageIn').addEventListener('input', obMode);
+  $('#ageMinus').addEventListener('click', function(){ var a = +$('#ageIn').value || 10; $('#ageIn').value = Math.max(4, a - 1); obMode(); });
+  $('#agePlus').addEventListener('click', function(){ var a = +$('#ageIn').value || 8; $('#ageIn').value = Math.min(110, a + 1); obMode(); });
   [].forEach.call(document.querySelectorAll('[data-close]'), function(b){ b.addEventListener('click', function(){ b.closest('.overlay').classList.add('hidden'); }); });
   $('#chatSend').addEventListener('click', sendChat);
   $('#chatIn').addEventListener('keydown', function(e){ if (e.key === 'Enter') sendChat(); });
   $('#startBtn').addEventListener('click', function(){
-    DB.name = $('#nameIn').value.trim(); DB.welcomed = true; save();
+    var nm = $('#nameIn').value.trim(), ag = Math.round(+$('#ageIn').value);
+    if (!nm){ $('#obNote').textContent = 'Escribe tu nombre.'; $('#nameIn').focus(); return; }
+    if (!(ag >= 4 && ag <= 110)){ $('#obNote').textContent = 'Escribe tu edad (entre 4 y 110).'; $('#ageIn').focus(); return; }
+    addProfile(nm, ag);
     $('#onboard').classList.add('hidden'); drawHome();
-    speak('¡Hola' + (DB.name ? ' ' + DB.name : '') + '! Elige un tema o empieza con el reto del día.');
+    track('alta'); trackOpen();
+    speak(welcomeText());
   });
   setupMic();
-  drawHome();
-  if (!DB.welcomed && !DB.days.length){ $('#nameIn').value = DB.name || ''; $('#obTitle').textContent = DB.name ? '¡Hola, ' + DB.name + '! Soy Lumi ✨' : '¡Hola! Soy Lumi ✨'; $('#onboard').classList.remove('hidden'); }
+  readShareLink();
+  if (!ROOT.order.length){ openOnboard(); }
+  else { useProfile(ROOT.current); drawHome(); if (ROOT.order.length > 1) openWho(); else trackOpen(); }
+  flush();
   if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(function(){});
 }
 document.addEventListener('DOMContentLoaded', init);
